@@ -1,0 +1,17 @@
+{% extends "HeadFoot.html" %}
+
+{% block title %}
+  Character Connector - Search
+{% endblock %}
+
+{% block content %}
+<div class="match_searcher">
+    <form action="results/">
+      <label for="role1">Search for the first role.</label>
+      <input type="text" id="role1" name="role1"><br>
+      <label type="role2">Search for the second role.</label>
+      <input type="text" id="role2" name="role2"><br>
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+{% endblock %}

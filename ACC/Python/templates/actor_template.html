@@ -1,0 +1,82 @@
+{% extends "HeadFoot.html" %}
+
+{% block title %}
+  {{base_name}}({{level}})
+{% endblock %}
+
+{% block content %}
+    
+    
+      <div class="character-nav">
+        <ul>
+          <li><a>Web View (Steve Blum)</a></li>
+          <li>{{blurb_editor_link}}</li>
+          <li><a>Add Photos</a></li>
+        </ul>
+        {{hub_sigils}}
+        <div class="hub-sigils">
+          </div>
+        <div class="number-of-links">
+          <form action="{{url_for('roles')}}" method="GET">
+          <label for="level">How many layers deep?</label>
+          <input type="number" id="level" name="level" min="1" step=".5" value="1">
+          <input type="text" style="display:none" name="baseID" value="{{baseID}}">
+          <input type="text" style="display:none" name="base_is_actor" value={{base_is_actor}}>
+          <input type="submit">
+        </form>
+        </div>
+      </div>
+      <div class="actor-content">
+        {%for bio in actor_bios%}
+        
+        <div class="bio">
+          #TODO make a little box for the gallery and captions
+          
+          {%for image in bio.gallery%}
+          <img alt="{{image.file}}" src="{{url_for('static', filename=image.file)}}"/>
+          <p class='actor-img-caption'>{{image.caption}}</p>
+          {%endfor%}
+          <a class="editor-link" href="{{url_for('editor')}}?editorID={{bio.id}}&editorType=actor&name={{bio.name}}" title="edit this character"> <img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
+          <p>{{bio.bio}}</p>
+        </div>
+        {%endfor%}
+      </div>
+      <div class="roles-section">
+        
+        <h1>
+          {{base_name}}
+        </h1>
+        
+        {%for mr in displayed_MRs%}
+        <div class="meta-role-div">
+          <h2>
+          {{mr.name}} <a href="{{url_for('editor')}}?editorID={{mr.id}}&editorType=mr&name={{mr.name}}" title="edit this character"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
+          </h2>
+          <p>
+            {{mr.description}}
+          </p>
+          {%for role in mr.roles%}
+          <div class="role-div">
+            
+            <h2>
+              {{role.name}} <a href="{{url_for('editor')}}?editorID={{role.id}}&editorType=role&name={{role.name}}" title="edit this role"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
+            </h2>
+              #TODO make a gallery container box thing
+            {%for image in role.gallery %}
+            <img alt="{{image.file}}" src="{{url_for('static', filename=image.file)}}" />
+            <p class='role-img-caption'>{{image.caption}}</p>
+            {%endfor%}
+            <p class='role-description'>
+              {{role.description}}
+            </p>
+          </div>
+          {%endfor%}
+        </div>
+        {%endfor%}
+      </div>
+      
+      
+     
+    
+    
+{% endblock %}

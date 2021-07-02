@@ -1,0 +1,49 @@
+{%extends "HeadFoot.html" %}
+
+{% block title %}
+  Blurb Editor: {{name}}
+{% endblock %}
+
+{%block content%}
+<a style="float:left" href="{{goBackUrl}}">&lt&lt Go back</a>
+      <div class="blurb-editor">
+        <h2>
+          Edit {{name}}:
+        </h2>
+        <form method="POST">
+          <label for="description">{{editorType.capitalize()}} Bio</label><br>
+          <textarea id="description" name="description">{{description}}</textarea>
+          <input type="text" style="display:none" name="editorID" value="{{editorID}}">
+          <input type="text" style="display:none" name="goBackUrl" value="{{goBackUrl}}">
+          <input type="text" style="display:none" name="type" value="{{editorType}}">
+          <input type="text" style="display:none" name="name" value="{{name}}">
+          <input type="submit">
+        </form>
+        <h2>Version History</h2>
+        {%for version in history%}
+        <form method="POST">
+          <label for="description">{{version.description}}</label>
+          <input type="text" style="display:none" name="editorID" value="{{editorID}}">
+          <input type="text" style="display:none" name="goBackUrl" value="{{goBackUrl}}">
+          <input type="text" style="display:none" name="type" value="{{editorType}}">
+          <input type="text" style="display:none" name="name" value="{{name}}">
+          <input type="text" style="display: none" name="description" value="{{version.description}}">
+          <label>{{version.timestamp}}</label>
+          <input type="submit">
+        </form>
+        {%endfor%}
+        {% if editorType == 'actor' or editorType == 'role' %}
+        <form method="POST" enctype="multipart/form-data" accept="image/*" action="{{url_for('submit_image')}}">
+          <label for="file">Image</label>
+          <input type="file"  name="file"><br>
+          <input type="text" name="caption" value="auto-generated"><br>
+          <input type="text" style="display:none" name="goBackUrlImg" value="{{goBackUrl}}">
+          <input type="text" style="display:none" name="typeImg" value="{{editorType}}">
+          <input type="text" style="display:none" name="IDImg" value="{{editorID}}">
+          <input type="submit" value="Submit">
+        </form>
+        {% endif %}
+        
+      </div>
+      
+{%endblock%}
