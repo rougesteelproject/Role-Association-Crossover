@@ -1,20 +1,3 @@
-# create a database connection#
-import sqlite3
-database = r'C:/MAMP/db/sqllite/rac.db'
-
-#create a connection to the db with address db_file
-def create_connection(db_file):
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file, check_same_thread=False)
-    except sqlite3.Error as e:
-        print(e)
-
-    return conn
-
-conn = create_connection(database)
-cursor = conn.cursor()
-
 #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
 # You can revert an mr change by ID without changing the ID's
 
