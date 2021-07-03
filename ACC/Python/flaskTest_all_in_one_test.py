@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
 
+#TODO replace exceptions with traceback.print_exc()
+
 import distutils
 import distutils.util
 

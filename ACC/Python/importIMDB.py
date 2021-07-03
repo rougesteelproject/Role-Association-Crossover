@@ -23,7 +23,7 @@ cur.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INT PRIMARY KEY NOT NULL
 cur.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role INT, actor INT, caption TEXT)''')
 # Create table if it doesn't exist
 cur.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT, is_biggest INT )''')
-cur.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, parent_actor INT, parent_meta INT, actor_swap_id INT )''')
+cur.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, parent_actor INT, parent_meta INT, actor_swap_id INT, first_parent_meta INT )''')
 #TODO roles need a bio section with powers and relationships
 conn.commit()
 
@@ -39,7 +39,7 @@ def create_actor(db_actor):
 #create a new role in the role table
 def create_role(db_role):
     #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
-    sql = '''INSERT OR IGNORE INTO roles(id, name, description, parent_actor, parent_meta, actor_swap_id) VALUES (?,?,?,?,?,?) '''
+    sql = '''INSERT OR IGNORE INTO roles(id, name, description, parent_actor, parent_meta, actor_swap_id, first_parent_meta) VALUES (?,?,?,?,?,?,?) '''
     # Create table if it doesn't exist
     cur.execute(sql, db_role)
     conn.commit()
@@ -81,7 +81,7 @@ def loopMovies(actor):
                                 mr_id = 1
                             #Select Max() gets the highest in that column
 
-                            db_role = (role_id, role_name, 'auto-generated', actor_id, mr_id, '0')
+                            db_role = (role_id, role_name, 'auto-generated', actor_id, mr_id, '0', mr_id,)
 
                             sql = '''INSERT OR IGNORE INTO meta_roles(id, name, description, is_biggest) VALUES (?,?,?,?) '''
                             cur.execute(sql,(mr_id, character_name, 'auto-generated', 0,))
