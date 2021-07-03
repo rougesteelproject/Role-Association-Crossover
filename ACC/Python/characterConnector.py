@@ -11,16 +11,10 @@ def changeMR(role_id, mr_id):
     conn.commit()
 
 def resetMR(roleID1):
-    #remove mr from a role
-    get_parent_meta = "SELECT parent_meta FROM roles WHERE id=?"
-    cursor.execute(get_parent_meta, (roleID1,))
-    meta_id = cursor.fetchall()
-    #print (meta_id)
     sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
     cursor.execute(sql, (roleID1,))
     conn.commit()
-    #orphanedMR(meta_id)
-    #auto_generate()
+
     
 def mergeMR(metaID1, metaID2):
     metaID1 = str(metaID1)
@@ -64,7 +58,7 @@ def removeActorSwap(roleID1):
     cursor.execute(sql, (roleID1,))
     actor_swap_data = cursor.fetchall()[0]
     actor_swap_id = actor_swap_data[0]
-    as_parent = actor_swap_data[1]
+    actor_swap_parent = actor_swap_data[1]
     
     #get the id  so we can check if we orphaned an actor-swap
     
@@ -77,7 +71,7 @@ def removeActorSwap(roleID1):
     #This will set any orphaned (one-child) actor_swaps to 0
     if actor_swap_id != 0:
         sql = "SELECT id FROM roles WHERE actor_swap_id=? AND parent_meta=?"
-        cursor.execute(sql, (actor_swap_id, as_parent))
+        cursor.execute(sql, (actor_swap_id, actor_swap_parent))
         result = cursor.fetchall()
         if len(result) < 2 and len(result) != 0:
             swap_id_to_clear = result[0][0]
