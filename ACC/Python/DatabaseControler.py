@@ -18,6 +18,9 @@ class DatabaseControler():
         update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
         self._cursor.execute(update_sql, column_values + where_values)
     
+    def select(self):
+        pass
+
     def commit(self):
         self._connection.commit()
 
