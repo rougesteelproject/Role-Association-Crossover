@@ -15,6 +15,14 @@ class DatabaseControler():
         except sqlite3.Error:
             traceback.print_exc()
 
+    def create_db_if_not_exists(self):
+        # Create table if it doesn't exist
+        self._cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, is_biggest INT )''')
+        self._cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role INT, actor INT, caption TEXT)''')
+        self._cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT, is_biggest INT )''')
+        self._cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, parent_actor INT, parent_meta INT, actor_swap_id INT, first_parent_meta INT )''')
+        #TODO roles need a bio section with powers and relationships
+
     def update(self, table_name, column, column_values, where, where_values):
         update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
         self._cursor.execute(update_sql, column_values + where_values)
