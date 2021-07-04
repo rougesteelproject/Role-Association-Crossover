@@ -3,9 +3,10 @@ import sqlite3
 import traceback
 
 class DatabaseControler():
-    _database = Constants.DATABASE
-    _connection = None
-    _cursor = None
+    def __init__(self):
+        self._database = Constants.DATABASE
+        self._connection = None
+        self._cursor = None
 
     def create_connection(self):
         try:
@@ -18,6 +19,10 @@ class DatabaseControler():
         update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
         self._cursor.execute(update_sql, column_values + where_values)
     
+    def update_reset_mr(self, roleID1):
+        update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
+        self._cursor.execute(update_reset_mr_sql, (roleID1,))
+
     def select(self, select_columns, table_name, where, where_value , bool_and = False, bool_or = False, second_argument_column = "", second_argument_value = ""):
         select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
         if bool_and:
@@ -27,10 +32,16 @@ class DatabaseControler():
         
         if second_argument_value != '':
             values = (where_value, second_argument_value,)
+            self._cursor.execute(select_sql, values)
         else:
             values = where_value
-        self._cursor.execute(select_sql, (values,))
-        return self._cursor.fetchall()[0]
+            self._cursor.execute(select_sql, (values,))
+        return self._cursor.fetchall()
+
+    def select_max(self, select_column, table_name, where_column, where_value):
+        select_sql = "SELECT MAX({}) FROM {} WHERE {}=?".format(select_column.lower(),table_name.lower(),where_column.lower())
+        self._cursor.execute(select_sql, (where_value,))
+        return self._cursor.fetchone()
 
     def commit(self):
         self._connection.commit()
