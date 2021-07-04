@@ -34,40 +34,27 @@ class CharacterConnector():
             else:
                 swap_id = 1
             #Select Max() gets the highest in that column
-            sql = "UPDATE roles SET actor_swap_id=? WHERE id=? OR id =?"
-            cursor.execute(sql, (swap_id, roleID1, roleID2))
-            conn.commit()
+            self._db_controler.update("roles", "actor_swap_id", swap_id, "id", roleID1, bool_or=True, second_argument_column="id", second_argument_value=roleID2)
         else:
             print("Actor Swap Error: IDs are the same.")
         
-    def removeActorSwap(roleID1):
-        sql = "SELECT actor_swap_id, parent_meta FROM roles WHERE id=?"
-        cursor.execute(sql, (roleID1,))
-        actor_swap_data = cursor.fetchall()[0]
+    def removeActorSwap(self, roleID1):
+        actor_swap_data = self._db_controler.select("actor_swap_id, parent_meta", "roles", "id", roleID1)
         actor_swap_id = actor_swap_data[0]
         actor_swap_parent = actor_swap_data[1]
         
         #get the id  so we can check if we orphaned an actor-swap
         
-        sql = "UPDATE roles SET actor_swap_id=0 WHERE id=?"
-        cursor.execute(sql, (roleID1,))
-        conn.commit()
+        self._db_controler.update("roles", "actor_swap+id", 0, "id", roleID1)
         
         #we don't need to redo the actor-swap ids if a number is skipped
         
         #This will set any orphaned (one-child) actor_swaps to 0
         if actor_swap_id != 0:
-            sql = "SELECT id FROM roles WHERE actor_swap_id=? AND parent_meta=?"
-            cursor.execute(sql, (actor_swap_id, actor_swap_parent))
-            result = cursor.fetchall()
+            result = self._db_controler.select("id","roles","actor_swap_id",actor_swap_id, bool_and=True, second_argument_column="parent_meta", second_actor_value=actor_swap_parent)
             if len(result) < 2 and len(result) != 0:
                 swap_id_to_clear = result[0][0]
-                sql = "UPDATE roles SET actor_swap_id=0 WHERE id=?"
-                cursor.execute(sql, (swap_id_to_clear,))
-                conn.commit()
+                self._db_controler.update("roles","actor_swap_id", 0, "id", swap_id_to_clear)
 
 #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
 # You can revert an mr change by ID without changing the ID's
-
-#TODO replace some of these repeated sql (parent meta, for exapmple) with functions/methods
-
