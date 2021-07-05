@@ -53,13 +53,3 @@ class DatabaseControler():
 
     def commit(self):
         self._connection.commit()
-
-def main():
-    databaseControler = DatabaseControler()
-    databaseControler.create_connection()
-    actor_swap_id = "1"
-    actor_swap_parent = "6"
-    result = databaseControler.select("id", "roles", "actor_swap_id", actor_swap_id, bool_and=True, second_argument_column="parent_meta", second_argument_value=actor_swap_parent)
-    print(result)
-
-main()

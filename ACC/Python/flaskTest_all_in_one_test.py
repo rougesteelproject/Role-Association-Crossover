@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
 
 #TODO replace exceptions with traceback.print_exc()
+#TODO split classes to their own pages w/ their related funtions
 
 import distutils
 import distutils.util

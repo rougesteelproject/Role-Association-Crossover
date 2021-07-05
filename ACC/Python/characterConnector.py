@@ -56,5 +56,7 @@ class CharacterConnector():
                 swap_id_to_clear = result[0][0]
                 self._db_controler.update("roles","actor_swap_id", 0, "id", swap_id_to_clear)
 
+    def commit(self):
+        self._db_controler.commit()
 #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
 # You can revert an mr change by ID without changing the ID's

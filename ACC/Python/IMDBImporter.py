@@ -1,5 +1,6 @@
 import imdb
-ia = imdb.IMDb(adultSearch=0)
+import Constants
+
 #if it's not adult
 
 import DatabaseControler
@@ -7,6 +8,8 @@ import DatabaseControler
 class IMDBImporter():
     def __init__(self, _db_controler):
         self._db_controler = _db_controler
+        self.ia = imdb.IMDb(adultSearch=0)
+        self.number_of_actors_to_loop = Constants.NUMBER_OF_ACTORS_TO_LOOP
 
 #create a new actor row in the table
     def create_actor(self, db_actor):
@@ -19,19 +22,20 @@ class IMDBImporter():
     #create a new role in the role table
     def create_role(self,db_role):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
-        sql = '''INSERT OR IGNORE INTO roles(id, name, description, parent_actor, parent_meta, actor_swap_id, first_parent_meta) VALUES (?,?,?,?,?,?,?) '''
+        create_role_sql = '''INSERT OR IGNORE INTO roles(id, name, description, parent_actor, parent_meta, actor_swap_id, first_parent_meta) VALUES (?,?,?,?,?,?,?) '''
         # Create table if it doesn't exist
-        self._db_controller.cursor.execute(sql, db_role)
+        self._db_controller.cursor.execute(create_role_sql, db_role)
 
     #calls create_actor then create_role on all their roles
-    def loopMovies(self, actor):
+    def loop_Movies(self, actor_ID):
         try:
+            actor = self.ia.get_person(str(actor_ID).zfill(8))
             actor_name = actor['name']
             actor_id = actor.personID
 
             for job in actor['filmography'].keys():
                 if job == 'actress' or job == 'actor':
-                    print(actor_id + " " + actor_name)
+                    #print(actor_id + " " + actor_name)
 
                     with self._db_controller.connection:
                         # create a new row in the actor table
@@ -64,33 +68,18 @@ class IMDBImporter():
                                 self._db_controller.cursor.execute(sql,(mr_id, character_name, 'auto-generated', 0,))
 
                                 self.create_role(db_role)
+            self._db_controler.commit()
 
                                 
         except imdb.IMDbError as e:
             print(e)
         except KeyError as e3:
-            print(e3)
+            print(e3)        
+        #print('*')
 
-        
-                        
-        print('*')
-
-    def getIMDBdb(self):
+    def get_All_IMDBdb(self):
         #Have it go from 0 to eight nines, since they have 50mil, tops
         actor_id = 1
-        while actor_id < 100000000:
-            actor = ia.get_person(str(actor_id).zfill(8))
-            self.loopMovies(actor)
+        while actor_id < self.number_of_actors_to_loop:
+            self.loop_Movies(actor_id)
             actor_id += 1
-
-        print("done")
-
-    #TODO adjust loopMovies so it's easier to call with just an ID #
-
-try:
-    actor = ia.get_person("284")
-    loopMovies(actor)
-except HTTPError as HTTPError:
-    print(HTTPError)
-except imdb.IMDbError as error:
-    print(error)
