@@ -1,14 +1,12 @@
 import imdb
 import Constants
-
-#if it's not adult
-
-import DatabaseControler
+#TODO learn how to pass it db_controller
 
 class IMDBImporter():
     def __init__(self, _db_controler):
         self._db_controler = _db_controler
         self.ia = imdb.IMDb(adultSearch=0)
+        #if it's not adult
         self.number_of_actors_to_loop = Constants.NUMBER_OF_ACTORS_TO_LOOP
 
 #create a new actor row in the table
