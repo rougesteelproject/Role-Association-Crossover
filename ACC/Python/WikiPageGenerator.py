@@ -1,11 +1,10 @@
-from re import S
-import Role as role_class
-import ActorHistory as actor_history_class
-import RoleHistory as role_history_class
-import ActorBio as actor_bio_class
-import MetaRole as MR_class
+from Role import Role as role_class
+from ActorHistory import ActorHistory as actor_history_class
+from RoleHistory import RoleHistory as role_history_class
+from ActorBio import ActorBio as actor_bio_class
+from MetaRole import MetaRole as MR_class
 
-class Slider:
+class WikiPageGenerator:
     def __init__(self, db_control):
         self._db_control = db_control
     
@@ -16,14 +15,14 @@ class Slider:
         roles = self._db_control.select("*", "roles", "parent_meta", parent_meta_ID)
         roles_test = []
         for role in roles:
-            roles_test.append(role_class(role[0], role[1], role[2], role[3], role[4], role[5]))
+            roles_test.append(role_class(role[0], role[1], role[2], role[3], role[4], role[5],self._db_control))
         return roles_test
 
     def select_roles_where_parent_actor(self, parent_actor_ID):
         roles = self._db_control.select("*", "roles", "parent_actor", parent_actor_ID)
         roles_test = []
         for role in roles:
-            roles_test.append(role_class(role[0], role[1], role[2], role[3], role[4], role[5]))
+            roles_test.append(role_class(role[0], role[1], role[2], role[3], role[4], role[5], self._db_control))
         return roles_test
 
     def get_history(self, id, type):
@@ -45,22 +44,23 @@ class Slider:
 
     def select_bios_where_actor_id(self, actor_id):
         #TODO probably will hve to expand this bio into multiple sections (Relationships, DOB, Photo, etc)
-        generated_bio, actor_name = self._db_control.select("bio, name", "actors", "id", actor_id)
-        actor_bio = actor_bio_class(generated_bio, int(actor_id), actor_name) 
+        results = self._db_control.select("bio, name", "actors", "id", actor_id)
+        generated_bio, actor_name = results[0]
+        actor_bio = actor_bio_class(generated_bio, int(actor_id), actor_name, self._db_control) 
         return actor_bio
 
     def select_mrs_where_id(self, mr_id):
         mr = self._db_control.select("name,description", "meta_roles", "id", mr_id)
         return mr
 
-    def check_mr_exists_already(mr_id, mr_list):
+    def check_mr_exists_already(self, mr_id, mr_list):
         mr_exists_already = False
         for mr_class in mr_list:
             if mr_class.id == mr_id:
                 mr_exists_already = True
         return mr_exists_already
         
-    def append_role_to_mr(mr_id, mr_list, role):
+    def append_role_to_mr(self, mr_id, mr_list, role):
         id_to_match = mr_id
         for mr_class in mr_list:
             if mr_class.id == id_to_match:
@@ -135,7 +135,7 @@ class Slider:
         new_inactive = list(dict.fromkeys(new_inactive))
         return roles, new_inactive, actor_bios
 
-    def removeBioDuplicates(actor_bios):
+    def removeBioDuplicates(self, actor_bios):
         new_bio_list = []
         for bio in actor_bios:
             exists_already = False
@@ -157,7 +157,7 @@ class Slider:
             #add them if we don't already have them
             fetched_role_class_es = []
             for fetched_role in fetched_point_five_roles:
-                fetched_role_class_es.append(role_class(fetched_role[0], fetched_role[1], fetched_role[2], fetched_role[3], fetched_role[4],fetched_role[5]))
+                fetched_role_class_es.append(role_class(fetched_role[0], fetched_role[1], fetched_role[2], fetched_role[3], fetched_role[4],fetched_role[5],self._db_control))
             for fetched_role_class in fetched_role_class_es:
                 if fetched_role_class.id != role.id:
                     fetched_role_class.name = f'{fetched_role_class.name} ({level}.5)'
@@ -171,9 +171,9 @@ class Slider:
         point_five_roles = [] #the last layer we added to the content, we're gonna search it for roles with actor-swap id's
         actor_bios = [] #The Bios of each actor that's displayed in full
         if base_is_actor:
-            base_name = self._db_control.select("name","actors","id",baseID)
+            base_name = self._db_control.select("name","actors","id",baseID)[0][0]
         else:
-            base_name = self._db_control.select("name","meta_roles","id",baseID)
+            base_name = self._db_control.select("name","meta_roles","id",baseID)[0][0]
         point_five = False
         if (level*10 // 1 % 10) == 5:
         #if the last digit is five when you move the decimal

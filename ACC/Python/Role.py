@@ -1,4 +1,4 @@
-import Image as image_class
+from Image import Image as image_class
 
 class Role:
     def __init__(self, role_id, role_name, role_description, parent_actor, parent_meta, actor_swap_id, db_control):
@@ -8,12 +8,11 @@ class Role:
         self.parent_actor = parent_actor
         self.parent_meta = parent_meta
         self.actor_swap_id = actor_swap_id
-        self.gallery = self.get_Images(role_id)
         self._db_control = db_control
+        self.gallery = []
+        self.get_Images()
 
-    def get_Images(self, role_id):
-        images = self.db_control.select("file, caption", "gallery", "role", role_id)
-        gallery = []
+    def get_Images(self):
+        images = self._db_control.select("file, caption", "gallery", "role", self.id)
         for image in images:
-            gallery.append( image_class(image[0], image[1]))
-        return gallery
+            self.gallery.append( image_class(image[0], image[1]))

@@ -55,5 +55,17 @@ class DatabaseControler():
         self._cursor.execute(select_sql, (where_value,))
         return self._cursor.fetchone()
 
+    def select_like(self, select_colums, table_name, where_column, like_value):
+        select_sql = "SELECT {} FROM {} WHERE {} LIKE {}".format(select_colums, table_name, where_column, like_value)
+        self._cursor.execute(select_sql)
+        return self._cursor.fetchall()
+
+    def add_image(self,page_type, page_id, image_url, caption):
+        if page_type == 'actor':
+            sql = '''INSERT INTO gallery (file, actor, caption) VALUES (?,?,?)'''
+        else:
+            sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
+        self.cursor.execute(sql,(image_url,page_id,caption,))
+
     def commit(self):
         self._connection.commit()

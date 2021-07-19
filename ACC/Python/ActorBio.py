@@ -12,6 +12,6 @@ class ActorBio:
         
         #TODO replace sql and pass it db_control
     def get_Images(self):
-        images = self._db_control.select("file, captions", "gallery", "actor", self.id)
+        images = self._db_control.select("file, caption", "gallery", "actor", self.id)
         for image in images:
             self.gallery.append(image_class(image[0], image[1]))
