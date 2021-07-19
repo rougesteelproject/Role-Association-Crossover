@@ -1,6 +1,5 @@
 import imdb
 import Constants
-#TODO learn how to pass it db_controller
 
 class IMDBImporter():
     def __init__(self, _db_controler):

@@ -233,7 +233,7 @@ def submit():
     mode = request.args.get('mode')
 
     if id1 != None and id2 != None:
-        #TODO create a split function that makes two MR's with roles divided based on their id (maybe two lists of id's to check against?)
+        #TODO create a splitter function that makes two MR's with roles divided based on their id (maybe two lists of id's to check against?)
         if mode == "addMR":
             id1 = id1.split('|')[0] #0 is the role of id 1
             id2 = id2.split('|')[1] #the mr of id2
