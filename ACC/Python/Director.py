@@ -6,7 +6,6 @@ from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
 
 #TODO replace exceptions with traceback.print_exc()
-#TODO split classes to their own pages w/ their related funtions
 
 import distutils
 import distutils.util
@@ -29,8 +28,6 @@ character_connector = CharacterConnector(db_control)
 #TODO what does this belong to, the editor?
 def add_image(page_type, page_id, image_url, caption):
     db_control.add_image(page_type, page_id, image_url, caption)
-
-#TODO each route could reference a class 
 
 @app.route('/')
 def index():
@@ -140,6 +137,7 @@ def submit():
                 #code to run on sucessful try
                 character_connector.addMR(id1, id2)
         elif mode == "removeMR":
+            #TODO change the tempalte and here to resetMR
             id1 = id1.split('|')[0] #0 is the role of id 1
             character_connector.resetMR(id1)
         elif mode == "mergeMR":

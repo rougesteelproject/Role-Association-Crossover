@@ -48,7 +48,6 @@ class ConnectorAndBarSearch():
                 new_actor_list.append(actor)
         return new_actor_list
 
-    #TODO replace sql
     def searchBar(self, query):
         query = f'\'%{query}%\''
         displayed_search_mrs = []
@@ -72,7 +71,6 @@ class ConnectorAndBarSearch():
                 new_search_actor = ActorBio(search_actor_bio,actor_id,search_actor_name, self._db_control)
                 displayed_search_actors.append(new_search_actor)
         
-        searchMrsSql = "SELECT name, description FROM meta_roles WHERE id=?"
         for mr_id in search_mrs:
             search_mr_names_descs = self._db_control.select("name, description","meta_roles", "id", mr_id)
             for search_mr_name_desc in search_mr_names_descs:

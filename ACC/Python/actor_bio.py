@@ -10,7 +10,6 @@ class ActorBio:
         self._db_control = db_control
         self.get_Images()
         
-        #TODO replace sql and pass it db_control
     def get_Images(self):
         images = self._db_control.select("file, caption", "gallery", "actor", self.id)
         for image in images:
