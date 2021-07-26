@@ -1,3 +1,7 @@
+from character_connector import CharacterConnector
+from wiki_page_generator import WikiPageGenerator
+from connector_and_bar_search import ConnectorAndBarSearch
+from database_controler import DatabaseControler
 from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
 
@@ -6,18 +10,13 @@ app = Flask(__name__)
 
 import distutils
 import distutils.util
-import database_controler
-import character_connector
-import wiki_page_generator
-import connector_and_bar_search as CB_search
 
-
-db_control = database_controler()
+db_control = DatabaseControler()
 db_control.create_connection()
 
-wiki_page_generator = wiki_page_generator(db_control)
-search = CB_search(db_control)
-character_connector = character_connector(db_control)
+wiki_page_generator = WikiPageGenerator(db_control)
+cb_search = ConnectorAndBarSearch(db_control)
+character_connector = CharacterConnector(db_control)
 
 #TODO more intuitive variable names, a sweep to make it pythonic
 #   functions modify lists, so we don't neet to return them. 
@@ -191,7 +190,7 @@ def submit_image():
 @app.route('/search')
 def search():
     query = request.args['query']
-    search_mrs, search_actors = search.searchBar(query)
+    search_mrs, search_actors = cb_search.searchBar(query)
     return render_template('search.html', search_mrs=search_mrs, search_actors=search_actors)
 
 app.run(port=5000)

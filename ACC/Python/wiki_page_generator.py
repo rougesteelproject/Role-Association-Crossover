@@ -1,8 +1,8 @@
-from Role import Role as role_class
-from ActorHistory import ActorHistory as actor_history_class
-from RoleHistory import RoleHistory as role_history_class
-from ActorBio import ActorBio as actor_bio_class
-from MetaRole import MetaRole as MR_class
+from role import Role
+from actor_history import ActorHistory
+from role_history import RoleHistory
+from actor_bio import ActorBio
+from meta_role import MetaRole
 
 class WikiPageGenerator:
     def __init__(self, db_control):
@@ -15,14 +15,14 @@ class WikiPageGenerator:
         roles = self._db_control.select("*", "roles", "parent_meta", parent_meta_ID)
         roles_test = []
         for role in roles:
-            roles_test.append(role_class(role[0], role[1], role[2], role[3], role[4], role[5],self._db_control))
+            roles_test.append(Role(role[0], role[1], role[2], role[3], role[4], role[5],self._db_control))
         return roles_test
 
     def select_roles_where_parent_actor(self, parent_actor_ID):
         roles = self._db_control.select("*", "roles", "parent_actor", parent_actor_ID)
         roles_test = []
         for role in roles:
-            roles_test.append(role_class(role[0], role[1], role[2], role[3], role[4], role[5], self._db_control))
+            roles_test.append(Role(role[0], role[1], role[2], role[3], role[4], role[5], self._db_control))
         return roles_test
 
     def get_history(self, id, type):
@@ -30,15 +30,15 @@ class WikiPageGenerator:
         if type== 'actor':
             history = self._db_control.select("name, description, timestamp", "actors_history", "id", id)
             for revision in history:
-                revision_list.append(actor_history_class(revision[0], revision[1], revision[2]))
+                revision_list.append(ActorHistory(revision[0], revision[1], revision[2]))
         elif type == 'role':
             history = self._db_control.select("name, description, timestamp", "roles", "id", id)
             for revision in history:
-                revision_list.append(role_history_class(revision[0], revision[1], revision[2]))
+                revision_list.append(RoleHistory(revision[0], revision[1], revision[2]))
         elif type == 'mr':
             history = self._db_control.select("name, description, timestamp", "meta_roles_history", "id", id)
             for revision in history:
-                revision_list.append(role_history_class(revision[0], revision[1], revision[2]))
+                revision_list.append(RoleHistory(revision[0], revision[1], revision[2]))
         
         return revision_list
 
@@ -46,7 +46,7 @@ class WikiPageGenerator:
         #TODO probably will hve to expand this bio into multiple sections (Relationships, DOB, Photo, etc)
         results = self._db_control.select("bio, name", "actors", "id", actor_id)
         generated_bio, actor_name = results[0]
-        actor_bio = actor_bio_class(generated_bio, int(actor_id), actor_name, self._db_control) 
+        actor_bio = ActorBio(generated_bio, int(actor_id), actor_name, self._db_control) 
         return actor_bio
 
     def select_mrs_where_id(self, mr_id):
@@ -84,7 +84,7 @@ class WikiPageGenerator:
                     if exists_already_in_new == False and exists_already_in_main == False:
                         #IE, we don't have this mr, already, and aren't about to add it here in new_displayed
                         fetched_mr = self.select_mrs_where_id(role.parent_meta)[0]
-                        new_MR = MR_class([role], role.parent_meta, fetched_mr[0], fetched_mr[1])
+                        new_MR = MetaRole([role], role.parent_meta, fetched_mr[0], fetched_mr[1])
                         #creates an MR class in python from the mr that's the parent of each role
                         new_displayed_MRs.append(new_MR)
                     elif exists_already_in_new:
@@ -107,7 +107,7 @@ class WikiPageGenerator:
             if exists_already_in_main == False:
                 #IE, we don't have this mr, already, and aren't about to add it here in new_displayed
                 fetched_mr = self.select_mrs_where_id(inactive_mr)[0]
-                new_MR = MR_class(new_roles, inactive_mr, fetched_mr[0], fetched_mr[1])
+                new_MR = MetaRole(new_roles, inactive_mr, fetched_mr[0], fetched_mr[1])
                 displayed_MRs.append(new_MR)
             else:
                 for role in new_roles:
@@ -157,7 +157,7 @@ class WikiPageGenerator:
             #add them if we don't already have them
             fetched_role_class_es = []
             for fetched_role in fetched_point_five_roles:
-                fetched_role_class_es.append(role_class(fetched_role[0], fetched_role[1], fetched_role[2], fetched_role[3], fetched_role[4],fetched_role[5],self._db_control))
+                fetched_role_class_es.append(Role(fetched_role[0], fetched_role[1], fetched_role[2], fetched_role[3], fetched_role[4],fetched_role[5],self._db_control))
             for fetched_role_class in fetched_role_class_es:
                 if fetched_role_class.id != role.id:
                     fetched_role_class.name = f'{fetched_role_class.name} ({level}.5)'
