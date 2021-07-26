@@ -1,4 +1,4 @@
-import Image as image_class
+import image_class
 
 class ActorBio:
     def __init__(self, actor_class_bio, actor__class_id, actor_name, db_control):

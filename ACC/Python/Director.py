@@ -6,18 +6,18 @@ app = Flask(__name__)
 
 import distutils
 import distutils.util
-from DatabaseControler import DatabaseControler
-from CharacterConnector import CharacterConnector
-from WikiPageGenerator import WikiPageGenerator
-import ConnectorAndBarSearch as CB_search
+import database_controler
+import character_connector
+import wiki_page_generator
+import connector_and_bar_search as CB_search
 
 
-db_control = DatabaseControler()
+db_control = database_controler()
 db_control.create_connection()
 
-wiki_page_generator = WikiPageGenerator(db_control)
+wiki_page_generator = wiki_page_generator(db_control)
 search = CB_search(db_control)
-character_connector = CharacterConnector(db_control)
+character_connector = character_connector(db_control)
 
 #TODO more intuitive variable names, a sweep to make it pythonic
 #   functions modify lists, so we don't neet to return them. 

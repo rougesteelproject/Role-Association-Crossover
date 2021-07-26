@@ -1,10 +1,10 @@
-import Constants
+import constants
 import sqlite3  
 import traceback
 
 class DatabaseControler():
     def __init__(self):
-        self._database = Constants.DATABASE
+        self._database = constants.DATABASE
         self._connection = None
         self._cursor = None
 

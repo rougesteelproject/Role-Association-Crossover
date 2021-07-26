@@ -1,8 +1,7 @@
-from DatabaseControler import DatabaseControler
-import Role as role_class
-import MetaRole as MR_class
-import ActorBio as actor_bio_class
-import MetaRoleDescription as mr_desc_class
+import role as role_class
+import meta_role as MR_class
+import actor_bio as actor_bio_class
+import meta_role_description as mr_desc_class
 
 class ConnectorAndBarSearch():
     def __init__(self, db_control):

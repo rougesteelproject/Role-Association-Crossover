@@ -1,4 +1,4 @@
-from Image import Image as image_class
+import image_class
 
 class Role:
     def __init__(self, role_id, role_name, role_description, parent_actor, parent_meta, actor_swap_id, db_control):
