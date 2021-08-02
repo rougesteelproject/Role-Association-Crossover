@@ -1,7 +1,7 @@
 from character_connector import CharacterConnector
 from wiki_page_generator import WikiPageGenerator
 from connector_and_bar_search import ConnectorAndBarSearch
-from database_controler import DatabaseControler
+from database_controller import DatabaseController
 from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
 
@@ -10,7 +10,7 @@ app = Flask(__name__)
 import distutils
 import distutils.util
 
-db_control = DatabaseControler()
+db_control = DatabaseController()
 db_control.create_connection()
 
 wiki_page_generator = WikiPageGenerator(db_control)
