@@ -1,12 +1,16 @@
+from database_controler import DatabaseControler
+from configparser import Error
 import imdb
-import Constants
+import constants
+import traceback
+
 
 class IMDBImporter():
     def __init__(self, _db_controler):
         self._db_controler = _db_controler
         self.ia = imdb.IMDb(adultSearch=0)
         #if it's not adult
-        self.number_of_actors_to_loop = Constants.NUMBER_OF_ACTORS_TO_LOOP
+        self.number_of_actors_to_loop = constants.NUMBER_OF_ACTORS_TO_LOOP
 
 #create a new actor row in the table
     def create_actor(self, db_actor):
@@ -68,10 +72,12 @@ class IMDBImporter():
             self._db_controler.commit()
 
                                 
-        except imdb.IMDbError as e:
-            print(e)
+        except imdb.IMDbError:
+            traceback.print_exc()
         except KeyError as e3:
-            print(e3)        
+            print(e3) 
+        except:
+            traceback.print_exc()       
         #print('*')
 
     def get_All_IMDBdb(self):
@@ -80,3 +86,11 @@ class IMDBImporter():
         while actor_id < self.number_of_actors_to_loop:
             self.loop_Movies(actor_id)
             actor_id += 1
+
+def main():
+    db_controller = DatabaseControler()
+    imdb = IMDBImporter(db_controller)
+    imdb.get_All_IMDBdb()
+
+if __name__ == '__main__':
+    main()

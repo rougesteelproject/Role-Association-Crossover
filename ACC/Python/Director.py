@@ -29,6 +29,8 @@ character_connector = CharacterConnector(db_control)
 def add_image(page_type, page_id, image_url, caption):
     db_control.add_image(page_type, page_id, image_url, caption)
 
+#TODO a page with everybody, alphabetically
+
 @app.route('/')
 def index():
     #TODO generate featured articles based off of hits or connections (after the webview/ hub sigils works)
@@ -136,8 +138,7 @@ def submit():
             else:
                 #code to run on sucessful try
                 character_connector.addMR(id1, id2)
-        elif mode == "removeMR":
-            #TODO change the tempalte and here to resetMR
+        elif mode == "resetMR":
             id1 = id1.split('|')[0] #0 is the role of id 1
             character_connector.resetMR(id1)
         elif mode == "mergeMR":

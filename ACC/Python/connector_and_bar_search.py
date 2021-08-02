@@ -81,7 +81,7 @@ class ConnectorAndBarSearch():
 
         like_search_actors = self._db_control.select_like("bio, id, name", "actors", "name", query)
         for like_actor in like_search_actors:
-            new_search_actor = ActorBio(like_actor[0], like_actor[1], like_actor[2])
+            new_search_actor = ActorBio(like_actor[0], like_actor[1], like_actor[2], self._db_control)
             displayed_search_actors.append(new_search_actor)
 
         like_search_mrs = self._db_control.select_like("description, id, name","meta_roles","name", query)
