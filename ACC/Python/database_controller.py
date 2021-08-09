@@ -27,6 +27,24 @@ class DatabaseController():
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT)''')
         #TODO roles need a bio section with powers and relationships
 
+    def create_actor(self, db_actor):
+        #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
+        #TODO change bio to multiple fields
+        #TODO don't forget to create those multiple fields in the other .py files, also
+        create_actor_sql = '''INSERT OR IGNORE INTO actors(id, name, bio, is_biggest) VALUES (?,?,?,?) '''
+        self.cursor.execute(create_actor_sql, db_actor)
+
+    #create a new role in the role table
+    def create_role(self,db_role):
+        #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
+        create_role_sql = '''INSERT OR IGNORE INTO roles(id, name, description, parent_actor, parent_meta, actor_swap_id, first_parent_meta) VALUES (?,?,?,?,?,?,?) '''
+        # Create table if it doesn't exist
+        self.cursor.execute(create_role_sql, db_role)
+
+    def create_mr(self, mr_id, character_name, mr_description, is_biggest=0):
+        create_mr_sql = '''INSERT OR IGNORE INTO meta_roles(id, name, description, is_biggest) VALUES (?,?,?,?) '''
+        self.cursor.execute(create_mr_sql,(mr_id, character_name, mr_description, is_biggest,))
+
     def update(self, table_name, column, column_values, where, where_values):
         update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
         self.cursor.execute(update_sql, column_values + where_values)
