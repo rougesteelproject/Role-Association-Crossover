@@ -19,8 +19,11 @@ class DatabaseController():
         # Create table if it doesn't exist
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, is_biggest INT )''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role INT, actor INT, caption TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT, is_biggest INT )''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, parent_actor INT, parent_meta INT, actor_swap_id INT, first_parent_meta INT )''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT, birth_date DATE, death_date DATE,is_biggest INT )''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, alive_or_dead TEXT, alignment TEXT, parent_actor INT, parent_meta INT, actor_swap_id INT, first_parent_meta INT )''')
+        #TODO a 'relatives' table for actors, one for roles, abilities for actors, roles (id to ability_id)
+        #TODO an 'abilities' table matches ID to a description, maybe to a sub-power table (eg, kryptonian, to strength w/ kryptonian strength explained)
+        #TODO check that role creation matches these tables
         #create history table and pending changes
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_history(id TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT)''')
@@ -31,7 +34,7 @@ class DatabaseController():
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
         #TODO change bio to multiple fields
         #TODO don't forget to create those multiple fields in the other .py files, also
-        create_actor_sql = '''INSERT OR IGNORE INTO actors(id, name, bio, is_biggest) VALUES (?,?,?,?) '''
+        create_actor_sql = '''INSERT OR IGNORE INTO actors(id, name, bio, birth_date,is_biggest) VALUES (?,?,?,?,?) '''
         self.cursor.execute(create_actor_sql, db_actor)
 
     #create a new role in the role table
