@@ -44,7 +44,7 @@ class WikiPageGenerator:
         return revision_list
 
     def select_bios_where_actor_id(self, actor_id):
-        #TODO probably will hve to expand this bio into multiple sections (Relationships, DOB, Photo, etc)
+        #TODO do I need this?
         results = self._db_control.select("bio, name", "actors", "id", actor_id)
         generated_bio, actor_name = results[0]
         actor_bio = ActorBio(generated_bio, actor_id, actor_name, self._db_control) 
@@ -192,7 +192,6 @@ class WikiPageGenerator:
             layer += 1
         if point_five and base_is_actor:
             self.get_point_five(point_five_roles, level, displayed_MRs)
-        #TODO maybe a flag for characters who are fictional in-universe & a flag for historical or religious figures
         return displayed_MRs, actor_bios, base_name
 
         #TODO get and return displayed_actors so we can filter people form relationships if that person is already here
