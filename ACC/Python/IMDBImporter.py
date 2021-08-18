@@ -26,7 +26,7 @@ class IMDBImporter():
 
                     with self._db_controller.connection:
                         # create a new row in the actor table
-
+                        #TODO can I get birth/death from imdb module?
                         db_actor = (actor_id, actor_name, 'auto-generated', birth_date,death_date ,0)
                         self._db_controller.create_actor(db_actor)
 
