@@ -27,7 +27,7 @@ class IMDBImporter():
                     with self._db_controller.connection:
                         # create a new row in the actor table
 
-                        db_actor = (actor_id, actor_name, 'auto-generated', 0)
+                        db_actor = (actor_id, actor_name, 'auto-generated', birth_date,death_date ,0)
                         self._db_controller.create_actor(db_actor)
 
                         #add filmography
@@ -49,7 +49,7 @@ class IMDBImporter():
                                     mr_id = 1
                                 #Select Max() gets the highest in that column
 
-                                db_role = (role_id, role_name, 'auto-generated', actor_id, mr_id, '0', mr_id,)
+                                db_role = (role_id, role_name, 'auto-generated', "-", "-",actor_id, mr_id, '0', mr_id,)
 
                                 
                                 self._db_controller.create_mr(mr_id, character_name, 'auto-generated', 0)

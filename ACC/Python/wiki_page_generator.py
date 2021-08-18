@@ -1,6 +1,7 @@
 from role import Role
 from actor_history import ActorHistory
 from role_history import RoleHistory
+from meta_role_history import MetaRoleHistory
 from actor_bio import ActorBio
 from meta_role import MetaRole
 
@@ -15,14 +16,14 @@ class WikiPageGenerator:
         roles = self._db_control.select("*", "roles", "parent_meta", parent_meta_ID)
         roles_test = []
         for role in roles:
-            roles_test.append(Role(role[0], role[1], role[2], role[3], role[4], role[5],self._db_control))
+            roles_test.append(Role(*role,self._db_control))
         return roles_test
 
     def select_roles_where_parent_actor(self, parent_actor_ID):
         roles = self._db_control.select("*", "roles", "parent_actor", parent_actor_ID)
         roles_test = []
         for role in roles:
-            roles_test.append(Role(role[0], role[1], role[2], role[3], role[4], role[5], self._db_control))
+            roles_test.append(Role(*role, self._db_control))
         return roles_test
 
     def get_history(self, id, type):
@@ -30,15 +31,15 @@ class WikiPageGenerator:
         if type== 'actor':
             history = self._db_control.select("name, description, timestamp", "actors_history", "id", id)
             for revision in history:
-                revision_list.append(ActorHistory(revision[0], revision[1], revision[2]))
+                revision_list.append(ActorHistory(*revision))
         elif type == 'role':
-            history = self._db_control.select("name, description, timestamp", "roles", "id", id)
+            history = self._db_control.select("name, description, alive_or_dead, alignment, timestamp", "roles", "id", id)
             for revision in history:
-                revision_list.append(RoleHistory(revision[0], revision[1], revision[2]))
+                revision_list.append(RoleHistory(*revision))
         elif type == 'mr':
             history = self._db_control.select("name, description, timestamp", "meta_roles_history", "id", id)
             for revision in history:
-                revision_list.append(RoleHistory(revision[0], revision[1], revision[2]))
+                revision_list.append(MetaRoleHistory(*revision))
         
         return revision_list
 
@@ -46,7 +47,7 @@ class WikiPageGenerator:
         #TODO probably will hve to expand this bio into multiple sections (Relationships, DOB, Photo, etc)
         results = self._db_control.select("bio, name", "actors", "id", actor_id)
         generated_bio, actor_name = results[0]
-        actor_bio = ActorBio(generated_bio, int(actor_id), actor_name, self._db_control) 
+        actor_bio = ActorBio(generated_bio, actor_id, actor_name, self._db_control) 
         return actor_bio
 
     def select_mrs_where_id(self, mr_id):
@@ -98,9 +99,6 @@ class WikiPageGenerator:
         return roles
 
     def get_layer_roles_mr(self,inactive, displayed_MRs, layer_number, last_layer_string, new_inactive):
-        #TODO add bios for roles with powers and relationships
-        #make a table for fusion_parent or something for fusions, combiners, etc
-        #Have them be a relationship like husband/wife
         for inactive_mr in inactive:
             new_roles = self.select_roles_where_parent_meta(inactive_mr)
             exists_already_in_main = self.check_mr_exists_already(inactive_mr, displayed_MRs)
@@ -135,6 +133,9 @@ class WikiPageGenerator:
         new_inactive = list(dict.fromkeys(new_inactive))
         return roles, new_inactive, actor_bios
 
+    #TODO actor bios need redone. They can be part of the actor class, I think, so we don't need a seperate class for just descriptions
+    #instead, get actor.bio actor.relationships, etc, for actor in displayed_actors
+    #only bios are handled how they are right now
     def removeBioDuplicates(self, actor_bios):
         new_bio_list = []
         for bio in actor_bios:
@@ -193,5 +194,7 @@ class WikiPageGenerator:
             self.get_point_five(point_five_roles, level, displayed_MRs)
         #TODO maybe a flag for characters who are fictional in-universe & a flag for historical or religious figures
         return displayed_MRs, actor_bios, base_name
+
+        #TODO get and return displayed_actors so we can filter people form relationships if that person is already here
 
     #TODO we'l have to return the Hub Sigils (when we integrate into flask/ the graphviz)
