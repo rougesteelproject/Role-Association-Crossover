@@ -18,6 +18,8 @@ class DatabaseController():
         except sqlite3.Error:
             traceback.print_exc()
 
+    #TODO each select returns a list of tuples. Check that the data is procesed at the right layer.
+
     def create_db_if_not_exists(self):
         # Create table if it doesn't exist
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, is_biggest INT )''')
