@@ -1,3 +1,6 @@
+from ACC.Python.meta_role import MetaRole
+from ACC.Python.actor import Actor
+from role import Role
 import constants
 import sqlite3  
 import traceback
@@ -14,6 +17,8 @@ class DatabaseController():
             self.cursor = self.connection.cursor()
         except sqlite3.Error:
             traceback.print_exc()
+
+    #TODO each select returns a list of tuples. Check that the data is procesed at the right layer.
 
     def create_db_if_not_exists(self):
         # Create table if it doesn't exist
@@ -92,6 +97,12 @@ class DatabaseController():
         else:
             sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
         self.cursor.execute(sql,(image_url,page_id,caption,))
+
+    def get_actor(self, actor_id):
+        pass
+
+    def get_mr(self, mr_id):
+        pass
 
     def commit(self):
         self.connection.commit()
