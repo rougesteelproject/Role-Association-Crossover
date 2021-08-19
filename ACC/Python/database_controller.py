@@ -1,3 +1,6 @@
+from ACC.Python.meta_role import MetaRole
+from ACC.Python.actor import Actor
+from role import Role
 import constants
 import sqlite3  
 import traceback
@@ -87,6 +90,12 @@ class DatabaseController():
         else:
             sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
         self.cursor.execute(sql,(image_url,page_id,caption,))
+
+    def get_actor(self, actor_id):
+        pass
+
+    def get_mr(self, mr_id):
+        pass
 
     def commit(self):
         self.connection.commit()
