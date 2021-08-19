@@ -27,17 +27,17 @@
         </div>
       </div>
       <div class="actor-content">
-        {%for bio in actor_bios%}
+        {%for actor in displayed_actors%}
         
         <div class="bio">
           #TODO make a little box for the gallery and captions
           
-          {%for image in bio.gallery%}
+          {%for image in actor.gallery%}
           <img alt="{{image.file}}" src="{{url_for('static', filename=image.file)}}"/>
           <p class='actor-img-caption'>{{image.caption}}</p>
           {%endfor%}
           <a class="editor-link" href="{{url_for('editor')}}?editorID={{bio.id}}&editorType=actor&name={{bio.name}}" title="edit this character"> <img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
-          <p>{{bio.bio}}</p>
+          <p>{{actor.bio}}</p>
         </div>
         {%endfor%}
       </div>
@@ -48,6 +48,30 @@
         </h1>
         
         {%for mr in displayed_MRs%}
+        <div class="meta-role-div">
+          <h2>
+          {{mr.name}} <a href="{{url_for('editor')}}?editorID={{mr.id}}&editorType=mr&name={{mr.name}}" title="edit this character"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
+          </h2>
+          <p>
+            {{mr.description}}
+          </p>
+          {%for role in mr.roles%}
+          <div class="role-div">
+            
+            <h2>
+              {{role.name}} <a href="{{url_for('editor')}}?editorID={{role.id}}&editorType=role&name={{role.name}}" title="edit this role"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
+            </h2>
+              #TODO make a gallery container box thing
+            {%for image in role.gallery %}
+            <img alt="{{image.file}}" src="{{url_for('static', filename=image.file)}}" />
+            <p class='role-img-caption'>{{image.caption}}</p>
+            {%endfor%}
+            <p class='role-description'>
+              {{role.description}}
+            </p>
+          </div>
+          {%endfor%}
+          {%for mr in halfway%}
         <div class="meta-role-div">
           <h2>
           {{mr.name}} <a href="{{url_for('editor')}}?editorID={{mr.id}}&editorType=mr&name={{mr.name}}" title="edit this character"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>

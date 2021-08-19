@@ -4,21 +4,21 @@
 class WikiPageGenerator:
     def __init__(self, db_control, baseID, base_is_actor=False, level=1):
         self._db_control = db_control
-        self._base_is_actor = base_is_actor
-        self._baseID = baseID
+        self.base_is_actor = base_is_actor
+        self.baseID = baseID
         
 
         self._layer_is_actor = False
-        self._level = level
-        self._displayed_mrs = []
-        self._displayed_actors = []
-        self._halfway_mrs
+        self.level = level
+        self.displayed_mrs = []
+        self.displayed_actors = []
+        self.halfway_mrs
         if self._base_is_actor:
-            self._inactive = [self._db_control.get_actor(self._baseID)]
+            self._inactive = [self._db_control.get_actor(self.baseID)]
         else:
-            self._inactive = [self._db_control.get_mr(self._baseID)]
+            self._inactive = [self._db_control.get_mr(self.baseID)]
         self._temp_inactive = []
-        self._base_name = self._inactive[0].name
+        self.base_name = self._inactive[0].name
         self._point_five_roles = []
         self._point_five = False
         self._check_if_point_five()
@@ -31,7 +31,7 @@ class WikiPageGenerator:
         #if the last digit is five when you move the decimal
             self._point_five = True
             self._level -= 0.5
-        self._level = int(self._level)
+        self._level = int(self.level)
 
     def _update_displayed(self,parent, is_actor):
         if is_actor:
@@ -44,14 +44,14 @@ class WikiPageGenerator:
         if self._layer_is_actor:
             for parent in self._inactive:
                 for role in parent.roles:
-                    for mr in self._halfway_mrs:
+                    for mr in self.halfway_mrs:
                         if role.parent_mr == mr.id:
                             in_active = True
                             mr.add_role(role)
                     if (not in_active):
                         halfway_mr = self._db_control.get_mr(role.parent_meta)
                         halfway_mr.add_role(role)
-                        self._halfway_mrs.append(halfway_mr)
+                        self.halfway_mrs.append(halfway_mr)
 
     def _set_point_five_roles(self):
         if(self._base_is_actor):
@@ -66,16 +66,16 @@ class WikiPageGenerator:
                             #mr.add_role(role)
 
     def set_content(self):
-        self._layer_is_actor = self._base_is_actor
+        self._layer_is_actor = self.base_is_actor
 
         self._check_if_point_five()
-        while self._layer < self._level:
+        while self._layer < self.level:
             self._temp_inactive = []
             for parent in self.inactive:
                 parent.set_roles(self._db_control.get_roles(parent.id, self._layer_is_actor))
                 if self._layer_is_actor:
                     for role in parent.roles:
-                        for mr in self._displayed_mrs:
+                        for mr in self.displayed_mrs:
                             if role.parent_meta == mr.id:
                                 in_active = True
                         if(not in_active):
@@ -85,7 +85,7 @@ class WikiPageGenerator:
 
                 else:
                     for role in parent.roles:
-                        for actor in self._displayed_actors:
+                        for actor in self.displayed_actors:
                             if role.parent_actor == actor.id:
                                 in_active = True
                         if(not in_active):

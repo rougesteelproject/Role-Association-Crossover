@@ -13,7 +13,7 @@ import distutils.util
 db_control = DatabaseController()
 db_control.create_connection()
 
-wiki_page_generator = WikiPageGenerator(db_control)
+
 cb_search = ConnectorAndBarSearch(db_control)
 character_connector = CharacterConnector(db_control)
 
@@ -44,8 +44,10 @@ def roles():
     level = float(request.args['level'])
     baseID = request.args['baseID']
     base_is_actor = bool(distutils.util.strtobool(request.args['base_is_actor']))
-    displayed_MRs, actor_bios, base_name = wiki_page_generator.getContent(baseID, base_is_actor, level)
-    return render_template('actor_template.html', base_name=base_name, blurb_editor_link="", hub_sigils="", actor_bios = actor_bios, displayed_MRs = displayed_MRs, baseID=baseID, base_is_actor=base_is_actor, level=level)
+    
+    wiki_page_generator = WikiPageGenerator(db_control, baseID, base_is_actor=base_is_actor, level=level)
+    wiki_page_generator.set_content()
+    return render_template('actor_template.html', base_name=wiki_page_generator.base_name, blurb_editor_link="", hub_sigils="", displayed_actors= wiki_page_generator._displayed_actors, displayed_MRs = wiki_page_generator.displayed_MRs, halfway = wiki_page_generator.halfway_mrs,baseID=wiki_page_generator.baseID, base_is_actor=wiki_page_generator.base_is_actor, level=wiki_page_generator.level)
 
 @app.route('/roles/editor', methods = ['GET', 'POST'])
 def editor():
