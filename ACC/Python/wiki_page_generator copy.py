@@ -26,6 +26,8 @@ class WikiPageGenerator:
         self._check_if_point_five()
         self._layer = 0
 
+    #TODO getters for the displayed, halfway
+    
     def _check_if_point_five(self):
         if (self._level*10 // 1 % 10) == 5:
         #if the last digit is five when you move the decimal
