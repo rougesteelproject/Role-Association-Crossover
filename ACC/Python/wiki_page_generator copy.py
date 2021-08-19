@@ -4,6 +4,8 @@ from role_history import RoleHistory
 from actor import Actor
 from meta_role import MetaRole
 
+#TODO update database_cont to match the expectations here
+
 class WikiPageGenerator:
     def __init__(self, db_control, baseID, base_is_actor=False, level=1):
         self._db_control = db_control
