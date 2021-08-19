@@ -19,6 +19,8 @@ class IMDBImporter():
             actor = self.ia.get_person(str(actor_ID).zfill(8))
             actor_name = actor['name']
             actor_id = actor.personID
+            birth_date = actor['birth date']
+            death_date = actor['death date']
 
             for job in actor['filmography'].keys():
                 if job == 'actress' or job == 'actor':
@@ -26,8 +28,8 @@ class IMDBImporter():
 
                     with self._db_controller.connection:
                         # create a new row in the actor table
-
-                        db_actor = (actor_id, actor_name, 'auto-generated', 0)
+                        
+                        db_actor = (actor_id, actor_name, 'auto-generated', birth_date,death_date ,0)
                         self._db_controller.create_actor(db_actor)
 
                         #add filmography
@@ -40,7 +42,7 @@ class IMDBImporter():
                                 role_id = actor_id + '-' + movie.movieID + '-' + str(role_index)
                                 role_index += 1
                                 role_name = (f'{character_name} ({movie_title}) ({actor_name})')
-                                #print(role_name)
+                                print(role_name)
                                 self._db_controller.cursor.execute("SELECT MAX(id) FROM meta_roles")
                                 mr_id = self._db_controller.cursor.fetchone()[0]
                                 if mr_id is not None:
@@ -49,7 +51,7 @@ class IMDBImporter():
                                     mr_id = 1
                                 #Select Max() gets the highest in that column
 
-                                db_role = (role_id, role_name, 'auto-generated', actor_id, mr_id, '0', mr_id,)
+                                db_role = (role_id, role_name, 'auto-generated', "-", "-",actor_id, mr_id, '0', mr_id,)
 
                                 
                                 self._db_controller.create_mr(mr_id, character_name, 'auto-generated', 0)
@@ -64,7 +66,7 @@ class IMDBImporter():
             print(e3) 
         except:
             traceback.print_exc()       
-        print('*')
+        print('* * *')
 
     def get_All_IMDBdb(self):
         #Have it go from 0 to eight nines, since they have 50mil, tops
@@ -72,6 +74,7 @@ class IMDBImporter():
         while actor_id < self.number_of_actors_to_loop:
             self.loop_Movies(actor_id)
             actor_id += 1
+        print('Done')
 
 def main():
     db_controller = DatabaseController()

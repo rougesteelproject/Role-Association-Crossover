@@ -31,6 +31,8 @@ def add_image(page_type, page_id, image_url, caption):
 
 #TODO a page with everybody, alphabetically
 
+#TODO a history page? maybe in the editor
+
 @app.route('/')
 def index():
     #TODO generate featured articles based off of hits or connections (after the webview/ hub sigils works)
@@ -47,6 +49,7 @@ def roles():
 
 @app.route('/roles/editor', methods = ['GET', 'POST'])
 def editor():
+    #TODO editors for powers, relationships, alignment and alive_or_dead
     if request.method == 'POST':
         new_description  = request.form['description']
         editorName = request.form['name']

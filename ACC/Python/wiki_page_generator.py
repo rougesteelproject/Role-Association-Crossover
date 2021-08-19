@@ -1,3 +1,4 @@
+
 #TODO update database_controll to match the expectations here
 
 class WikiPageGenerator:
@@ -23,7 +24,7 @@ class WikiPageGenerator:
         self._layer = 0
 
     #TODO getters for the displayed, halfway, base_name
-
+    
     def _check_if_point_five(self):
         if (self._level*10 // 1 % 10) == 5:
         #if the last digit is five when you move the decimal
@@ -62,7 +63,7 @@ class WikiPageGenerator:
                     #if role.actor_swap_id != 0:
                         #for role in db.get_actor_swaps(mr_id, actor_swap_id):
                             #mr.add_role(role)
-
+                    
     def _set_base_name(self):
         if self.base_is_actor:
             self._base_name = self._db_control.select("name","actors","id",self.baseID)[0][0]
