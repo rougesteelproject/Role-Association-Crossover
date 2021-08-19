@@ -99,10 +99,23 @@ class DatabaseController():
         self.cursor.execute(sql,(image_url,page_id,caption,))
 
     def get_actor(self, actor_id):
-        pass
+        fetched_actor = self.select("*","actors","id",actor_id)
+        return Actor(*fetched_actor, self)
 
     def get_mr(self, mr_id):
-        pass
+        fetched_mr = self.select("*","meta_roles", "id",mr_id)
+        return MetaRole(*fetched_mr, self)
+
+    def get_roles(self, parent_id, is_actor):
+        roles = []
+        if is_actor:
+            fetched_roles = self.select("*", "roles", "parent_actor", parent_id)
+        else:
+            fetched_roles = self.select("*","roles","parent_meta",parent_id)
+        for role in fetched_roles:
+            roles.append(Role(*role, self))
+        return roles
+        
 
     def commit(self):
         self.connection.commit()

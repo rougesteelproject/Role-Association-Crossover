@@ -6,8 +6,8 @@ class WikiPageGenerator:
         self._db_control = db_control
         self._base_is_actor = base_is_actor
         self._baseID = baseID
-        self._base_name
-        self._get_base_name()
+        
+
         self._layer_is_actor = False
         self._level = level
         self._displayed_mrs = []
@@ -18,6 +18,7 @@ class WikiPageGenerator:
         else:
             self._inactive = [self._db_control.get_mr(self._baseID)]
         self._temp_inactive = []
+        self._base_name = self._inactive[0].name
         self._point_five_roles = []
         self._point_five = False
         self._check_if_point_five()
@@ -63,12 +64,6 @@ class WikiPageGenerator:
                     #if role.actor_swap_id != 0:
                         #for role in db.get_actor_swaps(mr_id, actor_swap_id):
                             #mr.add_role(role)
-                    
-    def _set_base_name(self):
-        if self.base_is_actor:
-            self._base_name = self._db_control.select("name","actors","id",self.baseID)[0][0]
-        else:
-            self._base_name = self._db_control.select("name","meta_roles","id",self.baseID)[0][0]
 
     def set_content(self):
         self._layer_is_actor = self._base_is_actor
