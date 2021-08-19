@@ -1,10 +1,4 @@
-from role import Role
-from actor_history import ActorHistory
-from role_history import RoleHistory
-from actor import Actor
-from meta_role import MetaRole
-
-#TODO update database_cont to match the expectations here
+#TODO update database_controll to match the expectations here
 
 class WikiPageGenerator:
     def __init__(self, db_control, baseID, base_is_actor=False, level=1):
@@ -27,7 +21,7 @@ class WikiPageGenerator:
         self._layer = 0
 
     #TODO getters for the displayed, halfway
-    
+
     def _check_if_point_five(self):
         if (self._level*10 // 1 % 10) == 5:
         #if the last digit is five when you move the decimal
