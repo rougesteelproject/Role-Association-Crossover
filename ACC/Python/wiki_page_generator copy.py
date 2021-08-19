@@ -39,6 +39,20 @@ class WikiPageGenerator:
         else:
             self._displayed_mrs.append(parent)
 
+    def _get_halfway(self):
+        #the halfway-displayed mrs, when an actor only plays some of an mr's roles
+        if self._layer_is_actor:
+            for parent in self._inactive:
+                for role in parent.roles:
+                    for mr in self._halfway_mrs:
+                        if role.parent_mr == mr.id:
+                            in_active = True
+                            mr.add_role(role)
+                    if (not in_active):
+                        halfway_mr = self._db_control.get_mr(role.parent_meta)
+                        halfway_mr.add_role(role)
+                        self._halfway_mrs.append(halfway_mr)
+
     def _get_point_five_roles(self):
         if(self._base_is_actor):
             #an actor at 0.5 only does actor_swaps/ the same continuity, different actor
@@ -78,27 +92,6 @@ class WikiPageGenerator:
                 self._update_displayed(parent, self._layer_is_actor)
             self._inactive = self._temp_inactive
         
-        #the halfway-displayed mrs, when an actor only plays some of an mr's roles
-        if self._layer_is_actor:
-            for parent in self._inactive:
-                for role in parent.roles:
-                    for mr in self._halfway_mrs:
-                        if role.parent_mr == mr.id:
-                            in_active = True
-                            mr.add_role(role)
-                    if (not in_active):
-                        halfway_mr = self._db_control.get_mr(role.parent_meta)
-                        halfway_mr.add_role(role)
-                        self._halfway_mrs.append(halfway_mr)
-            #join self._halfway to self._displayed_mrs?
+        self._get_halfway()
         
         self._get_point_five_roles()
-            
-                
-
-        
-
-                
-        
-    
-    
