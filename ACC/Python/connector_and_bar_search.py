@@ -1,7 +1,9 @@
 from meta_role_description import MetaRoleDescription
 from meta_role import MetaRole
-from actor_bio import ActorBio
+from actor import Actor
 from role import Role
+
+#TODO update the actors get to use db_control
 
 class ConnectorAndBarSearch():
     def __init__(self, db_control):
@@ -68,7 +70,7 @@ class ConnectorAndBarSearch():
             for actor_name_bio in actor_names_bios:
                 search_actor_name = actor_name_bio[0]
                 search_actor_bio = actor_name_bio[1]
-                new_search_actor = ActorBio(search_actor_bio,actor_id,search_actor_name, self._db_control)
+                new_search_actor = Actor(search_actor_bio,actor_id,search_actor_name, self._db_control)
                 displayed_search_actors.append(new_search_actor)
         
         for mr_id in search_mrs:
@@ -81,7 +83,7 @@ class ConnectorAndBarSearch():
 
         like_search_actors = self._db_control.select_like("bio, id, name", "actors", "name", query)
         for like_actor in like_search_actors:
-            new_search_actor = ActorBio(like_actor[0], like_actor[1], like_actor[2], self._db_control)
+            new_search_actor = Actor(like_actor[0], like_actor[1], like_actor[2], self._db_control)
             displayed_search_actors.append(new_search_actor)
 
         like_search_mrs = self._db_control.select_like("description, id, name","meta_roles","name", query)

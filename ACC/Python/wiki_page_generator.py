@@ -23,8 +23,6 @@ class WikiPageGenerator:
         self._point_five = False
         self._check_if_point_five()
         self._layer = 0
-
-    #TODO getters for the displayed, halfway, base_name
     
     def _check_if_point_five(self):
         if (self._level*10 // 1 % 10) == 5:

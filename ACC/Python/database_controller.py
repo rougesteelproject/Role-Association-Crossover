@@ -1,9 +1,14 @@
-from ACC.Python.meta_role import MetaRole
-from ACC.Python.actor import Actor
-from role import Role
-import constants
-import sqlite3  
+import sqlite3
 import traceback
+
+import constants
+from ACC.Python.actor import Actor
+from ACC.Python.meta_role import MetaRole
+from role import Role
+from meta_role_history import MetaRoleHistory
+from actor_history import ActorHistory
+from role_history import RoleHistory
+
 
 class DatabaseController():
     def __init__(self):
@@ -106,6 +111,10 @@ class DatabaseController():
         fetched_mr = self.select("*","meta_roles", "id",mr_id)
         return MetaRole(*fetched_mr, self)
 
+    def get_role(self, role_id):
+        fetched_role = self.select("*","roles","id",role_id)
+        return Role(*fetched_role, self)
+
     def get_roles(self, parent_id, is_actor):
         roles = []
         if is_actor:
@@ -116,6 +125,22 @@ class DatabaseController():
             roles.append(Role(*role, self))
         return roles
         
+    def get_history(self, id, type):
+        #TODO update to match the new history db
+        revision_list = []
+        if type== 'actor':
+            history = self.select("name, description, timestamp", "actors_history", "id", id)
+            for revision in history:
+                revision_list.append(ActorHistory(revision[0], revision[1], revision[2]))
+        elif type == 'role':
+            history = self.select("name, description, timestamp", "roles_history", "id", id)
+            for revision in history:
+                revision_list.append(RoleHistory(revision[0], revision[1], revision[2]))
+        elif type == 'mr':
+            history = self.select("name, description, timestamp", "meta_roles_history", "id", id)
+            for revision in history:
+                revision_list.append(MetaRoleHistory(revision[0], revision[1], revision[2]))
+        return revision_list
 
     def commit(self):
         self.connection.commit()

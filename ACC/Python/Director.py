@@ -25,13 +25,7 @@ character_connector = CharacterConnector(db_control)
 # if request.method == 'POST':
 #and get the values of the form
 
-#TODO what does this belong to, the editor?
-def add_image(page_type, page_id, image_url, caption):
-    db_control.add_image(page_type, page_id, image_url, caption)
-
 #TODO a page with everybody, alphabetically
-
-#TODO a history page? maybe in the editor
 
 @app.route('/')
 def index():
@@ -47,22 +41,20 @@ def roles():
     
     wiki_page_generator = WikiPageGenerator(db_control, baseID, base_is_actor=base_is_actor, level=level)
     wiki_page_generator.set_content()
-    return render_template('actor_template.html', base_name=wiki_page_generator.base_name, blurb_editor_link="", hub_sigils="", displayed_actors= wiki_page_generator._displayed_actors, displayed_MRs = wiki_page_generator.displayed_MRs, halfway = wiki_page_generator.halfway_mrs,baseID=wiki_page_generator.baseID, base_is_actor=wiki_page_generator.base_is_actor, level=wiki_page_generator.level)
+    return render_template('actor_template.html', base_name=wiki_page_generator.base_name, blurb_editor_link="", hub_sigils="", displayed_actors= wiki_page_generator.displayed_actors, displayed_MRs = wiki_page_generator.displayed_MRs, halfway = wiki_page_generator.halfway_mrs,baseID=wiki_page_generator.baseID, base_is_actor=wiki_page_generator.base_is_actor, level=wiki_page_generator.level)
 
 @app.route('/roles/editor', methods = ['GET', 'POST'])
 def editor():
-    #TODO editors for powers, relationships, alignment and alive_or_dead
+    #TODO editors for powers, relationships (just like the history)
     if request.method == 'POST':
         new_description  = request.form['description']
         editorName = request.form['name']
         editorID = request.form['editorID']
         editorType = request.form['type']
         goBackUrl = request.form['goBackUrl']
+        #TODO update to use more db_control
         if editorType == 'role':
             editor_description = db_control.select("description", "roles", "id", editorID)
-            getDescSQL= "SELECT description FROM roles WHERE id=?"
-            db_control.cursor.execute(getDescSQL,(editorID,))
-            editor_description = db_control.cursor.fetchall()[0][0]
             historySql = '''INSERT INTO roles_history(id, name, description) VALUES (?,?,?) '''
             db_control.cursor.execute(historySql,(editorID, editorName, editor_description))
             changeDescSql='''UPDATE roles SET description=? WHERE id=?'''
@@ -92,22 +84,18 @@ def editor():
         editorType= request.args['editorType']
         goBackUrl = request.referrer
         name = request.args['name']
-        history = wiki_page_generator.get_history(editorID, editorType)
-        if editorType == 'actor':
-            getDescSQL= "SELECT bio FROM actors WHERE id=?"
-            db_control.cursor.execute(getDescSQL,(editorID,))
-        elif editorType == 'mr':
-            getDescSQL= "SELECT description FROM meta_roles WHERE id=?"
-            db_control.cursor.execute(getDescSQL,(editorID,))
-        elif editorType == 'role':
-            getDescSQL= "SELECT description FROM roles WHERE id=?"
-            db_control.cursor.execute(getDescSQL,(editorID,))
-        else:
-            pass
-        editor_description = db_control.cursor.fetchall()[0][0]
+        history = db_control.get_history(editorID, editorType)
 
-        #TODO as the database gets bigger (pictures, bio, etc, blurb_editor will have to, also)
-        return render_template('blurb_editor.html', editorID=editorID, editorType=editorType, goBackUrl=goBackUrl, name=name, description=editor_description, history=history)
+        if editorType == "actor":
+            person = db_control.get_actor(editorID)
+        elif editorType == "role":
+            person = db_control.get_role(editorID)
+        elif editorType == "mr":
+            person = db_control.get_mr(editorID)
+        
+        editor_description = db_control.get_editor_description(editorType, editorID)
+
+        return render_template('blurb_editor.html', editorType=editorType, goBackUrl=goBackUrl, person=person, history=history)
        
 @app.route('/character_connector/', methods = ['GET','POST'])
 def character_connector():
@@ -188,7 +176,7 @@ def submit_image():
     if uploaded_file.filename != '':
         uploaded_file.save('static/' + uploaded_file.filename)
 
-    add_image(page_type, page_id, uploaded_file.filename, caption)
+    db_control.add_image(page_type, page_id, uploaded_file.filename, caption)
     return(redirect(go_back_url))
 
 @app.route('/search')
