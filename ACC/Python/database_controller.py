@@ -107,9 +107,23 @@ class DatabaseController():
         fetched_actor = self.select("*","actors","id",actor_id)
         return Actor(*fetched_actor, self)
 
+    def get_actors_search(self, query):
+        actors = []
+        fetched_actors = self.select_like("*","actors","name", query)
+        for actor in fetched_actors:
+            actors.apppend(Actor(*actor, self))
+        return actors
+
     def get_mr(self, mr_id):
         fetched_mr = self.select("*","meta_roles", "id",mr_id)
         return MetaRole(*fetched_mr, self)
+
+    def get_mrs_search(self,query):
+        mrs = []
+        fetched_mrs = self.select_like("*","meta_roles","name",query)
+        for mr in fetched_mrs:
+            mrs.append(MetaRole(*mr, self))
+        return mrs
 
     def get_role(self, role_id):
         fetched_role = self.select("*","roles","id",role_id)
@@ -121,6 +135,13 @@ class DatabaseController():
             fetched_roles = self.select("*", "roles", "parent_actor", parent_id)
         else:
             fetched_roles = self.select("*","roles","parent_meta",parent_id)
+        for role in fetched_roles:
+            roles.append(Role(*role, self))
+        return roles
+
+    def get_roles_search(self, query):
+        roles = []
+        fetched_roles = self.select_like("*","roles","name",query)
         for role in fetched_roles:
             roles.append(Role(*role, self))
         return roles
