@@ -1,6 +1,7 @@
+from os import name
 from character_connector import CharacterConnector
 from wiki_page_generator import WikiPageGenerator
-from connector_and_bar_search import ConnectorAndBarSearch
+from search import Search
 from database_controller import DatabaseController
 from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
@@ -13,8 +14,6 @@ import distutils.util
 db_control = DatabaseController()
 db_control.create_connection()
 
-
-cb_search = ConnectorAndBarSearch(db_control)
 character_connector = CharacterConnector(db_control)
 
 #TODO more intuitive variable names, a sweep to make it pythonic
@@ -42,61 +41,32 @@ def roles():
     wiki_page_generator = WikiPageGenerator(db_control, baseID, base_is_actor=base_is_actor, level=level)
     wiki_page_generator.set_content()
     return render_template('actor_template.html', base_name=wiki_page_generator.base_name, blurb_editor_link="", hub_sigils="", displayed_actors= wiki_page_generator.displayed_actors, displayed_MRs = wiki_page_generator.displayed_MRs, halfway = wiki_page_generator.halfway_mrs,baseID=wiki_page_generator.baseID, base_is_actor=wiki_page_generator.base_is_actor, level=wiki_page_generator.level)
-
-@app.route('/roles/editor', methods = ['GET', 'POST'])
-def editor():
+       
+@app.route('/role/editor/actor', methods = ['GET','POST'])
+def actor_editor():
     #TODO editors for powers, relationships (just like the history)
+    #WHen the user presses 'Submit'
     if request.method == 'POST':
+        #TODO get the other database elements here
         new_description  = request.form['description']
-        editorName = request.form['name']
         editorID = request.form['editorID']
-        editorType = request.form['type']
         goBackUrl = request.form['goBackUrl']
-        #TODO update to use more db_control
-        if editorType == 'role':
-            editor_description = db_control.select("description", "roles", "id", editorID)
-            historySql = '''INSERT INTO roles_history(id, name, description) VALUES (?,?,?) '''
-            db_control.cursor.execute(historySql,(editorID, editorName, editor_description))
-            changeDescSql='''UPDATE roles SET description=? WHERE id=?'''
-            db_control.cursor.execute(changeDescSql,(new_description,editorID,))
-        elif editorType == 'actor':
-            getDescSQL= "SELECT bio FROM actors WHERE id=?"
-            db_control.cursor.execute(getDescSQL,(editorID,))
-            editor_description = db_control.cursor.fetchall()[0][0]
-            historySql = '''INSERT INTO actors_history(id, name, description) VALUES (?,?,?) '''
-            db_control.cursor.execute(historySql,(editorID, editorName, editor_description))
-            changeDescSql='''UPDATE actors SET bio=? WHERE id=?'''
-            db_control.cursor.execute(changeDescSql,(new_description,editorID,))
-        elif editorType == 'mr':
-            getDescSQL= "SELECT description FROM meta_roles WHERE id=?"
-            db_control.cursor.execute(getDescSQL,(editorID,))
-            editor_description = db_control.cursor.fetchall()[0][0]
-            historySql = '''INSERT INTO meta_roles_history(id, name, description) VALUES (?,?,?) '''
-            db_control.cursor.execute(historySql,(editorID, editorName, editor_description))
-            changeDescSql='''UPDATE meta_roles SET description=? WHERE id=?'''
-            db_control.cursor.execute(changeDescSql,(new_description,editorID,))
-        else:
-            pass
+        #gets the old desc, plops it into history, then replaces it with the new
+        db_control.create_actor_history(editorID,new_description)
         db_control.commit()
         return redirect(goBackUrl)
     else:
         editorID = request.args['editorID']
-        editorType= request.args['editorType']
         goBackUrl = request.referrer
-        name = request.args['name']
-        history = db_control.get_history(editorID, editorType)
+        history = db_control.get_history(editorID, "actor")
+        #a list of all histry entries
 
-        if editorType == "actor":
-            person = db_control.get_actor(editorID)
-        elif editorType == "role":
-            person = db_control.get_role(editorID)
-        elif editorType == "mr":
-            person = db_control.get_mr(editorID)
-        
-        editor_description = db_control.get_editor_description(editorType, editorID)
+        person = db_control.get_actor(editorID)
 
-        return render_template('blurb_editor.html', editorType=editorType, goBackUrl=goBackUrl, person=person, history=history)
-       
+        #TODO new tamplates for all three
+        return render_template('blurb_editor.html', goBackUrl=goBackUrl, person=person, history=history)
+
+
 @app.route('/character_connector/', methods = ['GET','POST'])
 def character_connector():
     return render_template('cc_search.html')
@@ -107,10 +77,14 @@ def results():
     #TODO make this drag and drop
     name_1 = request.args.get('role1')
     name_2 = request.args.get('role2')
-    connector_mrs = search.mrSearchResults(name_1)
-    connector_mrs2 = search.mrSearchResults(name_2)
+    search_1 = Search(db_control)
+    search_2 = Search(db_control)
+    search_1.mrSearchResults(name_1)
+    search_2.mrSearchResults(name_2)
+    results_1 = search_1.displayed_mrs
+    results_2 = search_2.displayed_mrs
 
-    return render_template('character_combiner.html', connector_mrs=connector_mrs, connector_mrs2=connector_mrs2, name_1=name_1, name_2=name_2)
+    return render_template('character_combiner.html', connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
     
 @app.route('/character_connector/submit', methods = ['GET', 'POST'])
 def submit():

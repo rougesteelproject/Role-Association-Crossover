@@ -1,6 +1,3 @@
-
-#TODO update database_controll to match the expectations here
-
 class WikiPageGenerator:
     def __init__(self, db_control, baseID, base_is_actor=False, level=1):
         self._db_control = db_control
@@ -55,13 +52,8 @@ class WikiPageGenerator:
         if(self._base_is_actor):
             #an actor at 0.5 only does actor_swaps/ the same continuity, different actor
             #1 would be same character in all continuities
-            pass
-            #TODO
-            #for each mr in halfway
-                #for each role in parent.roles
-                    #if role.actor_swap_id != 0:
-                        #for role in db.get_actor_swaps(mr_id, actor_swap_id):
-                            #mr.add_role(role)
+            for mr in self.halfway:
+                mr.get_actor_swaps()
 
     def set_content(self):
         self._layer_is_actor = self.base_is_actor
