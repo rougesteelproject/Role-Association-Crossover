@@ -1,8 +1,8 @@
-from image_class import Image
+from image import Image
 
 class Role:
 
-    def __init__(self, role_id, role_name, role_description, alive_or_dead, alignment, parent_actor, parent_meta, actor_swap_id, db_control):
+    def __init__(self, role_id, role_name, role_description, alive_or_dead, alignment, parent_actor_id, parent_meta_id, actor_swap_id, db_control):
         self.id = role_id
         self.name = role_name
         self.description = role_description

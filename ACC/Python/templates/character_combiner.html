@@ -16,7 +16,7 @@
           <select name="id1" class="select_mr">
             {%for mr in connector_mrs%}
             {%for role in mr.roles%}
-            <option value="{{role[1]}}|{{mr.id}}">{{mr.name}}: {{role[0]}}</option>
+            <option value="{{role.id}}|{{mr.id}}">{{mr.name}}: {{role.name}}</option>
             {%endfor%}
           
           {%endfor%}
@@ -26,14 +26,12 @@
             <select name="id2" class="select_mr">
               {%for mr in connector_mrs2%}
               {%for role in mr.roles%}
-              <option value="{{role[1]}}|{{mr.id}}">{{mr.name}}: {{role[0]}}</option>
+              <option value="{{role.id}}|{{mr.id}}">{{mr.name}}: {{role.name}}</option>
               {%endfor%}
             
             {%endfor%}
             </select>
-          #TODO a little blurb explaining terminology
             
-          
           <label for="mode">Choose an operation:</label>
           <select name="mode" class="select_addMR">
             <option value="addMR">These are the same character, but not in the same continuity. </option>
@@ -45,6 +43,7 @@
           
             <input type="submit" value="Submit">
           </form>
+          <p>Continuity: a connected universe or series</p>
         </div>
     
 {% endblock %}

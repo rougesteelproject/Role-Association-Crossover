@@ -169,13 +169,13 @@ class DatabaseController():
                 revision_list.append(MetaRoleHistory(*revision))
         return revision_list
 
-    def create_actor_history(self, id, new_description):
+    def create_actor_history(self, id, new_bio):
         old_actor = self.get_actor(id)
-        historySql = '''INSERT INTO actors_history(id, name, description) VALUES (?,?,?) '''
+        historySql = '''INSERT INTO actors_history(id, name, bio) VALUES (?,?,?) '''
         self.cursor.execute(historySql,(id, old_actor.name, old_actor.bio))
         
         changeDescSql='''UPDATE actors SET bio=? WHERE id=?'''
-        self.cursor.execute(changeDescSql,(new_description,id,))
+        self.cursor.execute(changeDescSql,(new_bio,id,))
 
     def create_mr_history(self, id, new_description):
         old_mr = self.get_mr(id)
@@ -187,7 +187,7 @@ class DatabaseController():
 
     def create_role_history(self, id, new_description, new_alive_or_dead, new_alignment):
         old_role = self.get_role(id)
-        historySql = '''INSERT INTO roles_history(id, name, description) VALUES (?,?,?,?,?) '''
+        historySql = '''INSERT INTO roles_history(id, name, description, alive_or_dead, alignment) VALUES (?,?,?,?,?) '''
         self.cursor.execute(historySql,(id, old_role.name, old_role.description, old_role.alive_or_dead, old_role.alignment))
         
         changeDescSql='''UPDATE roles SET description=? WHERE id=?'''
