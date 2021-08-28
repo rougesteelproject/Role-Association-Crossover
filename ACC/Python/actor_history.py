@@ -1,5 +1,6 @@
 class ActorHistory:
-    def __init__(self, name,description,timestamp):
+    def __init__(self,id,timestamp, name,bio):
+        self.id = id
         self.name=name
-        self.description=description
+        self.bio=bio
         self.timestamp = timestamp

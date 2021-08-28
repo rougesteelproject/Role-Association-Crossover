@@ -1,0 +1,55 @@
+{%extends "HeadFoot.html" %}
+
+{% block title %}
+  Editor: {{role.name}}
+{% endblock %}
+
+{%block content%}
+<a style="float:left" href="{{goBackUrl}}">&lt&lt Go back</a>
+      <div class="blurb-editor">
+        <h2>
+          Edit {{role.name}}:
+        </h2>
+        <form method="POST">
+          <label for="description">Role Description</label><br>
+          <textarea id="description" name="description">{{role.description}}</textarea><br>
+          <label for="alive_or_dead">Status (Alive,Dead,Etc.):</label><br>
+          <textarea id="alive_or_dead" name="alive_or_dead">{{role.alive_or_dead}}</textarea><br>
+          <label for="alignment">Alignment (D&D Grid, Color Pie, Etc.):</label><br>
+          <textarea id="alignment" name="alignment">{{role.alignment}}</textarea>
+          <input type="text" style="display:none" name="editorID" value="{{role.id}}">
+          <input type="text" style="display:none" name="goBackUrl" value="{{goBackUrl}}">
+          <input type="text" style="display:none" name="name" value="{{role.name}}">
+          <input type="submit">
+        </form>
+        <h2>Version History</h2>
+        {%for version in history%}
+        <form method="POST">
+          <label for="description">{{version.description}}</label>
+          <label for="alive_or_dead">{{version.alive_or_dead}}</label>
+          <label for="alignment">{{version.alignment}}</label>
+          <input type="text" style="display:none" name="editorID" value="{{version.id}}">
+          <input type="text" style="display:none" name="goBackUrl" value="{{goBackUrl}}">
+          <input type="text" style="display:none" name="name" value="{{version.name}}">
+          <input type="text" style="display: none" name="description" value="{{version.description}}">
+          <input type="text" style="display: none;" name="alive_or_dead" value="{{version.alive_or_dead}}">
+          <input type="text" style="display: none;" name="alignment" value="{{version.alive_or_dead}}">
+          <label>{{version.timestamp}}</label>
+          <input type="submit">
+        </form>
+        {%endfor%}
+
+        <form method="POST" enctype="multipart/form-data" accept="image/*" action="{{url_for('submit_image')}}">
+          <label for="file">Image</label>
+          <input type="file"  name="file"><br>
+          <input type="text" name="caption" value="auto-generated"><br>
+          <input type="text" style="display:none" name="goBackUrlImg" value="{{goBackUrl}}">
+          <input type="text" style="display:none" name="typeImg" value="role">
+          <input type="text" style="display:none" name="IDImg" value="{{role.id}}">
+          <input type="submit" value="Submit">
+        </form>
+
+        
+      </div>
+      
+{%endblock%}
