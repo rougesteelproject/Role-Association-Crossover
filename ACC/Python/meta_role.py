@@ -1,11 +1,14 @@
 class MetaRole():
     #class > tuple because it isn't fixed
-    def __init__(self, MR_class_id, name, description, db_control):
+    def __init__(self, MR_class_id, name, description, historical, religious, fictional_in_universe,db_control):
         self.roles = []
         self.id = MR_class_id
         self.name = name
         self.description = description
         self._db_control = db_control
+        self.historical = historical
+        self.religious = religious
+        self.fictional_in_universe = fictional_in_universe
 
     def set_roles(self, roles):
         self.roles = roles

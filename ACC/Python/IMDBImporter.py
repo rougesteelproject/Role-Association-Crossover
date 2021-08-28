@@ -51,10 +51,10 @@ class IMDBImporter():
                                     mr_id = 1
                                 #Select Max() gets the highest in that column
 
-                                db_role = (role_id, role_name, 'auto-generated', "-", "-",actor_id, mr_id, '0', mr_id,)
+                                db_role = (role_id, role_name, 'auto-generated', "-", "-",0,actor_id, mr_id, '0', mr_id,)
 
                                 
-                                self._db_controller.create_mr(mr_id, character_name, 'auto-generated', 0)
+                                self._db_controller.create_mr(mr_id, character_name, 'auto-generated', "false")
 
                                 self._db_controller.create_role(db_role)
             self._db_controller.commit()
@@ -79,6 +79,7 @@ class IMDBImporter():
 def main():
     db_controller = DatabaseController()
     db_controller.create_connection()
+    db_controller.create_db_if_not_exists()
     imdb = IMDBImporter(db_controller)
     imdb.get_All_IMDBdb()
 

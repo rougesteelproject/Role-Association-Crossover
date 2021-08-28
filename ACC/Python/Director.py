@@ -13,6 +13,7 @@ import distutils.util
 
 db_control = DatabaseController()
 db_control.create_connection()
+db_control.create_db_if_not_exists()
 
 character_connector = CharacterConnector(db_control)
 
