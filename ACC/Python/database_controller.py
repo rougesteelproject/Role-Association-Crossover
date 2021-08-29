@@ -72,6 +72,7 @@ class DatabaseController():
         update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
         self.cursor.execute(update_reset_mr_sql, (roleID1,))
 
+    #TODO make a seperate select_and, select_or
     def select(self, select_columns, table_name, where, where_value , bool_and = False, bool_or = False, second_argument_column = "", second_argument_value = ""):
         select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
         if bool_and:

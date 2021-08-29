@@ -14,6 +14,10 @@ class Actor:
         
         self._db_control = db_control
         self.get_Images()
+
+        self.relationships =[]
+        self.get_relationships()
+        #TODO a function like this for each type of relationship
         
     def get_Images(self):
         images = self._db_control.select("file, caption", "gallery", "actor", self.id)

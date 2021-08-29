@@ -27,6 +27,8 @@ character_connector = CharacterConnector(db_control)
 
 #TODO a page with everybody, alphabetically
 
+
+
 @app.route('/')
 def index():
     #TODO generate featured articles based off of hits or connections (after the webview/ hub sigils works)
@@ -45,9 +47,10 @@ def wiki():
        
 @app.route('/role/editor/actor', methods = ['GET','POST'])
 def actor_editor():
-    #TODO editors for powers, relationships (just like the history)
-    #WHen the user presses 'Submit'
+    #TODO relationship editor similar to character connector
+    #TODO power edotor similar to char connector
     if request.method == 'POST':
+        #'Submit'
         new_bio  = request.form['bio']
         editorID = request.form['editorID']
         goBackUrl = request.form['goBackUrl']
@@ -67,7 +70,7 @@ def actor_editor():
 
 @app.route('/role/editor/meta', methods = ['GET','POST'])
 def mr_editor():
-        #TODO editors for powers, relationships (just like the history)
+
     #WHen the user presses 'Submit'
     if request.method == 'POST':
         new_description  = request.form['description']
@@ -89,7 +92,8 @@ def mr_editor():
 
 @app.route('/role/editor/role', methods = ['GET','POST'])
 def role_editor():
-    #TODO editors for powers, relationships (just like the history)
+#TODO relationship editor similar to character connector
+#TODO power edotor similar to char connector
     #WHen the user presses 'Submit'
     if request.method == 'POST':
         new_description  = request.form['description']

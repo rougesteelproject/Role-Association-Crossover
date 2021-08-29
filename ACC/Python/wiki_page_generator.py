@@ -55,6 +55,27 @@ class WikiPageGenerator:
             for mr in self.halfway:
                 mr.get_actor_swaps()
 
+    #TODO get actor relationships as a class variable - a list of ids paired with names
+    #actor.relationships_spouse for actor in displayed_actors
+    #link relationships - not in displayed_actors
+    #plaintext relationships - in displayed_actors
+
+    #TODO get role relationships as a class variable
+    #get list of "other" role id's
+    #get parent_meta for each "other" - can't be a role.parent_meta, because we don't need the whole role
+        #TODO check if db_cont has get_parent_meta(role_id)
+    #link_relationship_spouce - etc if mr in displayed_mrs
+    #plaintext_etc
+
+    #TODO a list of power templates, 
+       #with duplicate checking
+    #TODO
+        #a list of other powers
+        #check for duplicates
+
+    #TODO list of actor skills
+        #check duplicates
+
     def set_content(self):
         self._layer_is_actor = self.base_is_actor
 
