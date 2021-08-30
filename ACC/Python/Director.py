@@ -1,5 +1,4 @@
 from os import name
-from character_connector import CharacterConnector
 from wiki_page_generator import WikiPageGenerator
 from search import Search
 from database_controller import DatabaseController
@@ -8,16 +7,12 @@ app = Flask(__name__)
 
 #TODO replace exceptions with traceback.print_exc()
 
-
-
 import distutils
 import distutils.util
 
 db_control = DatabaseController()
 db_control.create_connection()
 db_control.create_db_if_not_exists()
-
-character_connector_class = CharacterConnector(db_control)
 
 #TODO more intuitive variable names, a sweep to make it pythonic
 #   functions modify lists, so we don't neet to return them. 
@@ -166,9 +161,10 @@ def search():
 
 @app.route('/ability')
 def ability_editor():
+    goBackUrl = request.referrer
     ability_id = request.args['id']
     ability = db_control.get_ability(ability_id)
     history = db_control.get_ability_history(ability_id)
-    return render_template('ability_editor.html',ability, history, go_back_url)
+    return render_template('ability_editor.html',ability, history, goBackUrl)
 
 app.run(port=5000)
