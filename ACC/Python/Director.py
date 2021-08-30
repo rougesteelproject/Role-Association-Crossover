@@ -127,6 +127,10 @@ def character_connector():
         return render_template('character_combiner.html', have_results = True, connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
     else:
         #TODO this doesn't work from the footer
+        #we need a /results page for this
+
+        #this 'else' will be the search bar, have results do the above on POST
+        #and on submision, go back to the search
         id1 = request.form['id1']
         
         id2 = request.form['id2']
