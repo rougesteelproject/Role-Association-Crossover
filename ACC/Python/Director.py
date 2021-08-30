@@ -126,6 +126,7 @@ def character_connector():
         results_2 = search_2.displayed_mrs
         return render_template('character_combiner.html', have_results = True, connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
     else:
+        #TODO this doesn't work from the footer
         id1 = request.form['id1']
         
         id2 = request.form['id2']
