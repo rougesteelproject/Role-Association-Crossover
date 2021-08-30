@@ -14,7 +14,7 @@ class IMDBImporter():
     
 
     #calls create_actor then create_role on all their roles
-    #TODO break into smaller pieces
+
     def loop_Movies(self, actor_ID):
         try:
             actor = self.ia.get_person(str(actor_ID).zfill(8))

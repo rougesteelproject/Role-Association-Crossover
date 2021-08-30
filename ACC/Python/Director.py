@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 #TODO replace exceptions with traceback.print_exc()
 
-#TODO get from the POST using request.form
+
 
 import distutils
 import distutils.util
@@ -25,7 +25,7 @@ character_connector_class = CharacterConnector(db_control)
 
 #TODO replace some of the url variables and redirects to other pages with a 
 # if request.method == 'POST':
-#and get the values of the form
+#get from the POST using request.form
 
 #TODO a page with everybody, alphabetically
 
@@ -120,8 +120,7 @@ def role_editor():
 @app.route('/character_connector/', methods = ['GET','POST'])
 def character_connector():
     if request.method == 'POST':
-        #TODO have this display the parent mrs, too, so you see what you're dealing with
-        #TODO make this drag and drop
+        #TODO make this drag and drop?
         name_1 = request.form['role1']
         name_2 = request.form['role2']
         search_1 = Search(db_control)

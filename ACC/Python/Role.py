@@ -16,6 +16,11 @@ class Role:
         self.gallery = []
         self.get_Images()
 
+        self.relationships =[]
+        self.get_relationships()
+        #TODO a function like this for each type of relationship
+        #TODO maybe a relationship class
+
     def get_Images(self):
         images = self._db_control.select("file, caption", "gallery", "role", self.id)
         for image in images:

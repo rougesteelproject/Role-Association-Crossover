@@ -168,22 +168,31 @@ class DatabaseController():
             roles.append(Role(*role,self))
         return roles
 
+    def get_ability(ability_id):
+        #TODO
+        return ability
+
     #HISTORY#
-    #TODO split
-    def get_history(self, id, type):
+    #TODO update places that get history
+    def get_actor_history(self,id):
         revision_list = []
-        if type== 'actor':
-            history = self.select("*", "actors_history", "id", id)
-            for revision in history:
-                revision_list.append(ActorHistory(*revision))
-        elif type == 'role':
-            history = self.select("*", "roles_history", "id", id)
-            for revision in history:
-                revision_list.append(RoleHistory(*revision))
-        elif type == 'mr':
-            history = self.select("*", "meta_roles_history", "id", id)
-            for revision in history:
-                revision_list.append(MetaRoleHistory(*revision))
+        history = self.select("*", "actors_history", "id", id)
+        for revision in history:
+            revision_list.append(ActorHistory(*revision))
+        return revision_list
+
+    def get_mr_history(self, id):
+        revision_list = []
+        history = self.select("*", "meta_roles_history", "id", id)
+        for revision in history:
+            revision_list.append(MetaRoleHistory(*revision))
+        return revision_list
+
+    def get_role_history(self,id):
+        revision_list = []
+        history = self.select("*", "roles_history", "id", id)
+        for revision in history:
+            revision_list.append(RoleHistory(*revision))
         return revision_list
 
     def create_actor_history(self, id, new_bio):
@@ -211,10 +220,6 @@ class DatabaseController():
         changeDescSql='''UPDATE roles SET description=?, alive_or_dead=?,alignment=? WHERE id=?'''
 
         self.cursor.execute(changeDescSql,(new_description,new_alive_or_dead,new_alignment,id,))  
-
-    def get_ability(ability_id):
-        #TODO
-        return ability
 
     def get_ability_history(id):
         #TODO
