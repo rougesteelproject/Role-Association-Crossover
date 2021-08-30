@@ -172,8 +172,10 @@ class DatabaseController():
         #TODO
         return ability
 
+    def get_parent_meta(self, role_id):
+        pass #TODO
+
     #HISTORY#
-    #TODO update places that get history
     def get_actor_history(self,id):
         revision_list = []
         history = self.select("*", "actors_history", "id", id)

@@ -63,7 +63,7 @@ class WikiPageGenerator:
     #TODO get role relationships as a class variable
     #get list of "other" role id's
     #get parent_meta for each "other" - can't be a role.parent_meta, because we don't need the whole role
-        #TODO check if db_cont has get_parent_meta(role_id)
+        #db_cont.get_parent_meta(role_id)
     #link_relationship_spouce - etc if mr in displayed_mrs
     #plaintext_etc
 

@@ -47,8 +47,12 @@
         {%endfor%}
         #TODO relationships, ablilities
         #Each relationship either is a link or not
-        #make a link for each id in each type of relationship
-        #make nonlink list item for each name in plaintext for each relationship type
+        #Each relationship type checks all relationships, gets the ones of same type, links first (use link id), then plaintext
+        #for rel in relationships:
+        # ie: if type = "type": /actor.rel.type
+          #if link: /actor.relationship.is_link
+          #else:
+        #then a new for loop for next relationship type
       </div>
 
       #TODO an ablilities and relationships section on the bottom left for roles

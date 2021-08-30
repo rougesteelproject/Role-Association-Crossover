@@ -63,7 +63,7 @@ def actor_editor():
     else:
         editorID = request.args['editorID']
         goBackUrl = request.referrer
-        history = db_control.get_history(editorID, "actor")
+        history = db_control.get_actor_history(editorID)
         #a list of all histry entries
 
         actor = db_control.get_actor(editorID)
@@ -85,7 +85,7 @@ def mr_editor():
     else:
         editorID = request.args['editorID']
         goBackUrl = request.referrer
-        history = db_control.get_history(editorID, "mr")
+        history = db_control.get_mr_history(editorID)
         #a list of all histry entries
 
         mr = db_control.get_mr(editorID)
@@ -110,7 +110,7 @@ def role_editor():
     else:
         editorID = request.args['editorID']
         goBackUrl = request.referrer
-        history = db_control.get_history(editorID, "role")
+        history = db_control.get_role_history(editorID)
         #a list of all histry entries
 
         role = db_control.get_role(editorID)
