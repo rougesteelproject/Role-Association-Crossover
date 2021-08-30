@@ -14,6 +14,7 @@ class IMDBImporter():
     
 
     #calls create_actor then create_role on all their roles
+    #TODO break into smaller pieces
     def loop_Movies(self, actor_ID):
         try:
             actor = self.ia.get_person(str(actor_ID).zfill(8))
@@ -24,39 +25,35 @@ class IMDBImporter():
 
             for job in actor['filmography'].keys():
                 if job == 'actress' or job == 'actor':
+                    
                     print(actor_id + " " + actor_name)
 
                     with self._db_controller.connection:
-                        # create a new row in the actor table
                         
-                        db_actor = (actor_id, actor_name, 'auto-generated', birth_date,death_date ,0)
-                        self._db_controller.create_actor(db_actor)
+                        # create a new row in the actor table
+                        self._db_controller.create_actor(actor_id, actor_name, birth_date,death_date)
 
                         #add filmography
                         for movie in actor['filmography'][job]:
 
                             movie_title = movie['title']
+                            
                             role_names = str(movie.currentRole).split("/")
+                            
                             role_index = 0
+                            
                             for character_name in role_names:
-                                role_id = actor_id + '-' + movie.movieID + '-' + str(role_index)
-                                role_index += 1
-                                role_name = (f'{character_name} ({movie_title}) ({actor_name})')
-                                print(role_name)
-                                self._db_controller.cursor.execute("SELECT MAX(id) FROM meta_roles")
-                                mr_id = self._db_controller.cursor.fetchone()[0]
-                                if mr_id is not None:
-                                    mr_id += 1
-                                else:
-                                    mr_id = 1
-                                #Select Max() gets the highest in that column
-
-                                db_role = (role_id, role_name, 'auto-generated', "-", "-",0,actor_id, mr_id, '0', mr_id,)
-
                                 
-                                self._db_controller.create_mr(mr_id, character_name, 'auto-generated', "false")
+                                role_index += 1
+                                role_id = self.create_role_id(actor_id, movie,role_index)
+                                role_name = self.create_role_name(character_name,movie_title,actor_name)
+                                print(role_name)
+                                
+                                mr_id = self.create_mr_id()
+                                
+                                self._db_controller.create_mr(mr_id, character_name)
 
-                                self._db_controller.create_role(db_role)
+                                self._db_controller.create_role(role_id, role_name,actor_id, mr_id)
             self._db_controller.commit()
 
                                 
@@ -75,6 +72,23 @@ class IMDBImporter():
             self.loop_Movies(actor_id)
             actor_id += 1
         print('Done')
+
+    def create_role_id(self, actor_id, movie, role_index):
+        role_id = actor_id + '-' + movie.movieID + '-' + str(role_index)
+        return role_id
+        
+    def create_role_name(self, character_name, movie_title,actor_name):
+        role_name = (f'{character_name} ({movie_title}) ({actor_name})')
+        return role_name
+
+    def create_mr_id(self):
+        mr_id = self._db_controller.cursor.select_max("id", "meta_roles")
+        if mr_id is not None:
+            mr_id += 1
+        else:
+            mr_id = 1
+        #Select Max() gets the highest in that column
+        return mr_id
 
 def main():
     db_controller = DatabaseController()

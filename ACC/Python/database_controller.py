@@ -27,10 +27,10 @@ class DatabaseController():
 
     def create_db_if_not_exists(self):
         # Create table if it doesn't exist
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, historical TEXT, religious TEXT, fictional_in_universe TEXT,is_biggest INT )''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role INT, actor INT, caption TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT, birth_date TEXT, death_date TEXT,is_biggest INT )''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT, alive_or_dead TEXT, alignment TEXT,parent_actor INT, parent_meta INT, actor_swap_id INT, first_parent_meta INT )''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT DEFAULT \'Auto-Generated\', historical TEXT DEFAULT \'False\', religious TEXT DEFAULT \'False\', fictional_in_universe TEXT DEFAULT \'False\',is_biggest INT DEFAULT 0)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role INT, actor INT, caption TEXT DEFAULT \'Auto-Generated\')''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT DEFAULT \'Auto-Generated\', birth_date TEXT, death_date TEXT,is_biggest INT DEFAULT 0)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0, first_parent_meta INT )''')
         #relationships
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actor_relationships(relationship_id INT PRIMARY KEY NOT NULL, actor1 TEXT, actor2 TEXT, relationship_type TEXT) ''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INT PRIMARY KEY NOT NULL, role_1 TEXT, role_2 TEXT, relationship_type TEXT)''')
@@ -48,21 +48,21 @@ class DatabaseController():
         #history tables for abilities
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(ability_id INT PRIMARY KEY NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT)''')
 
-    def create_actor(self, db_actor):
+    def create_actor(self, id, name, birth_date, death_date):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
-        create_actor_sql = '''INSERT OR IGNORE INTO actors(id, name, bio, birth_date, death_date,is_biggest) VALUES (?,?,?,?,?,?) '''
-        self.cursor.execute(create_actor_sql, db_actor)
+        create_actor_sql = '''INSERT OR IGNORE INTO actors(id, name, birth_date, death_date) VALUES (?,?,?,?) '''
+        self.cursor.execute(create_actor_sql, (id, name, birth_date, death_date,))
 
     #create a new role in the role table
-    def create_role(self,db_role):
+    def create_role(self,role_id, role_name, actor_id, mr_id):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
-        create_role_sql = '''INSERT OR IGNORE INTO roles(id, name, description, alive_or_dead, alignment,parent_actor, parent_meta, actor_swap_id, first_parent_meta) VALUES (?,?,?,?,?,?,?,?,?) '''
+        create_role_sql = '''INSERT OR IGNORE INTO roles(id, name,parent_actor, parent_meta, first_parent_meta) VALUES (?,?,?,?,?) '''
         # Create table if it doesn't exist
-        self.cursor.execute(create_role_sql, db_role)
+        self.cursor.execute(create_role_sql, (role_id, role_name,actor_id, mr_id, mr_id,))
 
-    def create_mr(self, mr_id, character_name, mr_description, historical, religious, fictional_in_universe, is_biggest=0):      
-        create_mr_sql = '''INSERT OR IGNORE INTO meta_roles(id, name, description, historical, religious, fictional_in_universe, is_biggest) VALUES (?,?,?,?,?,?,?) '''
-        self.cursor.execute(create_mr_sql,(mr_id, character_name, mr_description,historical, religious, fictional_in_universe, is_biggest,))
+    def create_mr(self, mr_id, character_name):      
+        create_mr_sql = '''INSERT OR IGNORE INTO meta_roles(id, name) VALUES (?,?) '''
+        self.cursor.execute(create_mr_sql,(mr_id, character_name,))
 
     def update(self, table_name, column, column_values, where, where_values):
         update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
@@ -72,23 +72,27 @@ class DatabaseController():
         update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
         self.cursor.execute(update_reset_mr_sql, (roleID1,))
 
-    #TODO make a seperate select_and, select_or
-    def select(self, select_columns, table_name, where, where_value , bool_and = False, bool_or = False, second_argument_column = "", second_argument_value = ""):
+    def select(self, select_columns, table_name, where, where_value):
         select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
-        if bool_and:
-            select_sql = select_sql + "AND {}=?".format(second_argument_column.lower())
-        elif bool_or:
-            select_sql = select_sql + "OR {}=?".format(second_argument_column.lower())
-        
-        if second_argument_value != '':
-            values = (where_value, second_argument_value,)
-            self.cursor.execute(select_sql, values)
-        else:
-            values = where_value
-            self.cursor.execute(select_sql, (values,))
+        self.cursor.execute(select_sql, (where_value,))
         return self.cursor.fetchall()
 
-    def select_max(self, select_column, table_name, where_column, where_value):
+    def select_and(self, select_columns, table_name, where_column, where_value, where_column_2, where_value_2):
+        select_sql = "SELECT {} FROM {} WHERE {}=? AND {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())
+        self.cursor.execute(select_sql,(where_value,where_value_2,))
+        return self.cursor.fetchall()
+
+    def select_or(self, select_columns, table_name, where_column, where_value, where_column_2, where_value_2):
+        select_sql = "SELECT {} FROM {} WHERE {}=? OR {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())
+        self.cursor.execute(select_sql,(where_value,where_value_2,))
+        return self.cursor.fetchall()
+
+    def select_max(self, select_column, table_name):
+        select_sql = "SELECT MAX({}) FROM {}".format(select_column.lower(),table_name.lower())
+        self.cursor.execute(select_sql)
+        return self.cursor.fetchone()
+
+    def select_max_where(self, select_column, table_name, where_column, where_value):
         select_sql = "SELECT MAX({}) FROM {} WHERE {}=?".format(select_column.lower(),table_name.lower(),where_column.lower())
         self.cursor.execute(select_sql, (where_value,))
         return self.cursor.fetchone()
@@ -155,6 +159,7 @@ class DatabaseController():
             roles.append(Role(*role,self))
         return roles
 
+    #TODO split
     def get_history(self, id, type):
         revision_list = []
         if type== 'actor':
@@ -196,6 +201,14 @@ class DatabaseController():
         changeDescSql='''UPDATE roles SET description=?, alive_or_dead=?,alignment=? WHERE id=?'''
 
         self.cursor.execute(changeDescSql,(new_description,new_alive_or_dead,new_alignment,id,))  
+
+    def get_ability(ability_id):
+        #TODO
+        return ability
+
+    def get_ability_history(id):
+        #TODO
+        return ability_history
 
     def commit(self):
         self.connection.commit()

@@ -4,9 +4,6 @@
   Editor: {{mr.name}}
 {% endblock %}
 
-#TODO update with historical, religious, fict_in_universe as drop down menus
-#TODO update history with historical, religious, fict_in_universe
-
 {%block content%}
 <a style="float:left" href="{{goBackUrl}}">&lt&lt Go back</a>
       <div class="blurb-editor">
@@ -19,6 +16,21 @@
           <input type="text" style="display:none" name="editorID" value="{{mr.id}}">
           <input type="text" style="display:none" name="goBackUrl" value="{{goBackUrl}}">
           <input type="text" style="display:none" name="name" value="{{mr.name}}">
+          <label for="historical">Is historical:</label>
+          <select id="historical" name="historical">
+            <option>True</option>
+            <option>False</option>
+          </select>
+          <label for="religious">Is religious:</label>
+          <select id="religious" name="religious">
+            <option>True</option>
+            <option>False</option>
+          </select>
+          <label for="fictional_in_universe">Is fictional in-universe:</label>
+          <select id="fictional_in_universe" name="fictional_in_universe">
+            <option>True</option>
+            <option>False</option>
+          </select>
           <input type="submit">
         </form>
         <h2>Version History</h2>
@@ -29,6 +41,9 @@
           <input type="text" style="display:none" name="goBackUrl" value="{{goBackUrl}}">
           <input type="text" style="display:none" name="name" value="{{version.name}}">
           <input type="text" style="display: none" name="description" value="{{version.description}}">
+          <input type="text" style="display: none;" name="historical" value="{{version.historical}}">
+          <input type="text" style="display: none;" name="religious" value="{{version.religious}}">
+          <input type="text" style="display: none;" name="fictional_in_universe" value="{{version.fictional_in_universe}}">
           <label>{{version.timestamp}}</label>
           <input type="submit">
         </form>

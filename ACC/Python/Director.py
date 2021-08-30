@@ -208,4 +208,11 @@ def search():
     search_bar.searchBar(query)
     return render_template('search.html', search_bar.displayed_mrs, search_bar.displayed_actors)
 
+@app.route('/ability')
+def ability_editor():
+    ability_id = request.args['id']
+    ability = db_control.get_ability(ability_id)
+    history = db_control.get_ability_history(ability_id)
+    return render_template('ability_editor.html',ability, history, go_back_url)
+
 app.run(port=5000)
