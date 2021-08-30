@@ -7,7 +7,6 @@ class Search():
         self.displayed_actors = []
 
     def mrSearchResults(self, query):
-        query = f'%{query}%'
 
         connector_roles = self._db_control.get_roles_search(query)
 
@@ -39,7 +38,6 @@ class Search():
         self.displayed_mrs = mrs_no_duplicates
 
     def searchBar(self, query):
-        query = f'\'%{query}%\''
         search_actor_ids= []
         search_mr_ids = []
 

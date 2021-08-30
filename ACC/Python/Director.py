@@ -113,7 +113,12 @@ def role_editor():
         return render_template('role_editor.html', goBackUrl=goBackUrl, role=role, history=history)
 
 @app.route('/character_connector/', methods = ['GET','POST'])
-def character_connector():
+def character_connector_search():
+    return render_template("character_connector_search.html")
+        
+
+@app.route('/character_connector/results', methods = ['POST'])
+def character_connector_results():
     if request.method == 'POST':
         #TODO make this drag and drop?
         name_1 = request.form['role1']
@@ -124,13 +129,9 @@ def character_connector():
         search_2.mrSearchResults(name_2)
         results_1 = search_1.displayed_mrs
         results_2 = search_2.displayed_mrs
-        return render_template('character_combiner.html', have_results = True, connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
-    else:
-        #TODO this doesn't work from the footer
-        #we need a /results page for this
+        return render_template('character_connector_results.html', connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
 
-        #this 'else' will be the search bar, have results do the above on POST
-        #and on submision, go back to the search
+    else:
         id1 = request.form['id1']
         
         id2 = request.form['id2']
@@ -138,8 +139,9 @@ def character_connector():
 
         db_control.character_connector_switch(mode,id1,id2)
         
-        return render_template('character_combiner.html', have_results=False)
-      
+        return render_template('character_connector_results.html')
+
+
 @app.route('/webview', methods=['GET', 'POST'])
 def webview():
     return render_template('webview.html')

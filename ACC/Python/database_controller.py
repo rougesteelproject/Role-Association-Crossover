@@ -104,7 +104,7 @@ class DatabaseController():
         return self.cursor.fetchone()
 
     def select_like(self, select_colums, table_name, where_column, like_value):
-        select_sql = "SELECT {} FROM {} WHERE {} LIKE {}".format(select_colums, table_name, where_column, like_value)
+        select_sql = "SELECT {} FROM {} WHERE {} LIKE \'%{}%\'".format(select_colums, table_name, where_column, like_value)
         self.cursor.execute(select_sql)
         return self.cursor.fetchall()
 
