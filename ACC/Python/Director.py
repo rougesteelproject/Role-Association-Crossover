@@ -8,6 +8,8 @@ app = Flask(__name__)
 
 #TODO replace exceptions with traceback.print_exc()
 
+#TODO get from the POST using request.form
+
 import distutils
 import distutils.util
 
@@ -15,7 +17,7 @@ db_control = DatabaseController()
 db_control.create_connection()
 db_control.create_db_if_not_exists()
 
-character_connector = CharacterConnector(db_control)
+character_connector_class = CharacterConnector(db_control)
 
 #TODO more intuitive variable names, a sweep to make it pythonic
 #   functions modify lists, so we don't neet to return them. 
@@ -92,8 +94,8 @@ def mr_editor():
 
 @app.route('/role/editor/role', methods = ['GET','POST'])
 def role_editor():
-#TODO relationship editor similar to character connector
-#TODO power edotor similar to char connector
+    #TODO relationship editor similar to character connector
+    #TODO power edotor similar to char connector
     #WHen the user presses 'Submit'
     if request.method == 'POST':
         new_description  = request.form['description']
@@ -117,73 +119,28 @@ def role_editor():
 
 @app.route('/character_connector/', methods = ['GET','POST'])
 def character_connector():
-    return render_template('cc_search.html')
-    
-@app.route('/character_connector/results/', methods = ['GET', 'POST'])
-def results(): 
-    #TODO have this display the parent mrs, too, so you see what you're dealing with
-    #TODO make this drag and drop
-    name_1 = request.args.get('role1')
-    name_2 = request.args.get('role2')
-    search_1 = Search(db_control)
-    search_2 = Search(db_control)
-    search_1.mrSearchResults(name_1)
-    search_2.mrSearchResults(name_2)
-    results_1 = search_1.displayed_mrs
-    results_2 = search_2.displayed_mrs
+    if request.method == 'POST':
+        #TODO have this display the parent mrs, too, so you see what you're dealing with
+        #TODO make this drag and drop
+        name_1 = request.form['role1']
+        name_2 = request.form['role2']
+        search_1 = Search(db_control)
+        search_2 = Search(db_control)
+        search_1.mrSearchResults(name_1)
+        search_2.mrSearchResults(name_2)
+        results_1 = search_1.displayed_mrs
+        results_2 = search_2.displayed_mrs
+        return render_template('character_combiner.html', have_results = True, connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
+    else:
+        id1 = request.form['id1']
+        
+        id2 = request.form['id2']
+        mode = request.form['mode']
 
-    return render_template('character_combiner.html', connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
-    
-@app.route('/character_connector/submit', methods = ['GET', 'POST'])
-def submit():
-    
-    id1 = request.args.get('id1')
-    id2 = request.args.get('id2')
-    mode = request.args.get('mode')
-
-    if id1 != None and id2 != None:
-        #TODO create a splitter function that makes two MR's with roles divided based on their id (maybe two lists of id's to check against?)
-        if mode == "addMR":
-            id1 = id1.split('|')[0] #0 is the role of id 1
-            id2 = id2.split('|')[1] #the mr of id2
-            try:
-                int(id2)
-            except ValueError:
-                print (f'Invalid ID for opperation: {mode}')
-            else:
-                #code to run on sucessful try
-                character_connector.addMR(id1, id2)
-        elif mode == "resetMR":
-            id1 = id1.split('|')[0] #0 is the role of id 1
-            character_connector.resetMR(id1)
-        elif mode == "mergeMR":
-            id1 = id1.split('|')[1] #1 is the mr of id 1
-            id2 = id2.split('|')[1] #the mr of id2
-            try:
-                int(id2)
-            except ValueError:
-                print (f'Invalid ID for opperation: {mode}')
-            else:
-                try:
-                    int(id1)
-                except ValueError:
-                    print (f'Invalid ID for opperation: {mode}')
-                else:
-                    character_connector.mergeMR(id1, id2)
-        elif mode == "actorSwap":
-            id1 = id1.split('|')[0] #0 is the role of id 1
-            id2 = id2.split('|')[0] #0 is the role of id 2
-            #Actor swaps are also first-come for ids.
-            #Creating an actor_swap adds a swap ID to both roles
-            character_connector.actorSwap(id1, id2)
-        elif mode == "removeActorSwap":
-            id1 = id1.split('|')[0] #0 is the role of id 1
-            character_connector.removeActorSwap(id1)
-        else:
-            print(f'Opperation \'{mode}\' does not exist.')
-
-    return render_template('cc_search.html')
-
+        db_control.character_connector_switch(mode,id1,id2)
+        
+        return render_template('character_combiner.html', have_results=False)
+      
 @app.route('/webview', methods=['GET', 'POST'])
 def webview():
     return render_template('webview.html')

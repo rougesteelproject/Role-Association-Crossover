@@ -48,12 +48,12 @@ class DatabaseController():
         #history tables for abilities
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(ability_id INT PRIMARY KEY NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT)''')
 
+    #INSERT OR IGNORE#
     def create_actor(self, id, name, birth_date, death_date):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
         create_actor_sql = '''INSERT OR IGNORE INTO actors(id, name, birth_date, death_date) VALUES (?,?,?,?) '''
         self.cursor.execute(create_actor_sql, (id, name, birth_date, death_date,))
 
-    #create a new role in the role table
     def create_role(self,role_id, role_name, actor_id, mr_id):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
         create_role_sql = '''INSERT OR IGNORE INTO roles(id, name,parent_actor, parent_meta, first_parent_meta) VALUES (?,?,?,?,?) '''
@@ -64,14 +64,20 @@ class DatabaseController():
         create_mr_sql = '''INSERT OR IGNORE INTO meta_roles(id, name) VALUES (?,?) '''
         self.cursor.execute(create_mr_sql,(mr_id, character_name,))
 
+    #UPDATE#
     def update(self, table_name, column, column_values, where, where_values):
         update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
         self.cursor.execute(update_sql, column_values + where_values)
+
+    def update_or(self, table_name, column, column_value, where_1, where_value_1, where_2, where_value_2):
+        update_sql = "UPDATE {} SET {}=? WHERE {}=? OR {}=?".format(table_name.lower(), column.lower(), where_1.lower(), where_2.lower())
+        self.cursor.execute(update_sql, (column_value,where_value_1,where_value_2,))
     
     def update_reset_mr(self, roleID1):
         update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
         self.cursor.execute(update_reset_mr_sql, (roleID1,))
 
+    #SELECT#
     def select(self, select_columns, table_name, where, where_value):
         select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
         self.cursor.execute(select_sql, (where_value,))
@@ -102,6 +108,7 @@ class DatabaseController():
         self.cursor.execute(select_sql)
         return self.cursor.fetchall()
 
+    #IMAGES#
     def add_image(self,page_type, page_id, image_url, caption):
         if page_type == 'actor':
             sql = '''INSERT INTO gallery (file, actor, caption) VALUES (?,?,?)'''
@@ -109,6 +116,8 @@ class DatabaseController():
             sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
         self.cursor.execute(sql,(image_url,page_id,caption,))
 
+
+    #SEARCH AND RETRIEVE#
     def get_actor(self, actor_id):
         fetched_actor = self.select("*","actors","id",actor_id)[0]
         return Actor(*fetched_actor, self)
@@ -159,6 +168,7 @@ class DatabaseController():
             roles.append(Role(*role,self))
         return roles
 
+    #HISTORY#
     #TODO split
     def get_history(self, id, type):
         revision_list = []
@@ -209,6 +219,78 @@ class DatabaseController():
     def get_ability_history(id):
         #TODO
         return ability_history
+
+    #CHARACTER CONNECTOR#
+    def character_connector_switch(self, mode, id1, id2):
+        if id1 != None and id2 != None:
+            role_id_1, mr_id_1 = id1.split('|')
+            role_id_2, mr_id_2 = id2.split('|')
+
+            if mode == "changeMR":
+                self.changeMR(role_id_1, mr_id_2)
+            elif mode == "resetMR":
+                self.resetMR(role_id_1)
+            elif mode == "mergeMR":
+                self.mergeMR(mr_id_1,mr_id_2)
+            elif mode == "actorSwap":
+                self.actorSwap(role_id_1,role_id_2, mr_id_1, mr_id_2)
+            elif mode == "removeActorSwap":
+                self.removeActorSwap(role_id_1)
+            else:
+                print(f'Opperation \'{mode}\' does not exist.')
+
+            self.commit()
+    #TODO create a splitter function that makes two MR's with roles divided based on their id (maybe two lists of id's to check against?)
+
+    #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
+    # You can revert an mr change by ID without changing the ID's
+    def changeMR(self, role_id, mr_id):
+        #changes the meta of role_id to mr_id
+        self.update("roles", "parent_meta", mr_id, "id", role_id)
+
+    def resetMR(self, roleID1):
+        self.update_reset_mr(roleID1)
+
+    def mergeMR(self, metaID1, metaID2):
+        if (metaID1 != metaID2):
+            lowest = min(metaID1, metaID2)
+            highest = max(metaID1, metaID2)
+            self.update("roles", "parent_meta", highest, "parent_meta", lowest)
+
+    def actorSwap(self, roleID1, roleID2, mr_id_1, mr_id_2):
+        if roleID1 != roleID2:
+
+            if mr_id_1 != mr_id_2:
+                self.mergeMR(mr_id_1, mr_id_2)
+            
+            parent_meta = max(mr_id_1,mr_id_2)
+            
+            swap_id = self.select_max("actor_swap_id", "roles","parent_meta", parent_meta)
+            if swap_id is not None:
+                swap_id += 1
+            else:
+                swap_id = 1
+            #Select Max() gets the highest in that column
+            self.update_or("roles", "actor_swap_id", swap_id, "id", roleID1, where_2="id", where_value_2=roleID2)
+        else:
+            print("Actor Swap Error: IDs are the same.")
+        
+    def removeActorSwap(self, roleID1, parent_id_1):
+        actor_swap_data = self.select("actor_swap_id, parent_meta", "roles", "id", roleID1)
+        actor_swap_id = actor_swap_data[0]
+        
+        #get the id  so we can check if we orphaned an actor-swap
+        
+        self.update("roles", "actor_swap+id", 0, "id", roleID1)
+        
+        #we don't need to redo the actor-swap ids if a number is skipped
+        
+        #This will set any orphaned (one-child) actor_swaps to 0
+        if actor_swap_id != 0:
+            result = self.select_and("id","roles","actor_swap_id",actor_swap_id, "parent_meta", parent_id_1)
+            if len(result) < 2 and len(result) != 0:
+                swap_id_to_clear = result[0][0]
+                self.update("roles","actor_swap_id", 0, "id", swap_id_to_clear)
 
     def commit(self):
         self.connection.commit()
