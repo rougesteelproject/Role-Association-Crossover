@@ -5,7 +5,7 @@
 {% endblock %}
 
 #TODO relationship editor, history
-#TODO skill conector
+
 
 {%block content%}
 <a style="float:left" href="{{goBackUrl}}">&lt&lt Go back</a>
@@ -25,11 +25,24 @@
         <h2>Abilities</h2>
         <ul>
         {%for ability in actor.abilities%}
+        <li>
         <p> {{ability.name}}</p> 
         <a href="{{url_for('ability_editor')}}?id={{ability.id}}" title="Edit {{ability.name}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a>
         <p>{{ability.description}}</p>
+        #TODO 'remove skill' button
+        </li>
         {%endfor%}
         </ul>
+
+        #TODO skill connector
+        <h2>Add Skill</h2>
+        <form>
+          <input list="skills">
+          #all the skills this actor is not connected to
+        </form>
+        #create new ability link -> new page
+        #a submit button
+        #db_cont connects the two
 
         <h2>Version History</h2>
         {%for version in history%}
