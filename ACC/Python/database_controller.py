@@ -178,16 +178,16 @@ class DatabaseController():
     def get_ability_list_actor(self, actor_id):
         pass
 
-    def get_ability_exclude_actor(self, actor_id):
+    def get_ability_list_exclude_actor(self, actor_id):
         pass
 
-    def get_ability_exclude_role(self, role_id):
+    def get_ability_list_exclude_role(self, role_id):
         pass
 
-    def get_ability_template_exclude_actor(self, actor_id):
+    def get_ability_template_list_exclude_actor(self, actor_id):
         pass
 
-    def get_ability_template_exclude_role(self, role_id):
+    def get_ability_template_list_exclude_role(self, role_id):
         pass
 
     def get_parent_meta(self, role_id):
