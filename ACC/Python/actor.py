@@ -16,7 +16,7 @@ class Actor:
         self.get_Images()
 
         self.relationships =[]
-        self.get_relationships()
+        #self.get_relationships()
         #TODO a function like this for each type of relationship
         
     def get_Images(self):

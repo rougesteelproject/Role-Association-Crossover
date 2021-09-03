@@ -111,16 +111,30 @@ def role_editor():
         role = db_control.get_role(editorID)
 
         return render_template('role_editor.html', goBackUrl=goBackUrl, role=role, history=history)
-
-@app.route('/character_connector/', methods = ['GET','POST'])
-def character_connector_search():
-    return render_template("character_connector_search.html")
         
+@app.route('/character_connector', methods = ['GET','POST'])
+def character_connector():
+    if "search-submit" in request.form:
 
-@app.route('/character_connector/results', methods = ['POST'])
-def character_connector_results():
-    if request.method == 'POST':
         #TODO make this drag and drop?
+        name_1 = request.form['name_1']
+        name_2 = request.form['name_2']
+        search_1 = Search(db_control)
+        search_2 = Search(db_control)
+        search_1.mrSearchResults(name_1)
+        search_2.mrSearchResults(name_2)
+        results_1 = search_1.displayed_mrs
+        results_2 = search_2.displayed_mrs
+
+        return render_template('character_connector.html',have_results=True, connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
+
+    if "matcher-submit" in request.form:
+        id1 = request.form['id1']
+        id2 = request.form['id2']
+        mode = request.form['mode']
+
+        db_control.character_connector_switch(mode,id1,id2)
+
         name_1 = request.form['role1']
         name_2 = request.form['role2']
         search_1 = Search(db_control)
@@ -129,18 +143,10 @@ def character_connector_results():
         search_2.mrSearchResults(name_2)
         results_1 = search_1.displayed_mrs
         results_2 = search_2.displayed_mrs
-        return render_template('character_connector_results.html', connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
 
-    else:
-        id1 = request.form['id1']
-        
-        id2 = request.form['id2']
-        mode = request.form['mode']
+        return render_template('character_connector.html', have_results=True ,connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
 
-        db_control.character_connector_switch(mode,id1,id2)
-        
-        return render_template('character_connector_results.html')
-
+    return render_template('character_connector.html', have_results = False)
 
 @app.route('/webview', methods=['GET', 'POST'])
 def webview():

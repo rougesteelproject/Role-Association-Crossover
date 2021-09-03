@@ -35,8 +35,8 @@ ACC/Python/__pycache__/Role.cpython-38.pyc
 ACC/Python/__pycache__/meta_role_history.cpython-38.pyc
 ACC/Python/__pycache__/database_controller.cpython-38.pyc
 ACC/Python/__pycache__/actor.cpython-38.pyc
-ACC/Python/templates/character_connector_results.html
-ACC/Python/templates/HeadFoot.html
-ACC/Python/templates/character_connector_search.html
 ACC/Python/__pycache__/search.cpython-38.pyc
 ACC/Python/__pycache__/database_controller.cpython-38.pyc
+ACC/Python/__pycache__/actor.cpython-38.pyc
+ACC/Python/__pycache__/database_controller.cpython-38.pyc
+ACC/Python/__pycache__/Role.cpython-38.pyc
