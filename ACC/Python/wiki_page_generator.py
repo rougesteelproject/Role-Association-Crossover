@@ -3,7 +3,7 @@ class WikiPageGenerator:
         self._db_control = db_control
         self.base_is_actor = base_is_actor
         self.baseID = baseID
-        
+        print(self.baseID)
 
         self._layer_is_actor = False
         self.level = level
@@ -30,9 +30,11 @@ class WikiPageGenerator:
 
     def _update_displayed(self,parent, is_actor):
         if is_actor:
-            self._displayed_actors.append(parent)
+            self.displayed_actors.append(parent)
+            print(parent.name)
         else:
-            self._displayed_mrs.append(parent)
+            self.displayed_mrs.append(parent)
+            print(parent.name)
 
     def _set_halfway(self):
         #the halfway-displayed mrs, when an actor only plays some of an mr's roles
