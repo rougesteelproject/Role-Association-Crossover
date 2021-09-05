@@ -10,9 +10,9 @@
         <ul>
           <li><a>Web View ({{generator.base_name}})</a></li>
           {%if generator.base_is_actor%}
-          <li><a>{{url_for('actor_editor')}}?editorID={{generator.baseID}}</a>a></li>
+          <li><a href="{{url_for('actor_editor')}}?editorID={{generator.baseID}}">{{generator.base_name}}</a></li>
           {%else%}
-          <li><a>{{url_for('mr_editor')}}?editorID={{generator.baseID}}</a></li>
+          <li><a href="{{url_for('mr_editor')}}?editorID={{generator.baseID}}">{{generator.base_name}}</a></li>
           {%endif%}
         </ul>
         
@@ -34,6 +34,7 @@
         
         <div class="bio">
           #TODO make a little box for the gallery and captions
+          <h2>{{actor.name}}</h2>
           
           {%for image in actor.gallery%}
           <img alt="{{image.file}}" src="{{url_for('static', filename=image.file)}}"/>
@@ -92,7 +93,10 @@
             </p>
           </div>
           {%endfor%}
-          {%for mr in generator.halfway%}
+        </div>
+          
+          {%endfor%}
+          {%for mr in generator.halfway_mrs%}
         <div class="meta-role-div">
           <h2>
           {{mr.name}} <a href="{{url_for('mr_editor')}}?editorID={{mr.id}}" title="edit this character"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>

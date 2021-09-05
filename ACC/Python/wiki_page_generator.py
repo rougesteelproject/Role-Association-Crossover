@@ -38,23 +38,23 @@ class WikiPageGenerator:
 
     def _set_halfway(self):
         #the halfway-displayed mrs, when an actor only plays some of an mr's roles
-        if self._layer_is_actor:
-            for parent in self._inactive:
-                for role in parent.roles:
-                    for mr in self.halfway_mrs:
-                        if role.parent_mr == mr.id:
-                            in_active = True
-                            mr.add_role(role)
-                    if (not in_active):
-                        halfway_mr = self._db_control.get_mr(role.parent_meta)
-                        halfway_mr.add_role(role)
-                        self.halfway_mrs.append(halfway_mr)
+        for parent in self._inactive:
+            for role in parent.roles:
+                in_active = False
+                for mr in self.halfway_mrs:
+                    if role.parent_meta == mr.id:
+                        in_active = True
+                        mr.add_role(role)
+                if (not in_active):
+                    halfway_mr = self._db_control.get_mr(role.parent_meta)
+                    halfway_mr.add_role(role)
+                    self.halfway_mrs.append(halfway_mr)
 
     def _set_point_five_roles(self):
-        if(self._base_is_actor):
+        if(self.base_is_actor):
             #an actor at 0.5 only does actor_swaps/ the same continuity, different actor
             #1 would be same character in all continuities
-            for mr in self.halfway:
+            for mr in self.halfway_mrs:
                 mr.get_actor_swaps()
 
     #TODO get actor relationships as a class variable - a list of ids paired with names
@@ -80,22 +80,16 @@ class WikiPageGenerator:
 
     def set_content(self):
         self._layer_is_actor = self.base_is_actor
-
+        #TODO Mrs or actorsa are borked, and it's just getting carrie fisher, too
         self._check_if_point_five()
         while self._layer < self.level:
             self._temp_inactive = []
             for parent in self._inactive:
                 parent.set_roles(self._db_control.get_roles(parent.id, self._layer_is_actor))
                 if self._layer_is_actor:
-                    for role in parent.roles:
-                        in_active = False
-                        for mr in self.displayed_mrs:
-                            if role.parent_meta == mr.id:
-                                in_active = True
-                        if(not in_active):
-                            self._temp_inactive.append(self._db_control.get_mr(role.parent_meta))
+                    self._set_halfway()
 
-                else:
+                else: #eg, there are unprocessed mrs in Inactive
                     for role in parent.roles:
                         in_active = False
                         for actor in self.displayed_actors:
@@ -104,9 +98,9 @@ class WikiPageGenerator:
                         if(not in_active):
                             self._temp_inactive.append(self._db_control.get_actor(role.parent_actor))
                 self._update_displayed(parent, self._layer_is_actor)
+            self._layer += 1
+            self._layer_is_actor = not self._layer_is_actor
             self._inactive = self._temp_inactive
-        
-        self._set_halfway()
         
         self._set_point_five_roles()
         #TODO we'l have to return the Hub Sigils (when we integrate into flask/ the graphviz)

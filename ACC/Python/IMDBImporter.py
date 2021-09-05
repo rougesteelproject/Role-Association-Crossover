@@ -98,8 +98,6 @@ def main():
     imdbImp = IMDBImporter(db_controller)
     imdbImp.get_actor_IMDB(402)
 
-#TODO I suspect the id isn't getting cleared between actors or something.
-#either that, or a problem with the wiki_gen
 
 if __name__ == '__main__':
     main()
