@@ -79,6 +79,10 @@ body{
     width: 33px;
   }
 
+  .searchbar text{
+    resize: none;
+  }
+
   .dropdown-main-menu{
     display:none;
     position:absolute;
@@ -285,7 +289,11 @@ body{
   }
   
   textarea{
-    resize:none;
+    resize:vertical;
+  }
+
+  text{
+    resize: vertical;
   }
   
   #what-are-we h2{

@@ -8,6 +8,7 @@ from role import Role
 from meta_role_history import MetaRoleHistory
 from actor_history import ActorHistory
 from role_history import RoleHistory
+from ability import Ability
 
 
 class DatabaseController():
@@ -40,13 +41,13 @@ class DatabaseController():
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates(template_id INT PRIMARY KEY NOT NULL, template_name TEXT, ability_id TEXT)''') #[species/power source: ability_id]
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_ability_templates(role_id TEXT PRIMARY KEY NOT NULL, template_id TEXT)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_abilities(role_id TEXT PRIMARY KEY NOT NULL, ability_id TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities(ability_id INT PRIMARY KEY NOT NULL, name TEXT, description, TEXT)''') #[krypt: strength (kyptonian): kryptonians can lift quintillion tons blah blah]
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities(id INT PRIMARY KEY NOT NULL, name TEXT, description, TEXT)''') #[krypt: strength (kyptonian): kryptonians can lift quintillion tons blah blah]
         #create history tables
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, historical TEXT, religious TEXT, fictional_in_universe TEXT)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_history(id TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, alive_or_dead TEXT, alignment TEXT)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, bio TEXT)''')
         #history tables for abilities
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(ability_id INT PRIMARY KEY NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(id INT PRIMARY KEY NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT)''')
 
     #INSERT OR IGNORE#
     def create_actor(self, id, name, bio, birth_date, death_date):
@@ -103,10 +104,11 @@ class DatabaseController():
         self.cursor.execute(select_sql, (where_value,))
         return self.cursor.fetchone()
 
-    def select_like(self, select_colums, table_name, where_column, like_value):
-        select_sql = "SELECT {} FROM {} WHERE {} LIKE \'%{}%\'".format(select_colums, table_name, where_column, like_value)
+    def select_like(self, select_columns, table_name, where_column, like_value):
+        select_sql = "SELECT {} FROM {} WHERE {} LIKE \'%{}%\'".format(select_columns, table_name, where_column, like_value)
         self.cursor.execute(select_sql)
         return self.cursor.fetchall()
+        
 
     #IMAGES#
     def add_image(self,page_type, page_id, image_url, caption):
@@ -120,7 +122,9 @@ class DatabaseController():
     #SEARCH AND RETRIEVE#
     def get_actor(self, actor_id):
         fetched_actor = self.select("*","actors","id",actor_id)[0]
-        return Actor(*fetched_actor, self)
+        actor = Actor(*fetched_actor, self)
+        actor.set_abilities(self.get_ability_list_actor(actor_id))
+        return actor
 
     def get_actors_search(self, query):
         actors = []
@@ -168,15 +172,19 @@ class DatabaseController():
             roles.append(Role(*role,self))
         return roles
 
-    def get_ability(ability_id):
-        #TODO
-        return ability
+    def get_ability(self, ability_id):
+        ability = self.select("*","abilities","id",ability_id)
+        return Ability(*ability)
 
     def get_ability_list_role(self, role_id):
         pass
 
     def get_ability_list_actor(self, actor_id):
-        pass
+        ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)
+        abilities = []
+        for id in ability_ids:
+            abilities.append(self.get_ability(id))
+        return abilities
 
     def get_ability_list_exclude_actor(self, actor_id):
         pass
@@ -316,6 +324,16 @@ class DatabaseController():
             if len(result) < 2 and len(result) != 0:
                 swap_id_to_clear = result[0][0]
                 self.update("roles","actor_swap_id", 0, "id", swap_id_to_clear)
+
+    #ABILITY DISCONNECTOR#
+    def remove_ability_actor(self, actor_id, ability_list):
+        delete_sql = "DELETE FROM actors_to_abilities WHERE actor_id={}".format(actor_id) + 'AND ability_id IN (%s)' % ','.join('?' for i in ability_list)
+        self.cursor.execute(delete_sql)
+
+    def add_ability_actor(self, actor_id, ability_list):
+        create_ability_actor_sql = "INSERT OR IGNORE INTO actors_to_abilities(actor_id,ability_id) VALUES (?,?)"
+        for ability in ability_list:
+            self.cursor.execute(create_ability_actor_sql,(actor_id,ability,))
 
     def commit(self):
         self.connection.commit()

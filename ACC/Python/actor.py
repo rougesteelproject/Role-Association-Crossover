@@ -15,7 +15,8 @@ class Actor:
         self._db_control = db_control
         self.get_Images()
 
-        self.relationships =[]
+        self.relationships = []
+        self.abilities = []
         #self.get_relationships()
         #TODO a function like this for each type of relationship
         
@@ -26,3 +27,6 @@ class Actor:
 
     def set_roles(self, roles):
         self.roles = roles
+
+    def set_abilities(self, abilities):
+        self.abilities = abilities

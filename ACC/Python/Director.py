@@ -47,23 +47,44 @@ def actor_editor():
     #TODO relationship editor similar to character connector
     #TODO power edotor similar to char connector
     if request.method == 'POST':
-        #'Submit'
-        new_bio  = request.form['bio']
+
         editorID = request.form['editorID']
         goBackUrl = request.form['goBackUrl']
-        #gets the old desc, plops it into history, then replaces it with the new
-        db_control.create_actor_history(editorID,new_bio)
-        db_control.commit()
-        return redirect(goBackUrl)
+
+        if "bio_editor" in request.form:
+            new_bio  = request.form['bio']
+
+            #gets the old desc, plops it into history, then replaces it with the new
+            db_control.create_actor_history(editorID,new_bio)
+            db_control.commit()
+
+        if "ability_remover" in request.form:
+            abilities_to_remove = request.form.getlist('remove_ability')
+            db_control.remove_ability_actor(editorID, abilities_to_remove)
+            db_control.commit()
+
+        if "ability_addder" in request.form:
+            abilities_to_add = request.form.getlist('add_ability')
+            db_control.add_ability_actor(editorID, abilities_to_add)
+            db_control.commit()
+
+        if "history_reverter" in request.form:
+            new_bio  = request.form['bio']
+            
+            db_control.create_actor_history(editorID,new_bio)
+            db_control.commit()
+
+            
     else:
         editorID = request.args['editorID']
         goBackUrl = request.referrer
-        history = db_control.get_actor_history(editorID)
+        
         #a list of all histry entries
 
-        actor = db_control.get_actor(editorID)
+    actor = db_control.get_actor(editorID)
+    history = db_control.get_actor_history(editorID)
 
-        return render_template('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history)
+    return render_template('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history)
 
 @app.route('/role/editor/meta', methods = ['GET','POST'])
 def mr_editor():
@@ -164,6 +185,7 @@ def submit_image():
 
     db_control.add_image(page_type, page_id, uploaded_file.filename, caption)
     return(redirect(go_back_url))
+    #TODO this needs to stay on the same page, instead
 
 @app.route('/search')
 def search():
