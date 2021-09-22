@@ -41,7 +41,7 @@ class DatabaseController():
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates(template_id INT PRIMARY KEY NOT NULL, template_name TEXT, ability_id TEXT)''') #[species/power source: ability_id]
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_ability_templates(role_id TEXT PRIMARY KEY NOT NULL, template_id TEXT)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_abilities(role_id TEXT PRIMARY KEY NOT NULL, ability_id TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities(id INT PRIMARY KEY NOT NULL, name TEXT, description, TEXT)''') #[krypt: strength (kyptonian): kryptonians can lift quintillion tons blah blah]
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities(id INT PRIMARY KEY NOT NULL, name TEXT, description TEXT)''') #[krypt: strength (kyptonian): kryptonians can lift quintillion tons blah blah]
         #create history tables
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, historical TEXT, religious TEXT, fictional_in_universe TEXT)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_history(id TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, alive_or_dead TEXT, alignment TEXT)''')
@@ -173,14 +173,14 @@ class DatabaseController():
         return roles
 
     def get_ability(self, ability_id):
-        ability = self.select("*","abilities","id",ability_id)
+        ability = self.select("*","abilities","id",ability_id)[0]
         return Ability(*ability)
 
     def get_ability_list_role(self, role_id):
         pass
 
     def get_ability_list_actor(self, actor_id):
-        ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)
+        ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)[0]
         abilities = []
         for id in ability_ids:
             abilities.append(self.get_ability(id))
@@ -327,13 +327,13 @@ class DatabaseController():
 
     #ABILITY DISCONNECTOR#
     def remove_ability_actor(self, actor_id, ability_list):
-        delete_sql = "DELETE FROM actors_to_abilities WHERE actor_id={}".format(actor_id) + 'AND ability_id IN (%s)' % ','.join('?' for i in ability_list)
+        delete_sql = "DELETE FROM actors_to_abilities WHERE actor_id={}".format(actor_id) + ' AND ability_id IN (%s)' % ','.join('?' for i in ability_list)
         self.cursor.execute(delete_sql)
 
     def add_ability_actor(self, actor_id, ability_list):
         create_ability_actor_sql = "INSERT OR IGNORE INTO actors_to_abilities(actor_id,ability_id) VALUES (?,?)"
-        for ability in ability_list:
-            self.cursor.execute(create_ability_actor_sql,(actor_id,ability,))
+        for ability_id in ability_list:
+            self.cursor.execute(create_ability_actor_sql,(actor_id,ability_id,))
 
     def commit(self):
         self.connection.commit()
