@@ -63,7 +63,7 @@ def actor_editor():
             db_control.remove_ability_actor(editorID, abilities_to_remove)
             db_control.commit()
 
-        if "ability_addder" in request.form:
+        if "ability_adder" in request.form:
             abilities_to_add = request.form.getlist('add_ability')
             db_control.add_ability_actor(editorID, abilities_to_add)
             db_control.commit()
@@ -83,8 +83,9 @@ def actor_editor():
 
     actor = db_control.get_actor(editorID)
     history = db_control.get_actor_history(editorID)
+    abilities_that_are_not_connected = db_control.get_ability_list_exclude_actor(actor.id)
 
-    return render_template('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history)
+    return render_template('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected)
 
 @app.route('/role/editor/meta', methods = ['GET','POST'])
 def mr_editor():

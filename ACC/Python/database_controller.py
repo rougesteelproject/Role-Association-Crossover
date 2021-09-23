@@ -10,6 +10,7 @@ from actor_history import ActorHistory
 from role_history import RoleHistory
 from ability import Ability
 
+#TODO use Auto_Increment to simplify ids
 
 class DatabaseController():
     def __init__(self):
@@ -108,7 +109,10 @@ class DatabaseController():
         select_sql = "SELECT {} FROM {} WHERE {} LIKE \'%{}%\'".format(select_columns, table_name, where_column, like_value)
         self.cursor.execute(select_sql)
         return self.cursor.fetchall()
-        
+
+    def select_not_in(self, select_columns, table_name, where, ability_list):
+        result_set = self.cursor.execute("SELECT {} FROM {} WHERE {} NOT IN ".format(select_columns.lower(),table_name.lower(),where.lower()) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
+        return result_set.fetchall()
 
     #IMAGES#
     def add_image(self,page_type, page_id, image_url, caption):
@@ -187,7 +191,12 @@ class DatabaseController():
         return abilities
 
     def get_ability_list_exclude_actor(self, actor_id):
-        pass
+        ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)
+        db_abilites = self.select_not_in("*","abilities","id", ability_ids)
+        abilities_that_are_not_connected = []
+        for ability in db_abilites:
+            abilities_that_are_not_connected.append(Ability(*ability))
+        return abilities_that_are_not_connected
 
     def get_ability_list_exclude_role(self, role_id):
         pass
@@ -327,8 +336,7 @@ class DatabaseController():
 
     #ABILITY DISCONNECTOR#
     def remove_ability_actor(self, actor_id, ability_list):
-        delete_sql = "DELETE FROM actors_to_abilities WHERE actor_id={}".format(actor_id) + ' AND ability_id IN (%s)' % ','.join('?' for i in ability_list)
-        self.cursor.execute(delete_sql)
+        self.cursor.execute("DELETE FROM actors_to_abilities WHERE actor_id={}  AND ability_id IN ".format(actor_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
 
     def add_ability_actor(self, actor_id, ability_list):
         create_ability_actor_sql = "INSERT OR IGNORE INTO actors_to_abilities(actor_id,ability_id) VALUES (?,?)"
