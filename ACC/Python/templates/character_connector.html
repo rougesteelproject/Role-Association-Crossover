@@ -20,8 +20,8 @@
         
         {%if have_results %}
         <div class="matcher">
-          
-          <form action="{{url_for('character_connector')}}}">
+          #TODO is borked. Dunno why
+          <form action="{{url_for('character_connector')}}">
             <label for="id1">{{name_1}}:</label>
             <select name="id1" class="select_mr">
             {%for mr in connector_mrs%}
@@ -49,7 +49,7 @@
               <option value="resetMR">Disconnect the left role from it's parent. (Not the same character)</option>
               <option value="mergeMR">Combines the two parents of the left and right roles. (Same Charater)</option>
               <option value="actorSwap">The two characters are the same character, and from the same continuity. (Combines the parents if they aren't already. Always check the other roles in the parent first!)</option>
-              <option value="removeActorSwap">The role on the left is not from the same continuity as the others, but is the same character. </option>
+              <option value="removeActorSwap">Remove left role from same continuity, keep as the same character. </option>
             </select>
             <input type="text" style="display: none;" id="name_1" name="name_1">
             <input type="text" style="display: none;" id="name_2" name="name_2">

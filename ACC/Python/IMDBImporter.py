@@ -96,7 +96,7 @@ def main():
     db_controller.create_connection()
     db_controller.create_db_if_not_exists()
     imdbImp = IMDBImporter(db_controller)
-    imdbImp.get_actor_IMDB(402)
+    imdbImp.get_actor_IMDB(636046)
 
 
 if __name__ == '__main__':
