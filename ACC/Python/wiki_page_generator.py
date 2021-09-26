@@ -79,6 +79,9 @@ class WikiPageGenerator:
         #check duplicates
 
     def set_content(self):
+        #TODO this does not get the next layers when starting from acctors
+        #TODO actors are duplicated starting from roles
+        #TODO roles are duplicated a ton within MRs
         self._layer_is_actor = self.base_is_actor
         #TODO Mrs or actorsa are borked, and it's just getting carrie fisher, too
         self._check_if_point_five()
