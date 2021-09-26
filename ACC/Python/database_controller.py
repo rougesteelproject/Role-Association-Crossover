@@ -85,6 +85,11 @@ class DatabaseController():
         self.cursor.execute(select_sql, (where_value,))
         return self.cursor.fetchall()
 
+    def select_all(self, select_columns, table_name):
+        select_sql = "SELECT {} FROM {}".format(select_columns.lower(), table_name.lower())
+        self.cursor.execute(select_sql)
+        return self.cursor.fetchall()
+
     def select_and(self, select_columns, table_name, where_column, where_value, where_column_2, where_value_2):
         select_sql = "SELECT {} FROM {} WHERE {}=? AND {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())
         self.cursor.execute(select_sql,(where_value,where_value_2,))
@@ -198,9 +203,12 @@ class DatabaseController():
 
         if len(ability_ids) == 1:
             db_abilites = self.select_not_in("*","abilities","id", ability_ids[0])
+
+        else:
+            db_abilites = self.get_all_abilities()
             
-            for ability in db_abilites:
-                abilities_that_are_not_connected.append(Ability(*ability))
+        for ability in db_abilites:
+            abilities_that_are_not_connected.append(Ability(*ability))
         return abilities_that_are_not_connected
 
     def get_ability_list_exclude_role(self, role_id):
@@ -211,6 +219,10 @@ class DatabaseController():
 
     def get_ability_template_list_exclude_role(self, role_id):
         pass
+
+    def get_all_abilities(self):
+        abilities = self.select_all('*', 'abilities')
+        return abilities
 
     def get_parent_meta(self, role_id):
         pass #TODO
