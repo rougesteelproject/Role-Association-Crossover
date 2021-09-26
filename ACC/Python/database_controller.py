@@ -67,9 +67,9 @@ class DatabaseController():
         self.cursor.execute(create_mr_sql,(mr_id, character_name,))
 
     #UPDATE#
-    def update(self, table_name, column, column_values, where, where_values):
+    def update(self, table_name, column, column_value, where, where_value):
         update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
-        self.cursor.execute(update_sql, column_values + where_values)
+        self.cursor.execute(update_sql, (column_value, where_value,))
 
     def update_or(self, table_name, column, column_value, where_1, where_value_1, where_2, where_value_2):
         update_sql = "UPDATE {} SET {}=? WHERE {}=? OR {}=?".format(table_name.lower(), column.lower(), where_1.lower(), where_2.lower())
@@ -324,7 +324,7 @@ class DatabaseController():
             
             parent_meta = max(mr_id_1,mr_id_2)
             
-            swap_id = self.select_max("actor_swap_id", "roles","parent_meta", parent_meta)
+            swap_id = self.select_max_where("actor_swap_id", "roles","parent_meta", parent_meta)[0]
             if swap_id is not None:
                 swap_id += 1
             else:
@@ -340,7 +340,7 @@ class DatabaseController():
         
         #get the id  so we can check if we orphaned an actor-swap
         
-        self.update("roles", "actor_swap+id", 0, "id", roleID1)
+        self.update("roles", "actor_swap_id", 0, "id", roleID1)
         
         #we don't need to redo the actor-swap ids if a number is skipped
         

@@ -157,8 +157,8 @@ def character_connector():
 
         db_control.character_connector_switch(mode,id1,id2)
 
-        name_1 = request.form['role1']
-        name_2 = request.form['role2']
+        name_1 = request.form['name_1']
+        name_2 = request.form['name_2']
         search_1 = Search(db_control)
         search_2 = Search(db_control)
         search_1.mrSearchResults(name_1)

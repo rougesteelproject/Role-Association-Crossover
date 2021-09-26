@@ -21,7 +21,7 @@
         {%if have_results %}
         <div class="matcher">
           #TODO is borked. Dunno why
-          <form action="{{url_for('character_connector')}}">
+          <form action="{{url_for('character_connector')}}" method="POST">
             <label for="id1">{{name_1}}:</label>
             <select name="id1" class="select_mr">
             {%for mr in connector_mrs%}
@@ -45,7 +45,7 @@
             <label for="mode">Choose an operation:</label>
             <select name="mode" class="select_addMR">
               #TODO rename the tooltips
-              <option value="changeMR">These are the same character, but not in the same continuity. (Same Character)</option>
+              <option value="changeMR">These are the same character, but not in the same continuity. Changes the Parent of the left role.(Same Character)</option>
               <option value="resetMR">Disconnect the left role from it's parent. (Not the same character)</option>
               <option value="mergeMR">Combines the two parents of the left and right roles. (Same Charater)</option>
               <option value="actorSwap">The two characters are the same character, and from the same continuity. (Combines the parents if they aren't already. Always check the other roles in the parent first!)</option>
