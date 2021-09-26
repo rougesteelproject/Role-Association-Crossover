@@ -184,18 +184,23 @@ class DatabaseController():
         pass
 
     def get_ability_list_actor(self, actor_id):
-        ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)[0]
+        ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)
         abilities = []
-        for id in ability_ids:
-            abilities.append(self.get_ability(id))
+        if len(ability_ids) == 1:
+            for id in ability_ids[0]:
+                abilities.append(self.get_ability(id))
         return abilities
 
     def get_ability_list_exclude_actor(self, actor_id):
         ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)
-        db_abilites = self.select_not_in("*","abilities","id", ability_ids)
+        
         abilities_that_are_not_connected = []
-        for ability in db_abilites:
-            abilities_that_are_not_connected.append(Ability(*ability))
+
+        if len(ability_ids) == 1:
+            db_abilites = self.select_not_in("*","abilities","id", ability_ids[0])
+            
+            for ability in db_abilites:
+                abilities_that_are_not_connected.append(Ability(*ability))
         return abilities_that_are_not_connected
 
     def get_ability_list_exclude_role(self, role_id):
