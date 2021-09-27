@@ -1,7 +1,7 @@
 {% extends "HeadFoot.html" %}
 
 {% block title %}
-  {{generator.base_name}}({{generator.level}})
+  {{generator.base_name}}({{generator.layers_to_generate}})
 {% endblock %}
 
 {% block content %}
@@ -22,7 +22,7 @@
         <div class="number-of-links">
           <form action="{{url_for('wiki')}}" method="GET">
           <label for="level">How many layers deep?</label>
-          <input type="number" id="level" name="level" min="1" step=".5" value="1">
+          <input type="number" id="level" name="level" min="1" step="1" value="1">
           <input type="text" style="display:none" name="baseID" value="{{generator.baseID}}">
           <input type="text" style="display:none" name="base_is_actor" value={{generator.base_is_actor}}>
           <input type="submit">

@@ -22,11 +22,13 @@ class MetaRole():
 
     def add_role(self,role):
         self.roles.append(role)
+        #TODO add duplication checking
 
     def add_roles(self,role_list):
         self.roles.extend(role_list)
+        #TODO add duplication chaecking
 
-    def get_actor_swaps(self):
+    def get_actor_swap_roles(self):
         for role in self.roles:
             if (role.actor_swap_id != 0):
                 swaps = self._db_control.get_roles_swap(self.id, role.actor_swap_id)

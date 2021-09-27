@@ -11,6 +11,8 @@ from role_history import RoleHistory
 from ability import Ability
 
 #TODO use Auto_Increment to simplify ids
+#TODO replace some text with varChar
+#TODO just in case, use UNIQUE for some variables in the sql
 
 class DatabaseController():
     def __init__(self):
