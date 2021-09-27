@@ -82,13 +82,14 @@ class WikiPageGenerator:
         #TODO this does not get the next layers when starting from acctors
         #TODO actors are duplicated starting from roles
         #TODO roles are duplicated a ton within MRs
+
         self._layer_is_actor = self.base_is_actor
         #TODO Mrs or actorsa are borked, and it's just getting carrie fisher, too
         self._check_if_point_five()
         while self._layer < self.level:
             self._temp_inactive = []
             for parent in self._inactive:
-                parent.set_roles(self._db_control.get_roles(parent.id, self._layer_is_actor))
+                parent.get_roles()
                 if self._layer_is_actor:
                     self._set_halfway()
 

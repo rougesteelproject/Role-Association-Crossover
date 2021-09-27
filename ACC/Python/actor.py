@@ -30,3 +30,6 @@ class Actor:
 
     def set_abilities(self, abilities):
         self.abilities = abilities
+
+    def get_roles(self):
+        self.roles = self._db_control.get_roles(self.id, True)

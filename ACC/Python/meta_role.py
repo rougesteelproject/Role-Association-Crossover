@@ -17,6 +17,9 @@ class MetaRole():
     def set_roles(self, roles):
         self.roles = roles
 
+    def get_roles(self):
+        self.roles = self._db_control.get_roles(self.id, False)
+
     def add_role(self,role):
         self.roles.append(role)
 
