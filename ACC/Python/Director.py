@@ -36,11 +36,12 @@ def index():
 def wiki():
     #?my_var=my_value
     level = float(request.args['level'])
-    baseID = request.args['baseID']
+    baseID = request.args['base_id']
     base_is_actor = bool(distutils.util.strtobool(request.args['base_is_actor']))
     print(baseID)
-    wiki_page_generator = WikiPageGenerator(db_control, baseID, level, base_is_actor, False, db_control)
-    wiki_page_generator.set_content()
+    #TODO get the actor_swap check box from the form
+    wiki_page_generator = WikiPageGenerator(baseID, level, base_is_actor, False, db_control)
+    wiki_page_generator.generate_content()
     return render_template('wiki_template.html', generator=wiki_page_generator, blurb_editor_link="", hub_sigils="" )
        
 @app.route('/role/editor/actor', methods = ['GET','POST'])

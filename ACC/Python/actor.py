@@ -33,3 +33,6 @@ class Actor:
 
     def get_roles(self):
         self.roles = self._db_control.get_roles(self.id, True)
+
+    def add_role(self, role):
+        self.roles.append(role)

@@ -3,7 +3,6 @@
 #Get 'is_actor' or 'is_mr'
 class WikiPageGenerator:
     def __init__(self, base_id, layers_to_generate, base_is_actor, enable_actor_swap, db_control):
-        #TODO replace wiki point-five with a tiny checkbox to simplify here
         self.db_control = db_control
         self.layers_to_generate = layers_to_generate
         self.base_is_actor = base_is_actor
@@ -20,42 +19,57 @@ class WikiPageGenerator:
             #TODO match these calls to the real db_cont
             self.base_name = self.meta_roles_that_dont_show_all_roles[0].name
         self.actors_that_show_all_roles = []
-        self.meta_roles_that_show_all_roles = []
+        self.meta_roles_that_show_all_roles = [] 
+        self.top_layer_actors = []
+        self.top_layer_meta_roles = []
 
     def generate_content(self):
         processing_layer = 0
         while processing_layer < self.layers_to_generate:
+            #TODO THis is slow because it goes through everything. 
+            # Is there a way to have it go through the top layer only?
+                #Not sure if I did this right, yet
+            #TODO MR to actor doesn't work?
             self.process_actors_that_dont_show_all_roles()
             self.process_meta_roles_that_dont_show_all_roles()
-            self.get_new_actors_that_dont_show_all_roles_from_meta_roles_that_show_all_roles()
-            self.get_new_meta_roles_that_dont_show_all_roles_from_actors_that_show_all_roles()
+
+            self.get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles()
+            self.get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors()
             processing_layer += 1
+            print(f'Processing Layer: {processing_layer}')
 
         if self.enable_actor_swap:
+            print('Getting Actor Swaps')
             self.get_actor_swap_roles()
 
-        return
+        print('generation complete')
 
     def process_actors_that_dont_show_all_roles(self):
+        self.top_layer_actors = []
         for actor in self.actors_that_dont_show_all_roles:
+            print(actor.id)
         #for each inactive parent:
             #Get it's roles
             actor.get_roles()
             self.actors_that_show_all_roles.append(actor)
+            self.top_layer_actors.append(actor)
             self.actors_that_dont_show_all_roles = []
 
     def process_meta_roles_that_dont_show_all_roles(self):
+        self.top_layer_meta_roles = []
         for meta_role in self.meta_roles_that_dont_show_all_roles:
+            print(meta_role.id)
         #for each inactive parent:
             #Get it's roles
             meta_role.get_roles()
             self.meta_roles_that_show_all_roles.append(meta_role)
+            self.top_layer_meta_roles = []
             self.meta_roles_that_dont_show_all_roles = []
 
 
-    def get_new_meta_roles_that_dont_show_all_roles_from_actors_that_show_all_roles(self):
+    def get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors(self):
         #for each active parent:
-        for actor in self.actors_that_show_all_roles:
+        for actor in self.top_layer_actors:
             for role in actor.roles:
                 #for each role, get it's mr
                 in_meta_that_show_all = False
@@ -82,8 +96,8 @@ class WikiPageGenerator:
                     #TODO match what MR class has
 
     #for each inactive parent:
-    def get_new_actors_that_dont_show_all_roles_from_meta_roles_that_show_all_roles(self):
-        for mr in self.meta_roles_that_show_all_roles:
+    def get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles(self):
+        for mr in self.top_layer_meta_roles:
             for role in mr.roles:
                 in_actors_that_show_all = False
                 in_actors_that_dont_show_all = False

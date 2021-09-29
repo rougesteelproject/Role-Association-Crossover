@@ -132,10 +132,13 @@ class DatabaseController():
 
     #SEARCH AND RETRIEVE#
     def get_actor(self, actor_id):
-        fetched_actor = self.select("*","actors","id",actor_id)[0]
-        actor = Actor(*fetched_actor, self)
-        actor.set_abilities(self.get_ability_list_actor(actor_id))
-        return actor
+        if actor_id != '':
+            fetched_actor = self.select("*","actors","id",actor_id)[0]
+            actor = Actor(*fetched_actor, self)
+            actor.set_abilities(self.get_ability_list_actor(actor_id))
+            return actor
+        else:
+            print('get_actor error: there was no base_id')
 
     def get_actors_search(self, query):
         actors = []
