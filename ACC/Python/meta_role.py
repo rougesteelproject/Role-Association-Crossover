@@ -21,8 +21,12 @@ class MetaRole():
         self.roles = self._db_control.get_roles(self.id, False)
 
     def add_role(self,role):
-        self.roles.append(role)
-        #TODO add duplication checking
+        role_in_this_parent = False
+        for self_role in self.roles:
+            if self_role.id == role.id:
+                role_in_this_parent = True
+        if not role_in_this_parent:
+            self.roles.append(role)
 
     def add_roles(self,role_list):
         self.roles.extend(role_list)

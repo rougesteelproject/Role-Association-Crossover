@@ -25,6 +25,8 @@ db_control.create_db_if_not_exists()
 
 #TODO a page with everybody, alphabetically
 
+#TODO a way to add user-made roles to replace the ... or 'additional voices' for actorw w/ multiple roles, like in skyrim
+
 
 
 @app.route('/')
@@ -38,7 +40,7 @@ def wiki():
     level = float(request.args['level'])
     baseID = request.args['base_id']
     base_is_actor = bool(distutils.util.strtobool(request.args['base_is_actor']))
-    print(baseID)
+    print(f'director: id to fetch: {baseID}')
     #TODO get the actor_swap check box from the form
     wiki_page_generator = WikiPageGenerator(baseID, level, base_is_actor, False, db_control)
     wiki_page_generator.generate_content()
