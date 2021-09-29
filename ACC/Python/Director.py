@@ -1,5 +1,5 @@
 from os import name
-from wiki_page_generator import WikiPageGenerator
+from new_wiki_page_gen import WikiPageGenerator
 from search import Search
 from database_controller import DatabaseController
 from flask import Flask, render_template, request, redirect
@@ -15,6 +15,7 @@ db_control.create_connection()
 db_control.create_db_if_not_exists()
 
 #TODO more intuitive variable names, a sweep to make it pythonic
+#TODO variable types with (name: type)
 #   functions modify lists, so we don't neet to return them. 
 
 
@@ -23,6 +24,8 @@ db_control.create_db_if_not_exists()
 #get from the POST using request.form
 
 #TODO a page with everybody, alphabetically
+
+#TODO a way to add user-made roles to replace the ... or 'additional voices' for actorw w/ multiple roles, like in skyrim
 
 
 
@@ -35,11 +38,12 @@ def index():
 def wiki():
     #?my_var=my_value
     level = float(request.args['level'])
-    baseID = request.args['baseID']
+    baseID = request.args['base_id']
     base_is_actor = bool(distutils.util.strtobool(request.args['base_is_actor']))
-    print(baseID)
-    wiki_page_generator = WikiPageGenerator(db_control, baseID, base_is_actor=base_is_actor, level=level)
-    wiki_page_generator.set_content()
+    print(f'director: id to fetch: {baseID}')
+    #TODO get the actor_swap check box from the form
+    wiki_page_generator = WikiPageGenerator(baseID, level, base_is_actor, False, db_control)
+    wiki_page_generator.generate_content()
     return render_template('wiki_template.html', generator=wiki_page_generator, blurb_editor_link="", hub_sigils="" )
        
 @app.route('/role/editor/actor', methods = ['GET','POST'])

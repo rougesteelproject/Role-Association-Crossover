@@ -33,3 +33,11 @@ class Actor:
 
     def get_roles(self):
         self.roles = self._db_control.get_roles(self.id, True)
+
+    def add_role(self,role):
+        role_in_this_parent = False
+        for self_role in self.roles:
+            if self_role.id == role.id:
+                role_in_this_parent = True
+        if not role_in_this_parent:
+            self.roles.append(role)
