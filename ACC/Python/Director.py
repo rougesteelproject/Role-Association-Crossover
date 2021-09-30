@@ -201,10 +201,24 @@ def search():
 
 @app.route('/ability')
 def ability_editor():
+    #TODO flesh out template and db_cont
+    
     goBackUrl = request.referrer
     ability_id = request.args['id']
     ability = db_control.get_ability(ability_id)
     history = db_control.get_ability_history(ability_id)
     return render_template('ability_editor.html',ability, history, goBackUrl)
+
+#TODO ability template editor
+
+@app.route('/create_ability')
+def create_ability():
+    #TODO
+    if "create_ability" in request.form:
+        pass
+        #create the ability using db_cont, then go to ability_editor
+    else:
+        #render the template with the form (the normal response to this link)
+        pass
 
 app.run(port=5000)
