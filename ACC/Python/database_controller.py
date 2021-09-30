@@ -10,9 +10,7 @@ from actor_history import ActorHistory
 from role_history import RoleHistory
 from ability import Ability
 
-#TODO use Auto_Increment to simplify ids
 #TODO replace some text with varChar
-#TODO just in case, use UNIQUE for some variables in the sql
 
 class DatabaseController():
     def __init__(self):
@@ -31,26 +29,28 @@ class DatabaseController():
 
     def create_db_if_not_exists(self):
         # Create table if it doesn't exist
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT DEFAULT \'Auto-Generated\', historical TEXT DEFAULT \'False\', religious TEXT DEFAULT \'False\', fictional_in_universe TEXT DEFAULT \'False\',is_biggest TEXT DEFAULT \'False\')''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role INT, actor INT, caption TEXT DEFAULT \'Auto-Generated\')''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INTEGER PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'Auto-Generated\', historical TEXT DEFAULT \'False\', religious TEXT DEFAULT \'False\', fictional_in_universe TEXT DEFAULT \'False\',is_biggest TEXT DEFAULT \'False\')''')
+        #INTERGER PRIMARY KEY does auto-increment for you
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role TEXT, actor INT, caption TEXT DEFAULT \'Auto-Generated\')''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT, birth_date TEXT, death_date TEXT,is_biggest TEXT DEFAULT \'False\')''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0, first_parent_meta INT )''')
         #relationships
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actor_relationships(relationship_id INT PRIMARY KEY NOT NULL, actor1 TEXT, actor2 TEXT, relationship_type TEXT) ''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INT PRIMARY KEY NOT NULL, role_1 TEXT, role_2 TEXT, relationship_type TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actor_relationships(relationship_id INTEGER PRIMARY KEY, actor1 INT, actor2 INT, relationship_type TEXT) ''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INTEGER PRIMARY KEY, role_1 TEXT, role_2 TEXT, relationship_type TEXT)''')
         #map role/actor to ability or template, ability to description
         #abilities include languages
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_to_abilities(actor_id INT PRIMARY KEY NOT NULL, ability_id TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates(template_id INT PRIMARY KEY NOT NULL, template_name TEXT, ability_id TEXT)''') #[species/power source: ability_id]
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_ability_templates(role_id TEXT PRIMARY KEY NOT NULL, template_id TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_abilities(role_id TEXT PRIMARY KEY NOT NULL, ability_id TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities(id INT PRIMARY KEY NOT NULL, name TEXT, description TEXT)''') #[krypt: strength (kyptonian): kryptonians can lift quintillion tons blah blah]
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_to_abilities(actor_id INT, ability_id INT, UNIQUE(actor_id, ability_id))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates_to_abilities(template_id INT, ability_id INT, UNIQUE(temlate_id,ability_id))''') #[species/power source: ability_id]
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates(template_id INTEGER PRIMARY KEY, template_name TEXT, template_description TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_ability_templates(role_id TEXT, template_id TEXT, UNIQUE (role_id, template_id))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_abilities(role_id TEXT, ability_id TEXT, UNIQUE (role_id, ability_id))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities(id INTEGER PRIMARY KEY, name TEXT, description TEXT)''') #[krypt: strength (kyptonian): kryptonians can lift quintillion tons blah blah]
         #create history tables
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, historical TEXT, religious TEXT, fictional_in_universe TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_history(id TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, alive_or_dead TEXT, alignment TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, bio TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, historical TEXT, religious TEXT, fictional_in_universe TEXT, UNIQUE(id, name, description, historical, religious, fictional_in_universe))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_history(id TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, alive_or_dead TEXT, alignment TEXT, UNIQUE (id, name, description, alive_or_dead, alignment))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, bio TEXT, UNIQUE(id, name, bio))''')
         #history tables for abilities
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(id INT PRIMARY KEY NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT UNIQUE(id, name, description))''')
 
     #INSERT OR IGNORE#
     def create_actor(self, id, name, bio, birth_date, death_date):
@@ -64,9 +64,14 @@ class DatabaseController():
         # Create table if it doesn't exist
         self.cursor.execute(create_role_sql, (role_id, role_name,actor_id, mr_id, mr_id,))
 
-    def create_mr(self, mr_id, character_name):      
-        create_mr_sql = '''INSERT OR IGNORE INTO meta_roles(id, name) VALUES (?,?) '''
-        self.cursor.execute(create_mr_sql,(mr_id, character_name,))
+    def create_mr_and_return_id(self, character_name):      
+        create_mr_sql = '''INSERT INTO meta_roles(name) VALUES (?) '''
+        self.cursor.execute(create_mr_sql,(character_name,))
+        return self.cursor.lastrowid
+
+    def create_role_and_first_mr(self,character_name, role_id, role_name, actor_id):
+        mr_id = self.create_mr_and_return_id(character_name)
+        self.create_role(role_id, role_name, actor_id, mr_id)
 
     #UPDATE#
     def update(self, table_name, column, column_value, where, where_value):
@@ -266,7 +271,6 @@ class DatabaseController():
         old_mr = self.get_mr(id)
         historySql = '''INSERT INTO meta_roles_history(id, name, description, historical, religious, fictional_in_universe) VALUES (?,?,?,?,?,?) '''
         self.cursor.execute(historySql,(id, old_mr.name, old_mr.description, old_mr.historical, old_mr.religious, old_mr.fictional_in_universe))
-        #TODO check here to see if a change is identical to the current
         changeDescSql='''UPDATE meta_roles SET description=?, historical=?, religious=?, fictional_in_universe=? WHERE id=?'''
 
         self.cursor.execute(changeDescSql,(new_description,historical, religious, fictional_in_universe,id,))
@@ -275,14 +279,13 @@ class DatabaseController():
         old_role = self.get_role(id)
         historySql = '''INSERT INTO roles_history(id, name, description, alive_or_dead, alignment) VALUES (?,?,?,?,?) '''
         self.cursor.execute(historySql,(id, old_role.name, old_role.description, old_role.alive_or_dead, old_role.alignment))
-        #TODO check here to see if a change is identical to the current
         changeDescSql='''UPDATE roles SET description=?, alive_or_dead=?,alignment=? WHERE id=?'''
 
         self.cursor.execute(changeDescSql,(new_description,new_alive_or_dead,new_alignment,id,))  
 
     def get_ability_history(id):
         #TODO
-        return ability_history
+        pass
 
     #CHARACTER CONNECTOR#
     def character_connector_switch(self, mode, id1, id2):

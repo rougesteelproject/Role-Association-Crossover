@@ -31,8 +31,6 @@ class IMDBImporter():
 
             for job in actor['filmography'].keys():
                 if job == 'actress' or job == 'actor':
-                    
-                    
 
                     with self._db_controller.connection:
                         
@@ -46,20 +44,14 @@ class IMDBImporter():
                             
                             role_names = str(movie.currentRole).split("/")
                             
-                            role_index = 0
-                            
-                            for character_name in role_names:
+                            for role_index, character_name in enumerate(role_names):
                                 
-                                role_index += 1
-                                role_id = self.create_role_id(actor_id, movie,role_index)
+                                role_id = self.create_role_id(actor_id, movie,role_index+1)
                                 role_name = self.create_role_name(character_name,movie_title,actor_name)
                                 print(role_name)
-                                
-                                mr_id = self.create_mr_id()
-                                
-                                self._db_controller.create_mr(mr_id, character_name)
+                            
+                                self._db_controller.create_role_and_first_mr(character_name, role_id, role_name, actor_id)
 
-                                self._db_controller.create_role(role_id, role_name,actor_id, mr_id)
             self._db_controller.commit()
 
         except:
@@ -81,15 +73,6 @@ class IMDBImporter():
     def create_role_name(self, character_name, movie_title,actor_name):
         role_name = (f'{character_name} ({movie_title}) ({actor_name})')
         return role_name
-
-    def create_mr_id(self):
-        mr_id = self._db_controller.select_max("id", "meta_roles")
-        if mr_id is not None:
-            mr_id += 1
-        else:
-            mr_id = 1
-        #Select Max() gets the highest in that column
-        return mr_id
 
 def main():
     db_controller = DatabaseController()
