@@ -31,7 +31,7 @@ class DatabaseController():
 
     def create_db_if_not_exists(self):
         # Create table if it doesn't exist
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT DEFAULT \'Auto-Generated\', historical TEXT DEFAULT \'False\', religious TEXT DEFAULT \'False\', fictional_in_universe TEXT DEFAULT \'False\',is_biggest TEXT DEFAULT \'False\')''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INTEGER PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'Auto-Generated\', historical TEXT DEFAULT \'False\', religious TEXT DEFAULT \'False\', fictional_in_universe TEXT DEFAULT \'False\',is_biggest TEXT DEFAULT \'False\')''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role INT, actor INT, caption TEXT DEFAULT \'Auto-Generated\')''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT, birth_date TEXT, death_date TEXT,is_biggest TEXT DEFAULT \'False\')''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0, first_parent_meta INT )''')
@@ -64,9 +64,15 @@ class DatabaseController():
         # Create table if it doesn't exist
         self.cursor.execute(create_role_sql, (role_id, role_name,actor_id, mr_id, mr_id,))
 
-    def create_mr(self, mr_id, character_name):      
-        create_mr_sql = '''INSERT OR IGNORE INTO meta_roles(id, name) VALUES (?,?) '''
-        self.cursor.execute(create_mr_sql,(mr_id, character_name,))
+    def create_mr_and_return_id(self, character_name):      
+        create_mr_sql = '''INSERT INTO meta_roles(name) VALUES (?) '''
+        self.cursor.execute(create_mr_sql,(character_name,))
+        return self.cursor.lastrowid
+
+    def create_role_and_first_mr(self,character_name, role_id, role_name, actor_id):
+        mr_id = self.create_mr_and_return_id(character_name)
+        self.create_role(role_id, role_name, actor_id, mr_id)
+        pass
 
     #UPDATE#
     def update(self, table_name, column, column_value, where, where_value):
