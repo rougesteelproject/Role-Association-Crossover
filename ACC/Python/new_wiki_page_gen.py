@@ -128,25 +128,27 @@ class WikiPageGenerator:
             mr.get_actor_swap_roles()
 
 
-#TODO get actor relationships as a class variable - a list of ids paired with names
-    #actor.relationships_spouse for actor in displayed_actors
+#TODO
     #link relationships - not in displayed_actors
     #plaintext relationships - in displayed_actors
 
     #TODO get role relationships as a class variable
-    #get list of "other" role id's
+    #ie, list of "other" role id's
     #get parent_meta for each "other" - can't be a role.parent_meta, because we don't need the whole role
         #db_cont.get_parent_meta(role_id)
-    #link_relationship_spouce - etc if mr in displayed_mrs
+    #link_relationship - etc if mr not in displayed_mrs
     #plaintext_etc
 
-    #TODO a list of power templates, 
-       #with duplicate checking
+    #TODO a list of power templates,
+        #combine from each role
+            #with duplicate checking
     #TODO
         #a list of other powers
-        #check for duplicates
+        #combine from each role
+            #check for duplicates
 
     #TODO list of actor skills
-        #check duplicates
+        #combine the list from each actor
+            #check duplicates
 
     #TODO we'l have to return the Hub Sigils (when we integrate into flask/ the graphviz)

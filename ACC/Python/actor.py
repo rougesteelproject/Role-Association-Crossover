@@ -17,17 +17,12 @@ class Actor:
         self.gallery = self._db_control.get_images_actor(self.id)
 
         self.relationships = self._db_control.get_relationships_actor_by_actor_id(self.id)
-        self.abilities = []
-        #self.get_relationships()
-        #TODO a function like this for each type of relationship
+        self.abilities = self._db_control.get_ability_list_actor(self.id)
         
 
 
     def set_roles(self, roles):
         self.roles = roles
-
-    def set_abilities(self, abilities):
-        self.abilities = abilities
 
     def get_roles(self):
         self.roles = self._db_control.get_roles(self.id, True)

@@ -158,7 +158,6 @@ class DatabaseController():
         if actor_id != '':
             fetched_actor = self.select_where("*","actors","id",actor_id)[0]
             actor = Actor(*fetched_actor, self)
-            actor.set_abilities(self.get_ability_list_actor(actor_id))
             return actor
         else:
             print('get_actor error: there was no base_id')
@@ -217,7 +216,7 @@ class DatabaseController():
         return roles
 
     def get_parent_meta(self, role_id):
-        pass #TODO
+        pass #TODO need for role relationships
 
     #HISTORY#
     def get_actor_history(self,id):

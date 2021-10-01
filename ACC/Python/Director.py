@@ -18,16 +18,9 @@ db_control.create_db_if_not_exists()
 #TODO variable types with (name: type)
 #   functions modify lists, so we don't neet to return them. 
 
-
-#TODO replace some of the url variables and redirects to other pages with a 
-# if request.method == 'POST':
-#get from the POST using request.form
-
 #TODO a page with everybody, alphabetically
 
 #TODO a way to add user-made roles to replace the ... or 'additional voices' for actorw w/ multiple roles, like in skyrim
-
-
 
 @app.route('/')
 def index():
@@ -48,8 +41,7 @@ def wiki():
        
 @app.route('/editor/actor', methods = ['GET','POST'])
 def actor_editor():
-    #TODO relationship editor similar to character connector
-    #TODO power edotor similar to char connector
+
     if request.method == 'POST':
 
         editorID = request.form['editorID']
@@ -130,9 +122,7 @@ def mr_editor():
 
 @app.route('/editor/role', methods = ['GET','POST'])
 def role_editor():
-    #TODO relationship editor similar to character connector
-    #TODO power edotor similar to char connector
-    #WHen the user presses 'Submit'
+    #When the user presses 'Submit'
     if request.method == 'POST':
         new_description  = request.form['description']
         editorID = request.form['editorID']

@@ -17,6 +17,5 @@ class Role:
         self.gallery = self._db_control.get_images_role(self.id)
 
         self.relationships =[]
-        #self.get_relationships()
-        #TODO a function like this for each type of relationship
-        #TODO maybe a relationship class
+        self.abilities = []
+        self.ability_templates = []
