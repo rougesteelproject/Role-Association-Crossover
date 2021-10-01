@@ -6,24 +6,22 @@ class Actor:
         self.bio = bio
         self.id = id
         self.name = name
-        self.gallery = []
+        
         self.roles = []
         self.birth_date = birth_date
         self.death_date = death_date
         self.is_biggest  = strtobool(is_biggest)
         
         self._db_control = db_control
-        self.get_Images()
 
-        self.relationships = []
+        self.gallery = self._db_control.get_images_actor(self.id)
+
+        self.relationships = self._db_control.get_relationships_actor_by_actor_id(self.id)
         self.abilities = []
         #self.get_relationships()
         #TODO a function like this for each type of relationship
         
-    def get_Images(self):
-        images = self._db_control.select("file, caption", "gallery", "actor", self.id)
-        for image in images:
-            self.gallery.append(Image(image[0], image[1]))
+
 
     def set_roles(self, roles):
         self.roles = roles

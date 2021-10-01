@@ -9,6 +9,8 @@ from meta_role_history import MetaRoleHistory
 from actor_history import ActorHistory
 from role_history import RoleHistory
 from ability import Ability
+from actor_relationship import ActorRelationship
+from image import Image
 
 #TODO replace some text with varChar
 
@@ -32,15 +34,15 @@ class DatabaseController():
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INTEGER PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'Auto-Generated\', historical TEXT DEFAULT \'False\', religious TEXT DEFAULT \'False\', fictional_in_universe TEXT DEFAULT \'False\',is_biggest TEXT DEFAULT \'False\')''')
         #INTERGER PRIMARY KEY does auto-increment for you
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role TEXT, actor INT, caption TEXT DEFAULT \'Auto-Generated\')''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY NOT NULL, name TEXT NOT NULL, bio TEXT, birth_date TEXT, death_date TEXT,is_biggest TEXT DEFAULT \'False\')''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0, first_parent_meta INT )''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY, name TEXT NOT NULL, bio TEXT, birth_date TEXT, death_date TEXT,is_biggest TEXT DEFAULT \'False\')''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0, first_parent_meta INT )''')
         #relationships
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actor_relationships(relationship_id INTEGER PRIMARY KEY, actor1 INT, actor2 INT, relationship_type TEXT) ''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INTEGER PRIMARY KEY, role_1 TEXT, role_2 TEXT, relationship_type TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actor_relationships(relationship_id INTEGER PRIMARY KEY, actor1_id INT, actor1_name TEXT, actor2_id INT, actor2_name TEXT,relationship_type TEXT) ''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INTEGER PRIMARY KEY, role_1_id TEXT, role_1_name TEXT ,role_2_id TEXT, role_2_name TEXT,relationship_type TEXT)''')
         #map role/actor to ability or template, ability to description
         #abilities include languages
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_to_abilities(actor_id INT, ability_id INT, UNIQUE(actor_id, ability_id))''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates_to_abilities(template_id INT, ability_id INT, UNIQUE(temlate_id,ability_id))''') #[species/power source: ability_id]
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates_to_abilities(template_id INT, ability_id INT, UNIQUE(template_id,ability_id))''') #[species/power source: ability_id]
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates(template_id INTEGER PRIMARY KEY, template_name TEXT, template_description TEXT)''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_ability_templates(role_id TEXT, template_id TEXT, UNIQUE (role_id, template_id))''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_abilities(role_id TEXT, ability_id TEXT, UNIQUE (role_id, ability_id))''')
@@ -50,7 +52,7 @@ class DatabaseController():
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_history(id TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, alive_or_dead TEXT, alignment TEXT, UNIQUE (id, name, description, alive_or_dead, alignment))''')
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, bio TEXT, UNIQUE(id, name, bio))''')
         #history tables for abilities
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT UNIQUE(id, name, description))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT, UNIQUE(id, name, description))''')
 
     #INSERT OR IGNORE#
     def create_actor(self, id, name, bio, birth_date, death_date):
@@ -87,12 +89,12 @@ class DatabaseController():
         self.cursor.execute(update_reset_mr_sql, (roleID1,))
 
     #SELECT#
-    def select(self, select_columns, table_name, where, where_value):
+    def select_where(self, select_columns, table_name, where, where_value):
         select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
         self.cursor.execute(select_sql, (where_value,))
         return self.cursor.fetchall()
 
-    def select_all(self, select_columns, table_name):
+    def select(self, select_columns, table_name):
         select_sql = "SELECT {} FROM {}".format(select_columns.lower(), table_name.lower())
         self.cursor.execute(select_sql)
         return self.cursor.fetchall()
@@ -107,10 +109,12 @@ class DatabaseController():
         self.cursor.execute(select_sql,(where_value,where_value_2,))
         return self.cursor.fetchall()
 
-    def select_max(self, select_column, table_name):
-        select_sql = "SELECT MAX({}) FROM {}".format(select_column.lower(),table_name.lower())
-        self.cursor.execute(select_sql)
-        return self.cursor.fetchone()[0]
+
+    #def select_max(self, select_column, table_name):
+    #    select_sql = "SELECT MAX({}) FROM {}".format(select_column.lower(),table_name.lower())
+    #    self.cursor.execute(select_sql)
+    #    return self.cursor.fetchone()[0]
+    #TODO, so far, pases the scream test. Delete if nothing blows up
 
     def select_max_where(self, select_column, table_name, where_column, where_value):
         select_sql = "SELECT MAX({}) FROM {} WHERE {}=?".format(select_column.lower(),table_name.lower(),where_column.lower())
@@ -134,11 +138,25 @@ class DatabaseController():
             sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
         self.cursor.execute(sql,(image_url,page_id,caption,))
 
+    def get_images_actor(self, actor_id):
+        fetched_images = self.select_where("file, caption", "gallery", "actor", actor_id)
+        gallery = []
+        for image in fetched_images:
+            gallery.append(Image(*image))
+        return gallery
 
-    #SEARCH AND RETRIEVE#
+    def get_images_role(self, role_id):
+        fetched_images = self.select_where("file, caption", "gallery", "role", role_id)
+        gallery = []
+        for image in fetched_images:
+            gallery.append(Image(*image))
+        return gallery
+
+
+    #GET#
     def get_actor(self, actor_id):
         if actor_id != '':
-            fetched_actor = self.select("*","actors","id",actor_id)[0]
+            fetched_actor = self.select_where("*","actors","id",actor_id)[0]
             actor = Actor(*fetched_actor, self)
             actor.set_abilities(self.get_ability_list_actor(actor_id))
             return actor
@@ -149,11 +167,18 @@ class DatabaseController():
         actors = []
         fetched_actors = self.select_like("*","actors","name", query)
         for actor in fetched_actors:
-            actors.apppend(Actor(*actor, self))
+            actors.append(Actor(*actor, self))
         return actors
 
+    def get_all_actors(self):
+        all_actors_fetched = self.select("*", "actors")
+        all_actors = []
+        for actor in all_actors_fetched:
+            all_actors.append(Actor(*actor, self))
+        return all_actors
+
     def get_mr(self, mr_id):
-        fetched_mr = self.select("*","meta_roles", "id",mr_id)[0]
+        fetched_mr = self.select_where("*","meta_roles", "id",mr_id)[0]
         return MetaRole(*fetched_mr, self)
 
     def get_mrs_search(self,query):
@@ -164,15 +189,15 @@ class DatabaseController():
         return mrs
 
     def get_role(self, role_id):
-        fetched_role = self.select("*","roles","id",role_id)
+        fetched_role = self.select_where("*","roles","id",role_id)
         return Role(*fetched_role, self)
 
     def get_roles(self, parent_id, is_actor):
         roles = []
         if is_actor:
-            fetched_roles = self.select("*", "roles", "parent_actor", parent_id)
+            fetched_roles = self.select_where("*", "roles", "parent_actor", parent_id)
         else:
-            fetched_roles = self.select("*","roles","parent_meta",parent_id)
+            fetched_roles = self.select_where("*","roles","parent_meta",parent_id)
         for role in fetched_roles:
             roles.append(Role(*role, self))
         return roles
@@ -186,53 +211,10 @@ class DatabaseController():
         
     def get_roles_swap(self, mr_id, actor_swap_id):
         roles = []
-        fetched_roles = self.select("*","roles","parent_meta",mr_id,bool_and=True, second_argument_column="actor_swap", second_argument_value=actor_swap_id)
+        fetched_roles = self.select_where("*","roles","parent_meta",mr_id,bool_and=True, second_argument_column="actor_swap", second_argument_value=actor_swap_id)
         for role in fetched_roles:
             roles.append(Role(*role,self))
         return roles
-
-    def get_ability(self, ability_id):
-        ability = self.select("*","abilities","id",ability_id)[0]
-        return Ability(*ability)
-
-    def get_ability_list_role(self, role_id):
-        pass
-
-    def get_ability_list_actor(self, actor_id):
-        ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)
-        abilities = []
-        if len(ability_ids) == 1:
-            for id in ability_ids[0]:
-                abilities.append(self.get_ability(id))
-        return abilities
-
-    def get_ability_list_exclude_actor(self, actor_id):
-        ability_ids = self.select("ability_id", "actors_to_abilities", "actor_id", actor_id)
-        
-        abilities_that_are_not_connected = []
-
-        if len(ability_ids) == 1:
-            db_abilites = self.select_not_in("*","abilities","id", ability_ids[0])
-
-        else:
-            db_abilites = self.get_all_abilities()
-            
-        for ability in db_abilites:
-            abilities_that_are_not_connected.append(Ability(*ability))
-        return abilities_that_are_not_connected
-
-    def get_ability_list_exclude_role(self, role_id):
-        pass
-
-    def get_ability_template_list_exclude_actor(self, actor_id):
-        pass
-
-    def get_ability_template_list_exclude_role(self, role_id):
-        pass
-
-    def get_all_abilities(self):
-        abilities = self.select_all('*', 'abilities')
-        return abilities
 
     def get_parent_meta(self, role_id):
         pass #TODO
@@ -240,21 +222,21 @@ class DatabaseController():
     #HISTORY#
     def get_actor_history(self,id):
         revision_list = []
-        history = self.select("*", "actors_history", "id", id)
+        history = self.select_where("*", "actors_history", "id", id)
         for revision in history:
             revision_list.append(ActorHistory(*revision))
         return revision_list
 
     def get_mr_history(self, id):
         revision_list = []
-        history = self.select("*", "meta_roles_history", "id", id)
+        history = self.select_where("*", "meta_roles_history", "id", id)
         for revision in history:
             revision_list.append(MetaRoleHistory(*revision))
         return revision_list
 
     def get_role_history(self,id):
         revision_list = []
-        history = self.select("*", "roles_history", "id", id)
+        history = self.select_where("*", "roles_history", "id", id)
         for revision in history:
             revision_list.append(RoleHistory(*revision))
         return revision_list
@@ -343,7 +325,7 @@ class DatabaseController():
             print("Actor Swap Error: IDs are the same.")
         
     def removeActorSwap(self, roleID1, parent_id_1):
-        actor_swap_data = self.select("actor_swap_id, parent_meta", "roles", "id", roleID1)
+        actor_swap_data = self.select_where("actor_swap_id, parent_meta", "roles", "id", roleID1)
         actor_swap_id = actor_swap_data[0]
         
         #get the id  so we can check if we orphaned an actor-swap
@@ -359,7 +341,7 @@ class DatabaseController():
                 swap_id_to_clear = result[0][0]
                 self.update("roles","actor_swap_id", 0, "id", swap_id_to_clear)
 
-    #ABILITY DISCONNECTOR#
+    #ABILITIES#
     def remove_ability_actor(self, actor_id, ability_list):
         self.cursor.execute("DELETE FROM actors_to_abilities WHERE actor_id={}  AND ability_id IN ".format(actor_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
 
@@ -367,6 +349,73 @@ class DatabaseController():
         create_ability_actor_sql = "INSERT OR IGNORE INTO actors_to_abilities(actor_id,ability_id) VALUES (?,?)"
         for ability_id in ability_list:
             self.cursor.execute(create_ability_actor_sql,(actor_id,ability_id,))
+
+    def get_ability(self, ability_id):
+        ability = self.select_where("*","abilities","id",ability_id)[0]
+        return Ability(*ability)
+
+    def get_ability_list_role(self, role_id):
+        pass
+
+    def get_ability_list_actor(self, actor_id):
+        ability_ids = self.select_where("ability_id", "actors_to_abilities", "actor_id", actor_id)
+        abilities = []
+        if len(ability_ids) == 1:
+            for id in ability_ids[0]:
+                abilities.append(self.get_ability(id))
+        return abilities
+
+    def get_ability_list_exclude_actor(self, actor_id):
+        ability_ids = self.select_where("ability_id", "actors_to_abilities", "actor_id", actor_id)
+        
+        abilities_that_are_not_connected = []
+
+        if len(ability_ids) == 1:
+            db_abilites = self.select_not_in("*","abilities","id", ability_ids[0])
+            for ability in db_abilites:
+                abilities_that_are_not_connected.append(Ability(*ability))
+
+        else:
+            abilities_that_are_not_connected = self.get_all_abilities()
+            
+        
+        return abilities_that_are_not_connected
+
+    def get_ability_list_exclude_role(self, role_id):
+        pass
+
+    def get_ability_template_list_exclude_actor(self, actor_id):
+        pass
+
+    def get_ability_template_list_exclude_role(self, role_id):
+        pass
+
+    def get_all_abilities(self):
+        fetched_abilities = self.select('*', 'abilities')
+        abilities = []
+        for ability in fetched_abilities:
+            abilities.append(Ability(*ability))
+        return abilities
+
+    #RELEATIONSHIPS#
+    def add_relationship(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
+        sql = '''INSERT INTO actor_relationships(actor1_id, actor1_name, actor2_id, actor2_name, relationship_type) VALUES (?,?,?,?,?)'''
+        self.cursor.execute(sql, (actor1_id, actor1_name, actor2_id, actor2_name, relationship_type))
+
+    def get_relationships_actor_by_actor_id(self, actor_id):
+        relationships = []
+        fetched_relationships = self.select_or("*", "actor_relationships", "actor1_id", actor_id, "actor2_id", actor_id)
+        if len(fetched_relationships) != 0:
+            for relationship in fetched_relationships:
+                relationships.append(ActorRelationship(*relationship))
+        else:
+            print(f'No relationships for actor {actor_id}')
+        return relationships
+
+    def remove_relationships_actor(self, relationship_id_list):
+        for relationship_id in relationship_id_list:
+            delete_sql ='''DELETE FROM actor_relationships WHERE relationship_id={}'''.format(relationship_id)
+            self.cursor.execute(delete_sql)
 
     def commit(self):
         self.connection.commit()

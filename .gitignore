@@ -45,3 +45,9 @@ ACC/Python/__pycache__/actor.cpython-38.pyc
 ACC/Python/__pycache__/ability.cpython-38.pyc
 ACC/Python/__pycache__/actor.cpython-38.pyc
 ACC/Python/__pycache__/new_wiki_page_gen.cpython-38.pyc
+ACC/Python/__pycache__/Role.cpython-38.pyc
+.gitignore
+ACC/Python/__pycache__/database_controller.cpython-38.pyc
+ACC/Python/__pycache__/Constants.cpython-38.pyc
+ACC/Python/__pycache__/actor.cpython-38.pyc
+ACC/Python/__pycache__/actor_relationship.cpython-38.pyc

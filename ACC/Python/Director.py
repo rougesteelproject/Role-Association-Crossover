@@ -37,7 +37,7 @@ def index():
 @app.route('/roles/', methods = ['GET', 'POST'])
 def wiki():
     #?my_var=my_value
-    level = float(request.args['level'])
+    level = int(request.args['level'])
     baseID = request.args['base_id']
     base_is_actor = bool(distutils.util.strtobool(request.args['base_is_actor']))
     print(f'director: id to fetch: {baseID}')
@@ -46,7 +46,7 @@ def wiki():
     wiki_page_generator.generate_content()
     return render_template('wiki_template.html', generator=wiki_page_generator, blurb_editor_link="", hub_sigils="" )
        
-@app.route('/role/editor/actor', methods = ['GET','POST'])
+@app.route('/editor/actor', methods = ['GET','POST'])
 def actor_editor():
     #TODO relationship editor similar to character connector
     #TODO power edotor similar to char connector
@@ -72,6 +72,19 @@ def actor_editor():
             db_control.add_ability_actor(editorID, abilities_to_add)
             db_control.commit()
 
+        if "relationship_adder" in request.form:
+            actor1_id =request.form['actor1_id']
+            actor1_name = request.form['actor1_name']
+            actor2_id, actor2_name = request.form['actor2'].split('|')
+            type = request.form['relationship_type']
+            db_control.add_relationship(actor1_id,actor1_name,actor2_id, actor2_name, type)
+            db_control.commit()
+
+        if "relationship_remover" in request.form:
+            relationship_ids = request.form.getlist('remove_relationship')
+            db_control.remove_relationships_actor(relationship_ids)
+            db_control.commit()
+
         if "history_reverter" in request.form:
             new_bio  = request.form['bio']
             
@@ -89,9 +102,11 @@ def actor_editor():
     history = db_control.get_actor_history(editorID)
     abilities_that_are_not_connected = db_control.get_ability_list_exclude_actor(actor.id)
 
-    return render_template('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected)
+    all_actors = db_control.get_all_actors()
 
-@app.route('/role/editor/meta', methods = ['GET','POST'])
+    return render_template('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, all_actors=all_actors)
+
+@app.route('/editor/meta', methods = ['GET','POST'])
 def mr_editor():
 
     #WHen the user presses 'Submit'
@@ -113,7 +128,7 @@ def mr_editor():
 
         return render_template('mr_editor.html', goBackUrl=goBackUrl, mr=mr, history=history)
 
-@app.route('/role/editor/role', methods = ['GET','POST'])
+@app.route('/editor/role', methods = ['GET','POST'])
 def role_editor():
     #TODO relationship editor similar to character connector
     #TODO power edotor similar to char connector
@@ -197,9 +212,9 @@ def search():
     search_bar = Search(db_control)
     query = request.args['query']
     search_bar.searchBar(query)
-    return render_template('search.html', search_bar.displayed_mrs, search_bar.displayed_actors)
+    return render_template('search.html', search_mrs = search_bar.displayed_mrs, search_actors = search_bar.displayed_actors)
 
-@app.route('/ability')
+@app.route('/editor/ability')
 def ability_editor():
     #TODO flesh out template and db_cont
     

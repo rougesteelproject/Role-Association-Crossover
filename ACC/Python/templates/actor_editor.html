@@ -23,6 +23,7 @@
     </form>
 
     <h2>Remove Abilities</h2>
+    
     <form method="POST">
       <input type="hidden" name="editorID" value="{{actor.id}}">
       <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
@@ -33,6 +34,7 @@
     </form>
 
     <h2>Add Abilities</h2>
+    
     <form method="POST">
       <input type="hidden" name="editorID" value="{{actor.id}}">
       <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
@@ -42,14 +44,36 @@
       <input type="submit" id="ability_adder" name="ability_adder">
     </form>
     <a href="{{url_for('create_ability')}}">Create a new ability.</a>
-    #TODO link to create_ability
 
-    <h2>Add Relationships</h2>
+    <h2>Remove Relationships</h2>
+    
     <form method="POST">
+      <input type="hidden" name="editorID" value="{{actor.id}}">
+      <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
+      {%for relationship in actor.relationships %}
+      <input type="checkbox" name="remove_relationship" value="{{relationship.id}}"> {{relationship.actor1_name}}, {{relationship.actor2_name}}: {{relationship.type}}<br>
+      {%endfor%}
+      <input type="submit" id="relationship_remover" name="relationship_remover">
+    </form>
+
+    <h2>Add Relationship</h2>
+    
+    <form method="POST">
+      <input type="hidden" name="editorID" value="{{actor.id}}">
+      <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
+      <input type="hidden" name="actor1_id" value="{{actor.id}}">
+      <input type="hidden" name="actor1_name" value="{{actor.name}}">
+      <select name='actor2'>
+          {%for unrelated_actor in all_actors%}
+          <option value="{{unrelated_actor.id}}|{{unrelated_actor.name}}">{{unrelated_actor.name}}</option>
+          {%endfor%}
+      </select>
+      <input type='textarea' name='relationship_type' value='Type of relationship'>
       <input type="submit" id="relationship_adder" name="relationship_adder">
     </form>
 
     <h2>Version History</h2>
+    
     {%for version in history%}
     <form method="POST">
       <input type="hidden" name="editorID" value="{{version.id}}">
@@ -62,6 +86,7 @@
     {%endfor%} 
 
     <h2>Add Image</h2>
+    
     <form method="POST" enctype="multipart/form-data" accept="image/*" action="{{url_for('submit_image')}}">
       <label for="file">Image</label>
       <input type="file"  name="file"><br>
