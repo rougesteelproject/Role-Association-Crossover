@@ -16,6 +16,6 @@ class Role:
         self.first_parent_meta = first_parent_meta
         self.gallery = self._db_control.get_images_role(self.id)
 
-        self.relationships =[]
-        self.abilities = []
+        self.relationships = self._db_control.get_relationships_role_by_role_id(self.id)
+        self.abilities = self._db_control.get_ability_list_role(self.id)
         self.ability_templates = []

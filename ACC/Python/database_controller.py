@@ -10,6 +10,7 @@ from actor_history import ActorHistory
 from role_history import RoleHistory
 from ability import Ability
 from actor_relationship import ActorRelationship
+from role_relationship import RoleRelationship
 from image import Image
 
 #TODO replace some text with varChar
@@ -38,7 +39,7 @@ class DatabaseController():
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0, first_parent_meta INT )''')
         #relationships
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actor_relationships(relationship_id INTEGER PRIMARY KEY, actor1_id INT, actor1_name TEXT, actor2_id INT, actor2_name TEXT,relationship_type TEXT) ''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INTEGER PRIMARY KEY, role_1_id TEXT, role_1_name TEXT ,role_2_id TEXT, role_2_name TEXT,relationship_type TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INTEGER PRIMARY KEY, role1_id TEXT, role1_name TEXT ,role2_id TEXT, role2_name TEXT,relationship_type TEXT)''')
         #map role/actor to ability or template, ability to description
         #abilities include languages
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_to_abilities(actor_id INT, ability_id INT, UNIQUE(actor_id, ability_id))''')
@@ -152,7 +153,6 @@ class DatabaseController():
             gallery.append(Image(*image))
         return gallery
 
-
     #GET#
     def get_actor(self, actor_id):
         if actor_id != '':
@@ -189,7 +189,10 @@ class DatabaseController():
 
     def get_role(self, role_id):
         fetched_role = self.select_where("*","roles","id",role_id)
-        return Role(*fetched_role, self)
+        if len(fetched_role) != 0:
+            return Role(*fetched_role[0], self)
+        else:
+            print(f'No such role: {role_id}')
 
     def get_roles(self, parent_id, is_actor):
         roles = []
@@ -200,6 +203,13 @@ class DatabaseController():
         for role in fetched_roles:
             roles.append(Role(*role, self))
         return roles
+
+    def get_all_roles(self):
+        all_roles_fetched = self.select("*", "roles")
+        all_roles = []
+        for role in all_roles_fetched:
+            all_roles.append(Role(*role, self))
+        return all_roles
 
     def get_roles_search(self, query):
         roles = []
@@ -344,17 +354,30 @@ class DatabaseController():
     def remove_ability_actor(self, actor_id, ability_list):
         self.cursor.execute("DELETE FROM actors_to_abilities WHERE actor_id={}  AND ability_id IN ".format(actor_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
 
+    def remove_ability_role(self, role_id, ability_list):
+        self.cursor.execute("DELETE FROM roles_to_abilities WHERE role_id={}  AND ability_id IN ".format(role_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
+
     def add_ability_actor(self, actor_id, ability_list):
         create_ability_actor_sql = "INSERT OR IGNORE INTO actors_to_abilities(actor_id,ability_id) VALUES (?,?)"
         for ability_id in ability_list:
             self.cursor.execute(create_ability_actor_sql,(actor_id,ability_id,))
+
+    def add_ability_role(self, role_id, ability_list):
+        create_ability_role_sql = "INSERT OR IGNORE INTO roles_to_abilities(role_id,ability_id) VALUES (?,?)"
+        for ability_id in ability_list:
+            self.cursor.execute(create_ability_role_sql,(role_id,ability_id,))
 
     def get_ability(self, ability_id):
         ability = self.select_where("*","abilities","id",ability_id)[0]
         return Ability(*ability)
 
     def get_ability_list_role(self, role_id):
-        pass
+        ability_ids = self.select_where("ability_id", "roles_to_abilities", "role_id", role_id)
+        abilities = []
+        if len(ability_ids) == 1:
+            for id in ability_ids[0]:
+                abilities.append(self.get_ability(id))
+        return abilities
 
     def get_ability_list_actor(self, actor_id):
         ability_ids = self.select_where("ability_id", "actors_to_abilities", "actor_id", actor_id)
@@ -381,10 +404,20 @@ class DatabaseController():
         return abilities_that_are_not_connected
 
     def get_ability_list_exclude_role(self, role_id):
-        pass
+        ability_ids = self.select_where("ability_id", "roles_to_abilities", "role_id", role_id)
+        
+        abilities_that_are_not_connected = []
 
-    def get_ability_template_list_exclude_actor(self, actor_id):
-        pass
+        if len(ability_ids) == 1:
+            db_abilites = self.select_not_in("*","abilities","id", ability_ids[0])
+            for ability in db_abilites:
+                abilities_that_are_not_connected.append(Ability(*ability))
+
+        else:
+            abilities_that_are_not_connected = self.get_all_abilities()
+            
+        
+        return abilities_that_are_not_connected
 
     def get_ability_template_list_exclude_role(self, role_id):
         pass
@@ -397,7 +430,7 @@ class DatabaseController():
         return abilities
 
     #RELEATIONSHIPS#
-    def add_relationship(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
+    def add_relationship_actor(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
         sql = '''INSERT INTO actor_relationships(actor1_id, actor1_name, actor2_id, actor2_name, relationship_type) VALUES (?,?,?,?,?)'''
         self.cursor.execute(sql, (actor1_id, actor1_name, actor2_id, actor2_name, relationship_type))
 
@@ -414,6 +447,22 @@ class DatabaseController():
     def remove_relationships_actor(self, relationship_id_list):
         for relationship_id in relationship_id_list:
             delete_sql ='''DELETE FROM actor_relationships WHERE relationship_id={}'''.format(relationship_id)
+            self.cursor.execute(delete_sql)
+
+    def add_relationship_role(self, role1_id, role1_name, role2_id, role2_name, relationship_type):
+        sql = '''INSERT INTO role_relationships(role1_id, role1_name, role2_id, role2_name, relationship_type) VALUES (?,?,?,?,?)'''
+        self.cursor.execute(sql, (role1_id, role1_name, role2_id, role2_name, relationship_type))
+
+    def get_relationships_role_by_role_id(self, role_id):
+        relationships = []
+        fetched_relationships = self.select_or("*", "role_relationships", "role1_id", role_id, "role2_id", role_id)
+        for relationship in fetched_relationships:
+            relationships.append(RoleRelationship(*relationship))
+        return relationships
+
+    def remove_relationships_role(self, relationship_id_list):
+        for relationship_id in relationship_id_list:
+            delete_sql ='''DELETE FROM role_relationships WHERE relationship_id={}'''.format(relationship_id)
             self.cursor.execute(delete_sql)
 
     def commit(self):

@@ -54,6 +54,12 @@ def actor_editor():
             db_control.create_actor_history(editorID,new_bio)
             db_control.commit()
 
+        if "history_reverter" in request.form:
+            new_bio  = request.form['bio']
+            
+            db_control.create_actor_history(editorID,new_bio)
+            db_control.commit()
+
         if "ability_remover" in request.form:
             abilities_to_remove = request.form.getlist('remove_ability')
             db_control.remove_ability_actor(editorID, abilities_to_remove)
@@ -77,11 +83,7 @@ def actor_editor():
             db_control.remove_relationships_actor(relationship_ids)
             db_control.commit()
 
-        if "history_reverter" in request.form:
-            new_bio  = request.form['bio']
-            
-            db_control.create_actor_history(editorID,new_bio)
-            db_control.commit()
+        
 
             
     else:
@@ -124,24 +126,61 @@ def mr_editor():
 def role_editor():
     #When the user presses 'Submit'
     if request.method == 'POST':
-        new_description  = request.form['description']
         editorID = request.form['editorID']
         goBackUrl = request.form['goBackUrl']
-        alignment = request.form['alignment']
-        alive_or_dead = request.form['alive_or_dead']
-        #gets the old desc, plops it into history, then replaces it with the new
-        db_control.create_role_history(editorID,new_description)
-        db_control.commit()
-        return redirect(goBackUrl)
+        
+        if "description_editor" in request.form:
+            new_description  = request.form['description']
+            alignment = request.form['alignment']
+            alive_or_dead = request.form['alive_or_dead']
+            #gets the old desc, plops it into history, then replaces it with the new
+            db_control.create_role_history(editorID,new_description, alive_or_dead, alignment)
+            db_control.commit()
+
+        if "history_reverter" in request.form:
+            new_description  = request.form['description']
+            alignment = request.form['alignment']
+            alive_or_dead = request.form['alive_or_dead']
+            db_control.create_role_history(editorID,new_description, alive_or_dead, alignment)
+            db_control.commit()
+
+        if "ability_remover" in request.form:
+            abilities_to_remove = request.form.getlist('remove_ability')
+            db_control.remove_ability_role(editorID, abilities_to_remove)
+            db_control.commit()
+
+        if "ability_adder" in request.form:
+            abilities_to_add = request.form.getlist('add_ability')
+            db_control.add_ability_role(editorID, abilities_to_add)
+            db_control.commit()
+
+        if "relationship_adder" in request.form:
+            role1_id =request.form['role1_id']
+            role1_name = request.form['role1_name']
+            role2_id, role2_name = request.form['role2'].split('|')
+            type = request.form['relationship_type']
+            db_control.add_relationship_role(role1_id,role1_name,role2_id, role2_name, type)
+            db_control.commit()
+
+        if "relationship_remover" in request.form:
+            relationship_ids = request.form.getlist('remove_relationship')
+            db_control.remove_relationships_role(relationship_ids)
+            db_control.commit()
+
     else:
         editorID = request.args['editorID']
         goBackUrl = request.referrer
-        history = db_control.get_role_history(editorID)
-        #a list of all histry entries
+    
+    history = db_control.get_role_history(editorID)
+    #a list of all histry entries
 
-        role = db_control.get_role(editorID)
+    role = db_control.get_role(editorID)
 
-        return render_template('role_editor.html', goBackUrl=goBackUrl, role=role, history=history)
+    abilities_that_are_not_connected = db_control.get_ability_list_exclude_role(role.id)
+
+    all_roles = db_control.get_all_roles()
+
+    return render_template('role_editor.html', goBackUrl=goBackUrl, role=role, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, all_roles=all_roles)
         
 @app.route('/character_connector', methods = ['GET','POST'])
 def character_connector():
