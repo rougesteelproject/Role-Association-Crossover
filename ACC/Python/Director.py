@@ -1,4 +1,6 @@
 from os import name
+
+from flask.helpers import url_for
 from new_wiki_page_gen import WikiPageGenerator
 from search import Search
 from database_controller import DatabaseController
@@ -34,8 +36,9 @@ def wiki():
     baseID = request.args['base_id']
     base_is_actor = bool(distutils.util.strtobool(request.args['base_is_actor']))
     print(f'director: id to fetch: {baseID}')
-    #TODO get the actor_swap check box from the form
-    wiki_page_generator = WikiPageGenerator(baseID, level, base_is_actor, False, db_control)
+    enable_actor_swap = request.form.get('enable_actor_swap')
+    
+    wiki_page_generator = WikiPageGenerator(baseID, level, base_is_actor, enable_actor_swap, db_control)
     wiki_page_generator.generate_content()
     return render_template('wiki_template.html', generator=wiki_page_generator, blurb_editor_link="", hub_sigils="" )
        
@@ -235,6 +238,7 @@ def submit_image():
     db_control.add_image(page_type, page_id, uploaded_file.filename, caption)
     return(redirect(go_back_url))
     #TODO this needs to stay on the same page, instead
+        #a form with stay_here url or something (request.referer?)
 
 @app.route('/search')
 def search():
@@ -243,26 +247,35 @@ def search():
     search_bar.searchBar(query)
     return render_template('search.html', search_mrs = search_bar.displayed_mrs, search_actors = search_bar.displayed_actors)
 
-@app.route('/editor/ability')
+@app.route('/editor/ability', methods=['POST'])
 def ability_editor():
-    #TODO flesh out template and db_cont
     
     goBackUrl = request.referrer
     ability_id = request.args['id']
     ability = db_control.get_ability(ability_id)
     history = db_control.get_ability_history(ability_id)
-    return render_template('ability_editor.html',ability, history, goBackUrl)
+    return render_template('ability_editor.html',ability=ability, history=history, goBackUrl=goBackUrl)
 
 #TODO ability template editor
 
-@app.route('/create_ability')
+@app.route('/create_ability', methods=['POST'])
 def create_ability():
-    #TODO
     if "create_ability" in request.form:
-        pass
+        name = request.form['name']
+        description = request.form['description']
+        goBackUrl = request.form['goBackUrl']
+
+        ability_id = db_control.create_ability(name, description)
+        
+        ability = db_control.get_ability(ability_id)
+        history = db_control.get_ability_history(ability_id)
+
+        return render_template('ability_editor.html', ability=ability, history=history, goBackUrl=goBackUrl)
+        
         #create the ability using db_cont, then go to ability_editor
     else:
+        goBackUrl = request.referrer
         #render the template with the form (the normal response to this link)
-        pass
+        return render_template('create_ability.html', goBackUrl=goBackUrl)
 
 app.run(port=5000)

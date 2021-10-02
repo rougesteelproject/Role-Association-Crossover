@@ -73,7 +73,7 @@ class WikiPageGenerator:
         #for each active parent:
         for actor in self.top_layer_actors:
             for role in actor.roles:
-                print(f'processing {role.name}')
+                
                 #for each role, get it's mr
                 in_meta_that_show_all = False
                 in_meta_that_dont_show_all = False
@@ -100,7 +100,7 @@ class WikiPageGenerator:
         print('get actors that dont show')
         for mr in self.top_layer_meta_roles:
             for role in mr.roles:
-                print(f'processing {role.name}')
+                
                 in_actors_that_show_all = False
                 in_actors_that_dont_show_all = False
 

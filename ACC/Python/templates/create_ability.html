@@ -7,6 +7,9 @@
 {%block content%}
     <form method="POST" >
 
+        <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
+        <input type='textarea' name='name' value='Name'>
+        <input type='textarea' name='description' value='Description'>
         <input id="create_ability", name="create_ability" type="submit">
     </form>
 {%endblock%}

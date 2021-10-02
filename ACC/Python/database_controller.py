@@ -9,9 +9,11 @@ from meta_role_history import MetaRoleHistory
 from actor_history import ActorHistory
 from role_history import RoleHistory
 from ability import Ability
+from ability_history import AbilityHistory
 from actor_relationship import ActorRelationship
 from role_relationship import RoleRelationship
 from image import Image
+
 
 #TODO replace some text with varChar
 
@@ -109,13 +111,6 @@ class DatabaseController():
         select_sql = "SELECT {} FROM {} WHERE {}=? OR {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())
         self.cursor.execute(select_sql,(where_value,where_value_2,))
         return self.cursor.fetchall()
-
-
-    #def select_max(self, select_column, table_name):
-    #    select_sql = "SELECT MAX({}) FROM {}".format(select_column.lower(),table_name.lower())
-    #    self.cursor.execute(select_sql)
-    #    return self.cursor.fetchone()[0]
-    #TODO, so far, pases the scream test. Delete if nothing blows up
 
     def select_max_where(self, select_column, table_name, where_column, where_value):
         select_sql = "SELECT MAX({}) FROM {} WHERE {}=?".format(select_column.lower(),table_name.lower(),where_column.lower())
@@ -274,9 +269,7 @@ class DatabaseController():
 
         self.cursor.execute(changeDescSql,(new_description,new_alive_or_dead,new_alignment,id,))  
 
-    def get_ability_history(id):
-        #TODO
-        pass
+    
 
     #CHARACTER CONNECTOR#
     def character_connector_switch(self, mode, id1, id2):
@@ -351,6 +344,11 @@ class DatabaseController():
                 self.update("roles","actor_swap_id", 0, "id", swap_id_to_clear)
 
     #ABILITIES#
+    def create_ability(self, name, description):
+        create_sql = '''INSERT INTO abilities (name, description) VALUES (?,?)'''
+        self.cursor.execute(create_sql, (name, description))
+        return self.cursor.lastrowid
+
     def remove_ability_actor(self, actor_id, ability_list):
         self.cursor.execute("DELETE FROM actors_to_abilities WHERE actor_id={}  AND ability_id IN ".format(actor_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
 
@@ -428,6 +426,13 @@ class DatabaseController():
         for ability in fetched_abilities:
             abilities.append(Ability(*ability))
         return abilities
+
+    def get_ability_history(self, id):
+        revision_list = []
+        history = self.select_where("*", "abilities_history", "id", id)
+        for revision in history:
+            revision_list.append(AbilityHistory(*revision))
+        return revision_list
 
     #RELEATIONSHIPS#
     def add_relationship_actor(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
