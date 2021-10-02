@@ -317,6 +317,7 @@ class DatabaseController():
             parent_meta = max(mr_id_1,mr_id_2)
             
             swap_id = self.select_max_where("actor_swap_id", "roles","parent_meta", parent_meta)[0]
+            #TODO i think this gives each one it's own swap id?
             if swap_id is not None:
                 swap_id += 1
             else:

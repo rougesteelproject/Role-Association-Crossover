@@ -6,6 +6,7 @@ class Search():
         self.displayed_mrs = []
         self.displayed_actors = []
 
+    #TODO fix this to also show mrs with the given query
     def mrSearchResults(self, query):
 
         connector_roles = self._db_control.get_roles_search(query)

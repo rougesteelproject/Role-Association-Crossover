@@ -20,6 +20,8 @@
         <div class="matcher">
 
           <form action="{{url_for('character_connector')}}" method="POST">
+            <input type="text" style="display:none" name="name_1" value="{{name_1}}">
+            <input type="text" style="display:none" name="name_2" value="{{name_2}}">
             <label for="id1">{{name_1}}:</label>
             <select name="id1" class="select_mr">
             {%for mr in connector_mrs%}

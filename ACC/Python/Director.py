@@ -205,6 +205,7 @@ def character_connector():
         id1 = request.form['id1']
         id2 = request.form['id2']
         mode = request.form['mode']
+        
 
         db_control.character_connector_switch(mode,id1,id2)
 
@@ -219,6 +220,7 @@ def character_connector():
 
         return render_template('character_connector.html', have_results=True ,connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
 
+    
     return render_template('character_connector.html', have_results = False)
 
 @app.route('/webview', methods=['GET', 'POST'])
