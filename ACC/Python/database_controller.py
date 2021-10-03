@@ -149,6 +149,8 @@ class DatabaseController():
         return gallery
 
     #GET#
+    #TODO maybe these searches should include the bio?
+
     def get_actor(self, actor_id):
         if actor_id != '':
             fetched_actor = self.select_where("*","actors","id",actor_id)[0]
@@ -179,7 +181,9 @@ class DatabaseController():
         mrs = []
         fetched_mrs = self.select_like("*","meta_roles","name",query)
         for mr in fetched_mrs:
-            mrs.append(MetaRole(*mr, self))
+            new_mr = MetaRole(*mr, self)
+            mrs.append(new_mr)
+            new_mr.get_roles()
         return mrs
 
     def get_role(self, role_id):
@@ -223,6 +227,50 @@ class DatabaseController():
     def get_parent_meta(self, role_id):
         pass #TODO need for role relationships
 
+    def search_char_connector(self, query1, query2):
+        connector_mrs_1 = self.get_mrs_search(query1)
+        connector_mrs_2 = self.get_mrs_search(query2)
+
+        roles_1 = self.get_roles_search(query1)
+        roles_2 = self.get_roles_search(query2)
+
+        mr_in_list = False
+        for role in roles_1:
+            for mr in connector_mrs_1:
+                if mr.id == role.parent_meta:
+                    mr_in_list= True
+
+            if not mr_in_list:
+                connector_mrs_1.append(self.db_control.get_mr(role.parent_meta))
+
+        mr_in_list = False
+        for role in roles_2:
+            for mr in connector_mrs_2:
+                if mr.id == role.parent_meta:
+                    mr_in_list= True
+
+            if not mr_in_list:
+                connector_mrs_2.append(self.db_control.get_mr(role.parent_meta))
+
+        return connector_mrs_1, connector_mrs_2
+
+    def search_bar(self, query):
+        search_bar_actors  = self.get_actors_search(query)
+        search_bar_mrs = self.get_mrs_search(query)
+
+        roles = self.get_roles_search(query)
+
+        for role in roles:
+            in_mrs = False
+            for mr in search_bar_mrs:
+                if role.parent_meta == mr.id:
+                    in_mrs = True
+
+            if not in_mrs:
+                search_bar_mrs.append(self.get_mr(role.parent_meta))
+
+        return search_bar_actors, search_bar_mrs
+   
     #HISTORY#
     def get_actor_history(self,id):
         revision_list = []

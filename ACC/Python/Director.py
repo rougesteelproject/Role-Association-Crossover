@@ -2,7 +2,6 @@ from os import name
 
 from flask.helpers import url_for
 from new_wiki_page_gen import WikiPageGenerator
-from search import Search
 from database_controller import DatabaseController
 from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
@@ -187,19 +186,15 @@ def role_editor():
         
 @app.route('/character_connector', methods = ['GET','POST'])
 def character_connector():
+
     if "search-submit" in request.form:
 
         #TODO make this drag and drop?
         name_1 = request.form['name_1']
         name_2 = request.form['name_2']
-        search_1 = Search(db_control)
-        search_2 = Search(db_control)
-        search_1.mrSearchResults(name_1)
-        search_2.mrSearchResults(name_2)
-        results_1 = search_1.displayed_mrs
-        results_2 = search_2.displayed_mrs
+        connector_mrs, connector_mrs2 = db_control.search_char_connector(name_1, name_2)
 
-        return render_template('character_connector.html',have_results=True, connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
+        return render_template('character_connector.html',have_results=True, connector_mrs=connector_mrs, connector_mrs2=connector_mrs2, name_1=name_1, name_2=name_2)
 
     if "matcher-submit" in request.form:
         id1 = request.form['id1']
@@ -211,14 +206,9 @@ def character_connector():
 
         name_1 = request.form['name_1']
         name_2 = request.form['name_2']
-        search_1 = Search(db_control)
-        search_2 = Search(db_control)
-        search_1.mrSearchResults(name_1)
-        search_2.mrSearchResults(name_2)
-        results_1 = search_1.displayed_mrs
-        results_2 = search_2.displayed_mrs
+        connector_mrs, connector_mrs2 = db_control.search_char_connector(name_1, name_2)
 
-        return render_template('character_connector.html', have_results=True ,connector_mrs=results_1, connector_mrs2=results_2, name_1=name_1, name_2=name_2)
+        return render_template('character_connector.html', have_results=True ,connector_mrs=connector_mrs, connector_mrs2=connector_mrs2, name_1=name_1, name_2=name_2)
 
     
     return render_template('character_connector.html', have_results = False)
@@ -244,10 +234,9 @@ def submit_image():
 
 @app.route('/search')
 def search():
-    search_bar = Search(db_control)
     query = request.args['query']
-    search_bar.searchBar(query)
-    return render_template('search.html', search_mrs = search_bar.displayed_mrs, search_actors = search_bar.displayed_actors)
+    search_actors, search_mrs = db_control.search_bar(query)
+    return render_template('search.html', search_mrs = search_mrs, search_actors = search_actors)
 
 @app.route('/editor/ability', methods=['POST'])
 def ability_editor():
