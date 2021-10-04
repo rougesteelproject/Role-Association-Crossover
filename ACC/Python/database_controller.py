@@ -87,6 +87,10 @@ class DatabaseController():
         update_sql = "UPDATE {} SET {}=? WHERE {}=? OR {}=?".format(table_name.lower(), column.lower(), where_1.lower(), where_2.lower())
         self.cursor.execute(update_sql, (column_value,where_value_1,where_value_2,))
     
+    def update_and(self, table_name, column, column_value, where_1, where_value_1, where_2, where_value_2):
+        update_sql = "UPDATE {} SET {}=? WHERE {}=? AND {}=?".format(table_name, column, where_1, where_2)
+        self.cursor.execute(update_sql, (column_value, where_value_1, where_value_2,))
+
     def update_reset_mr(self, roleID1):
         update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
         self.cursor.execute(update_reset_mr_sql, (roleID1,))
@@ -182,8 +186,10 @@ class DatabaseController():
         fetched_mrs = self.select_like("*","meta_roles","name",query)
         for mr in fetched_mrs:
             new_mr = MetaRole(*mr, self)
-            mrs.append(new_mr)
             new_mr.get_roles()
+            if new_mr.roles != []:
+                mrs.append(new_mr)
+            
         return mrs
 
     def get_role(self, role_id):
@@ -234,23 +240,33 @@ class DatabaseController():
         roles_1 = self.get_roles_search(query1)
         roles_2 = self.get_roles_search(query2)
 
-        mr_in_list = False
         for role in roles_1:
+            mr_in_list = False
             for mr in connector_mrs_1:
                 if mr.id == role.parent_meta:
                     mr_in_list= True
 
             if not mr_in_list:
-                connector_mrs_1.append(self.db_control.get_mr(role.parent_meta))
+                new_mr = self.get_mr(role.parent_meta)
+                new_mr.get_roles()
+                if new_mr.roles != []:
+                    connector_mrs_1.append(new_mr)
 
-        mr_in_list = False
         for role in roles_2:
+            mr_in_list = False
             for mr in connector_mrs_2:
                 if mr.id == role.parent_meta:
                     mr_in_list= True
 
             if not mr_in_list:
-                connector_mrs_2.append(self.db_control.get_mr(role.parent_meta))
+                new_mr = self.get_mr(role.parent_meta)
+                new_mr.get_roles()
+                if new_mr.roles != []:
+                    connector_mrs_2.append(new_mr)
+
+        if query1 != query2:
+            id_list = [mr.id for mr in connector_mrs_1]
+            connector_mrs_2 = [mr for mr in connector_mrs_2 if mr.id not in id_list]
 
         return connector_mrs_1, connector_mrs_2
 
@@ -364,15 +380,28 @@ class DatabaseController():
             
             parent_meta = max(mr_id_1,mr_id_2)
             
-            swap_id = self.select_max_where("actor_swap_id", "roles","parent_meta", parent_meta)[0]
-            #TODO i think this gives each one it's own swap id?
-                #Bug confirmed.
-            if swap_id is not None:
-                swap_id += 1
+            
+            swap_id_1 = self.select_where("actor_swap_id", "roles", "id", roleID1)[0][0]
+            swap_id_2 = self.select_where("actor_swap_id", "roles", "id", roleID2)[0][0]
+            if swap_id_1 == 0 and swap_id_2 == 0:
+                swap_id = self.select_max_where("actor_swap_id", "roles","parent_meta", parent_meta)[0]
+                if swap_id is not None:
+                    swap_id += 1
+                else:
+                    swap_id = 1
+                #Select Max() gets the highest in that column
+                #If both are zero, set both to the new one we generate
+                self.update_or("roles", "actor_swap_id", swap_id, "id", roleID1, where_2="id", where_value_2=roleID2)
             else:
-                swap_id = 1
-            #Select Max() gets the highest in that column
-            self.update_or("roles", "actor_swap_id", swap_id, "id", roleID1, where_2="id", where_value_2=roleID2)
+                swap_id = max(swap_id_1, swap_id_2)
+                min_swap_id = min(swap_id_1, swap_id_2)
+                if min_swap_id == 0:
+                    #if just one is zero, we set both to the max (because min would get us zero)
+                    self.update_or("roles", "actor_swap_id", swap_id, "id", roleID1, where_2="id", where_value_2=roleID2)
+                else:
+                    #change all the ones with the same actor_swap as the new addition
+                    self.update_and("roles", "actor_swap_id", swap_id, "actor_swap_id", min_swap_id, "parent_meta", parent_meta)
+            
         else:
             print("Actor Swap Error: IDs are the same.")
         

@@ -22,34 +22,38 @@
           <form action="{{url_for('character_connector')}}" method="POST">
             <input type="text" style="display:none" name="name_1" value="{{name_1}}">
             <input type="text" style="display:none" name="name_2" value="{{name_2}}">
+            
             <label for="id1">{{name_1}}:</label>
             <select name="id1" class="select_mr">
             {%for mr in connector_mrs%}
               <optgroup label="{{mr.name}}">
                 {%for role in mr.roles%}
-                  <option value="{{role.id}}|{{mr.id}}">{{role.name}}</option>
+                  <option value="{{role.id}}|{{mr.id}}">{{role.name}} ({{role.actor_swap_id}})</option>
                 {%endfor%}
               </optgroup>
             {%endfor%}
             </select>
+            
             <label for="id2">Role 2: {{name_2}}</label>
             <select name="id2" class="select_mr">
             {%for mr in connector_mrs2%}
               <optgroup label={{mr.name}}>
                 {%for role in mr.roles%}
-                  <option value="{{role.id}}|{{mr.id}}">{{role.name}}</option>
+                  <option value="{{role.id}}|{{mr.id}}">{{role.name}} ({{role.actor_swap_id}})</option>
                 {%endfor%}
               </optgroup>
             {%endfor%}
             </select>
+            
             <label for="mode">Choose an operation:</label>
             <select name="mode" class="select_addMR">
               #TODO rename the tooltips
-              <option value="changeMR">These are the same character, but not in the same continuity. Changes the Parent of the left role.(Same Character)</option>
-              <option value="resetMR">Disconnect the left role from it's parent. (Not the same character)</option>
-              <option value="mergeMR">Combines the two parents of the left and right roles. (Same Charater)</option>
-              <option value="actorSwap">The two characters are the same character, and from the same continuity. (Combines the parents if they aren't already. Always check the other roles in the parent first!)</option>
-              <option value="removeActorSwap">Remove left role from same continuity, keep as the same character. </option>
+              
+              <option value="resetMR">Disconnect the left role from it's parent. (Reset Meta Role)</option>
+              <option value="mergeMR">These are the same character, but not in the same continuity. (Merge Meta Roles)</option>
+              <option value="changeMR">These are the same character, but not in the same continuity. Changes the Parent of the left role.(Change MR)</option>
+              <option value="actorSwap">The two characters are the same character, and from the same continuity. (Actor Swap)</option>
+              <option value="removeActorSwap">Remove left role from same continuity, keep as the same character. (Remove Actor Swap)</option>
             </select>
             <input type="text" style="display: none;" id="name_1" name="name_1">
             <input type="text" style="display: none;" id="name_2" name="name_2">

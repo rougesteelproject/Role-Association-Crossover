@@ -124,6 +124,7 @@ class WikiPageGenerator:
                     self.actors_that_dont_show_all_roles.append(new_actor)
 
     def get_actor_swap_roles(self):
+        #TODO borked
         for mr in self.meta_roles_that_dont_show_all_roles:
             mr.get_actor_swap_roles()
 
