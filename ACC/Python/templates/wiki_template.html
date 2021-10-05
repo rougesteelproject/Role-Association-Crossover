@@ -19,14 +19,16 @@
         <div class="hub-sigils">
           {{hub_sigils}}
         </div>
+        
         <div class="number-of-links">
           <form action="{{url_for('wiki')}}" method="GET">
+          <input style="display: none;" type="text" name="base_id" value="{{generator.base_id}}">
+          <input style="display: none;" type="text" name="base_is_actor" value="{{generator.base_is_actor}}">
           <label for="level">How many layers deep?</label>
           <input type="number" id="level" name="level" min="1" step="1" value="1">
           <label for="enable_actor_swap">Enable Swaped Actors? (The other Darin)</label>
-          <input type="checkbox" id="enable_actor_swap" name="enable_actor_swap", value="True">
-          <input type="text" style="display:none" name="base_id" value="{{generator.base_id}}">
-          <input type="text" style="display:none" name="base_is_actor" value={{generator.base_is_actor}}>
+          <input type="checkbox" name="enable_actor_swap" value="True"/>
+
           <input type="submit">
         </form>
         </div>

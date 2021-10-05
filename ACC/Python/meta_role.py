@@ -33,7 +33,8 @@ class MetaRole():
         #TODO add duplication chaecking
 
     def get_actor_swap_roles(self):
+        swaps = []
         for role in self.roles:
             if (role.actor_swap_id != 0):
-                swaps = self._db_control.get_roles_swap(self.id, role.actor_swap_id)
-                self.add_roles(swaps)
+                swaps.extend(self._db_control.get_roles_swap(self.id, role.actor_swap_id))
+        self.add_roles(swaps)

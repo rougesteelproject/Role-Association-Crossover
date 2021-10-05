@@ -225,7 +225,7 @@ class DatabaseController():
         
     def get_roles_swap(self, mr_id, actor_swap_id):
         roles = []
-        fetched_roles = self.select_where("*","roles","parent_meta",mr_id,bool_and=True, second_argument_column="actor_swap", second_argument_value=actor_swap_id)
+        fetched_roles = self.select_and("*","roles","parent_meta",mr_id, "actor_swap_id", actor_swap_id)
         for role in fetched_roles:
             roles.append(Role(*role,self))
         return roles

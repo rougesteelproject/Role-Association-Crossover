@@ -8,7 +8,7 @@
 <div class="actor-results">
     {%for actor in search_actors%}
     <div class="actor-result">
-        <a href="{{url_for('wiki')}}?base_id={{actor.id}}&base_is_actor=true&level=1" title="{{actor.name}}">{{actor.name}}</a>
+        <a href="{{url_for('wiki')}}?base_id={{actor.id}}&base_is_actor=true&level=1&enable_actor_swap=False" title="{{actor.name}}">{{actor.name}}</a>
         <p>{{actor.bio}}</p>
     </div>
     {%endfor%}
@@ -17,7 +17,7 @@
 <div class="mr-results">
     {%for mr in search_mrs%}
     <div class="mr-result">
-        <a href="{{url_for('wiki')}}?base_id={{mr.id}}&base_is_actor=false&level=1" title="{{mr.name}}">{{mr.name}}</a>
+        <a href="{{url_for('wiki')}}?base_id={{mr.id}}&base_is_actor=false&level=1&enable_actor_swap=False" title="{{mr.name}}">{{mr.name}}</a>
         <p>{{mr.bio}}</p>
     </div>
     {%endfor%}

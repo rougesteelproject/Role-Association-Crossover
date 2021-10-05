@@ -31,13 +31,19 @@ def index():
 @app.route('/roles/', methods = ['GET', 'POST'])
 def wiki():
     #?my_var=my_value
+
+
     level = int(request.args['level'])
-    baseID = request.args['base_id']
+    base_id = request.args['base_id']
     base_is_actor = bool(distutils.util.strtobool(request.args['base_is_actor']))
-    print(f'director: id to fetch: {baseID}')
-    enable_actor_swap = request.form.get('enable_actor_swap')
+    if "enable_actor_swap" in request.args:
+        enable_actor_swap = True
+    else:
+        enable_actor_swap = False
+    print(f'director: id to fetch: {base_id}')
     
-    wiki_page_generator = WikiPageGenerator(baseID, level, base_is_actor, enable_actor_swap, db_control)
+    
+    wiki_page_generator = WikiPageGenerator(base_id, level, base_is_actor, enable_actor_swap, db_control)
     wiki_page_generator.generate_content()
     return render_template('wiki_template.html', generator=wiki_page_generator, blurb_editor_link="", hub_sigils="" )
        
@@ -269,4 +275,4 @@ def create_ability():
         #render the template with the form (the normal response to this link)
         return render_template('create_ability.html', goBackUrl=goBackUrl)
 
-app.run(port=5000)
+app.run(debug=True, port=5000)
