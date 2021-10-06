@@ -153,7 +153,7 @@ class DatabaseController():
         return gallery
 
     #GET#
-    #TODO maybe these searches should include the bio?
+    #TODO may search in bios or descriptions?
 
     def get_actor(self, actor_id):
         if actor_id != '':

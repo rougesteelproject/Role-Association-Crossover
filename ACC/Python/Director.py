@@ -83,7 +83,7 @@ def actor_editor():
             actor1_name = request.form['actor1_name']
             actor2_id, actor2_name = request.form['actor2'].split('|')
             type = request.form['relationship_type']
-            db_control.add_relationship(actor1_id,actor1_name,actor2_id, actor2_name, type)
+            db_control.add_relationship_actor(actor1_id,actor1_name,actor2_id, actor2_name, type)
             db_control.commit()
 
         if "relationship_remover" in request.form:
@@ -275,4 +275,4 @@ def create_ability():
         #render the template with the form (the normal response to this link)
         return render_template('create_ability.html', goBackUrl=goBackUrl)
 
-app.run(debug=True, port=5000)
+app.run(port=5000)

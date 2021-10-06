@@ -4,6 +4,9 @@
 
 #TODO find a way to alphabatize by role.name, ability.name, etc
 
+from os import link
+
+
 class WikiPageGenerator:
     def __init__(self, base_id, layers_to_generate, base_is_actor, enable_actor_swap, db_control):
         self.db_control = db_control
@@ -25,6 +28,9 @@ class WikiPageGenerator:
         self.top_layer_actors = []
         self.top_layer_meta_roles = []
 
+        self.link_actor_relationships = []
+        self.plaintext_actor_relationships = []
+
     def generate_content(self):
         processing_layer = 0
         while processing_layer < self.layers_to_generate:
@@ -40,6 +46,8 @@ class WikiPageGenerator:
         if self.enable_actor_swap:
             print('Getting Actor Swaps')
             self.get_actor_swap_roles()
+
+        self.generate_actor_relationships()
 
         print('generation complete')
 
@@ -127,7 +135,28 @@ class WikiPageGenerator:
         for mr in self.meta_roles_that_dont_show_all_roles:
             mr.get_actor_swap_roles()
 
+    def generate_actor_relationships(self):
+        all_actors = []
+        all_actors.extend(self.actors_that_show_all_roles)
+        all_actor_ids = [actor.id for actor in all_actors]
+        #Only actors that show all have bios to put relatioships in
+        #Doing this because I dunno what'll happen if I just straight set it to = actors_that_show
 
+        relationships = []
+        
+        for actor in all_actors:
+            for relationship in actor.relationships:
+                if relationship.id not in [relationship.id for relationship in relationships]:
+                    relationships.append(relationship)
+
+        link_relationships = [relationship for relationship in relationships if relationship.actor1_id not in all_actor_ids and relationship.actor2_id not in all_actor_ids]
+        plaintext_relationships = [relationships for relationship in relationships if relationship not in link_relationships]
+        
+        print (link_relationships)
+        print (plaintext_relationships)
+
+        self.link_actor_relationships = link_relationships
+        self.plaintext_actor_relationships = plaintext_relationships
 #TODO
     #link relationships - not in displayed_actors
     #plaintext relationships - in displayed_actors

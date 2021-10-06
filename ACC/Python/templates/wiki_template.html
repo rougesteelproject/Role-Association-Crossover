@@ -50,6 +50,11 @@
           <p>Death: {{actor.death_date}}</p>
         </div>
         {%endfor%}
+
+        <h3>Relationships:</h3>
+        %for relationship in generator.link_actor_relationships%
+        #TODO I need to know here which actor needs to be linked
+
         #TODO relationships, ablilities
         #Each relationship either is a link (ie, not displayed) or not
         #Each relationship type checks all relationships, gets the ones of same type, links first (use link id), then plaintext
