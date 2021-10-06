@@ -14,6 +14,9 @@ class MetaRole():
         self.fictional_in_universe = fictional_in_universe
         self.is_biggest = strtobool(is_biggest)
 
+    def __lt__(self, other):
+        return self.name.lower() < other.name.lower()
+
     def set_roles(self, roles):
         self.roles = roles
 

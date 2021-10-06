@@ -3,3 +3,6 @@ class Ability():
         self.id = id
         self.name = name
         self.description = description
+
+    def __lt__(self, other):
+        return self.name.lower() < other.name.lower()

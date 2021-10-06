@@ -523,7 +523,9 @@ class DatabaseController():
         fetched_relationships = self.select_or("*", "actor_relationships", "actor1_id", actor_id, "actor2_id", actor_id)
         if len(fetched_relationships) != 0:
             for relationship in fetched_relationships:
-                relationships.append(ActorRelationship(*relationship))
+                new_relationship = ActorRelationship(*relationship)
+                new_relationship.set_link_actor(actor_id)
+                relationships.append(new_relationship)
         else:
             print(f'No relationships for actor {actor_id}')
         return relationships

@@ -6,3 +6,6 @@ class RoleRelationship():
         self.role2_id = role2_id
         self.role2_name = role2_name
         self.type = type
+
+    def __lt__(self, other):
+        return self.type.lower() < other.type.lower()

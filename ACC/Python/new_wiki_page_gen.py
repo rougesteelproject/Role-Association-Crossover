@@ -2,10 +2,7 @@
 #Get 'layers'
 #Get 'is_actor' or 'is_mr'
 
-#TODO find a way to alphabatize by role.name, ability.name, etc
-
 from os import link
-
 
 class WikiPageGenerator:
     def __init__(self, base_id, layers_to_generate, base_is_actor, enable_actor_swap, db_control):
@@ -149,17 +146,25 @@ class WikiPageGenerator:
                 if relationship.id not in [relationship.id for relationship in relationships]:
                     relationships.append(relationship)
 
-        link_relationships = [relationship for relationship in relationships if relationship.actor1_id not in all_actor_ids and relationship.actor2_id not in all_actor_ids]
-        plaintext_relationships = [relationships for relationship in relationships if relationship not in link_relationships]
+        link_relationships = [relationship for relationship in relationships if relationship.link_actor_id not in all_actor_ids]
+        plaintext_relationships = [relationship for relationship in relationships if relationship not in link_relationships]
         
         print (link_relationships)
         print (plaintext_relationships)
 
         self.link_actor_relationships = link_relationships
         self.plaintext_actor_relationships = plaintext_relationships
-#TODO
-    #link relationships - not in displayed_actors
-    #plaintext relationships - in displayed_actors
+
+    def alphabetize(self):
+        self.meta_roles_that_show_all_roles.sort()
+        self.meta_roles_that_dont_show_all_roles.sort()
+        self.actors_that_show_all_roles.sort()
+        for mr in self.meta_roles_that_show_all_roles:
+            mr.roles.sort()
+        for mr in self.meta_roles_that_dont_show_all_roles:
+            mr.roles.sort()
+        self.link_actor_relationships.sort()
+        self.plaintext_actor_relationships.sort()
 
     #TODO get role relationships as a class variable
     #ie, list of "other" role id's

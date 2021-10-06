@@ -52,17 +52,15 @@
         {%endfor%}
 
         <h3>Relationships:</h3>
-        %for relationship in generator.link_actor_relationships%
-        #TODO I need to know here which actor needs to be linked
-
-        #TODO relationships, ablilities
-        #Each relationship either is a link (ie, not displayed) or not
-        #Each relationship type checks all relationships, gets the ones of same type, links first (use link id), then plaintext
-        #for rel in relationships:
-        # ie: if type = "type": /actor.rel.type
-          #if link: /actor.relationship.is_link
-          #else:
-        #then a new for loop for next relationship type
+        {%for relationship in generator.link_actor_relationships%}
+        <p><a href="{{url_for('wiki')}}?base_id={{relationship.link_actor}}&base_is_actor=True&level=1">{{relationship.link_actor_name}} </a>- {{relationship.type}}</p>
+        {%endfor%}
+        {%for relationship in generator.plaintext_actor_relationships%}
+        <p>{{relationship.link_actor_name}} - {{relationship.type}}</p>
+        {%endfor%}
+        
+        #TODO  ablilities
+         
       </div>
 
       #TODO an ablilities and relationships section on the bottom left for roles
@@ -105,7 +103,9 @@
         </div>
           
           {%endfor%}
-          {%for mr in generator.meta_roles_that_dont_show_all_roles%}
+          
+        {%for mr in generator.meta_roles_that_dont_show_all_roles%}
+          
         <div class="meta-role-div">
           <h2>
           {{mr.name}} <a href="{{url_for('mr_editor')}}?editorID={{mr.id}}" title="edit this character"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>

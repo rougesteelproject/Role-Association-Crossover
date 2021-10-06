@@ -19,7 +19,8 @@ class Actor:
         self.relationships = self._db_control.get_relationships_actor_by_actor_id(self.id)
         self.abilities = self._db_control.get_ability_list_actor(self.id)
         
-
+    def __lt__(self, other):
+        return self.name.lower() < other.name.lower()
 
     def set_roles(self, roles):
         self.roles = roles
