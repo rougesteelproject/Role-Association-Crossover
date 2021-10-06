@@ -59,7 +59,10 @@
         <p>{{relationship.link_actor_name}} - {{relationship.type}}</p>
         {%endfor%}
         
-        #TODO  ablilities
+        <h3>Abilities</h3>>
+        {%for ability in generator.actor_abilities%}
+        <p>{{ability.name}} - {{ability.description}}</p>
+        {%endfor%}
          
       </div>
 

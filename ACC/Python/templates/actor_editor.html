@@ -51,7 +51,7 @@
       <input type="hidden" name="editorID" value="{{actor.id}}">
       <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
       {%for ability in abilities_that_are_not_connected %}
-      <input type="checkbox" name="add_ability" value="{{ability.id}}">{{ability.id}}: {{ability.description}}<br>
+      <input type="checkbox" name="add_ability" value="{{ability.id}}">{{ability.name}}: {{ability.description}}<br>
       {%endfor%}
       <input type="submit" id="ability_adder" name="ability_adder">
     </form>

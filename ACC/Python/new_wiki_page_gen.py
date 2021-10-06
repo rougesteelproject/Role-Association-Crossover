@@ -28,6 +28,8 @@ class WikiPageGenerator:
         self.link_actor_relationships = []
         self.plaintext_actor_relationships = []
 
+        self.actor_abilities = []
+
     def generate_content(self):
         processing_layer = 0
         while processing_layer < self.layers_to_generate:
@@ -45,6 +47,7 @@ class WikiPageGenerator:
             self.get_actor_swap_roles()
 
         self.generate_actor_relationships()
+        self.generate_actor_abilities()
 
         print('generation complete')
 
@@ -155,6 +158,21 @@ class WikiPageGenerator:
         self.link_actor_relationships = link_relationships
         self.plaintext_actor_relationships = plaintext_relationships
 
+    def generate_actor_abilities(self):
+        all_actors = []
+        all_actors.extend(self.actors_that_show_all_roles)
+        #Only actors that show all have bios to put abilities in
+        #Doing this because I dunno what'll happen if I just straight set it to = actors_that_show
+
+        abilities = []
+
+        for actor in all_actors:
+            for ability in actor.abilities:
+                if ability.id not in [ability.id for ability in abilities]:
+                    abilities.append(ability)
+
+        self.actor_abilities = abilities
+
     def alphabetize(self):
         self.meta_roles_that_show_all_roles.sort()
         self.meta_roles_that_dont_show_all_roles.sort()
@@ -165,6 +183,7 @@ class WikiPageGenerator:
             mr.roles.sort()
         self.link_actor_relationships.sort()
         self.plaintext_actor_relationships.sort()
+        self.actor_abilities.sort()
 
     #TODO get role relationships as a class variable
     #ie, list of "other" role id's
@@ -180,9 +199,5 @@ class WikiPageGenerator:
         #a list of other powers
         #combine from each role
             #check for duplicates
-
-    #TODO list of actor skills
-        #combine the list from each actor
-            #check duplicates
 
     #TODO we'l have to return the Hub Sigils (when we integrate into flask/ the graphviz)
