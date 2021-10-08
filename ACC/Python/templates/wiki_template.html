@@ -139,6 +139,7 @@
         </div>
         {%endfor%}
 
+        <div class="role_relationships">
         <h3>Role Relationships:</h3>
         {%for relationship in generator.link_role_relationships %}
         <p><a href="{{url_for('wiki')}}?base_id={{relationship.other_role_mr}}&base_is_actor=False&level=1">{{relationship.other_role_name}}</a> - {{relationship.type}}</p>
@@ -148,6 +149,11 @@
         <p>{{relationship.other_role_name}} - {{relationship.type}}</p>
         {%endfor%}
 
+        <h3>Role Abilities:</h3>
+        {%for ability in generator.role_abilities %}
+        <p>{{ability.name}} - {{ability.description}}</p>
+        {%endfor%}
+        </div>
       </div>
  
 {% endblock %}

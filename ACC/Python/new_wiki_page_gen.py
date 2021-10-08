@@ -2,10 +2,6 @@
 #Get 'layers'
 #Get 'is_actor' or 'is_mr'
 
-from os import link
-
-from werkzeug.wrappers import PlainRequest
-
 class WikiPageGenerator:
     def __init__(self, base_id, layers_to_generate, base_is_actor, enable_actor_swap, db_control):
         self.db_control = db_control
@@ -33,6 +29,7 @@ class WikiPageGenerator:
         self.plaintext_role_relationships = []
 
         self.actor_abilities = []
+        self.role_abilities = []
 
     def generate_content(self):
         processing_layer = 0
@@ -54,6 +51,7 @@ class WikiPageGenerator:
         self.generate_actor_abilities()
 
         self.generate_role_relationships()
+        self.generate_role_abilities()
 
         self.alphabetize()
 
@@ -209,8 +207,24 @@ class WikiPageGenerator:
         self.link_role_relationships = link_role_relationships
         self.plaintext_role_relationships = plaintext_role_relationships
 
+    def generate_role_abilities(self):
+        all_roles = []
+        all_mrs = []
 
+        all_mrs.extend(self.meta_roles_that_show_all_roles)
+        all_mrs.extend(self.meta_roles_that_dont_show_all_roles)
 
+        for mr in all_mrs:
+            all_roles.extend(mr.roles)
+
+        all_abilities = []
+
+        for role in all_roles:
+            for ability in role.abilities:
+                if ability.id not in [ability.id for ability in all_abilities]:
+                    all_abilities.append(ability)
+
+        self.role_abilities = all_abilities
 
     def alphabetize(self):
         
@@ -232,12 +246,10 @@ class WikiPageGenerator:
         self.link_role_relationships.sort()
         self.plaintext_role_relationships.sort()
 
+        self.role_abilities.sort()
+
     #TODO a list of power templates,
         #combine from each role
             #with duplicate checking
-    #TODO
-        #a list of other powers
-        #combine from each role
-            #check for duplicates
 
     #TODO we'l have to return the Hub Sigils (when we integrate into flask/ the graphviz)

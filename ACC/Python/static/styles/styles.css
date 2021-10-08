@@ -236,7 +236,7 @@ body{
   .roles-section{
     padding-left: 10px;
     padding-right: 10px;
-    padding-bottom:65px;
+    padding-bottom:300px;
   }
   
   .roles-section h1, .roles-section h2, .roles-section h3{
@@ -272,6 +272,12 @@ body{
     grid-row:2;
     margin-left: 5px;
   }
+
+ .role_relationships{
+  float: left;
+  border: #51a3a3 solid;
+  padding: 5px;
+ }
   
   label {
     color:white;
