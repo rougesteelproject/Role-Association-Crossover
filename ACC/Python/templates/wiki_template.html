@@ -104,11 +104,9 @@
           </div>
           {%endfor%}
         </div>
-          
-          {%endfor%}
+        {%endfor%}
           
         {%for mr in generator.meta_roles_that_dont_show_all_roles%}
-          
         <div class="meta-role-div">
           <h2>
           {{mr.name}} <a href="{{url_for('mr_editor')}}?editorID={{mr.id}}" title="edit this character"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
@@ -140,6 +138,16 @@
           {%endfor%}
         </div>
         {%endfor%}
+
+        <h3>Role Relationships:</h3>
+        {%for relationship in generator.link_role_relationships %}
+        <p><a href="{{url_for('wiki')}}?base_id={{relationship.other_role_mr}}&base_is_actor=False&level=1">{{relationship.other_role_name}}</a> - {{relationship.type}}</p>
+        {%endfor%}
+
+        {%for relationship in generator.plaintext_role_relationships %}
+        <p>{{relationship.other_role_name}} - {{relationship.type}}</p>
+        {%endfor%}
+
       </div>
  
 {% endblock %}

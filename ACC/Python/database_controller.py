@@ -231,7 +231,8 @@ class DatabaseController():
         return roles
 
     def get_parent_meta(self, role_id):
-        pass #TODO need for role relationships
+        parent_meta = self.select_where("parent_meta", "roles", "id", role_id)[0][0]
+        return parent_meta
 
     def search_char_connector(self, query1, query2):
         connector_mrs_1 = self.get_mrs_search(query1)
@@ -543,7 +544,7 @@ class DatabaseController():
         relationships = []
         fetched_relationships = self.select_or("*", "role_relationships", "role1_id", role_id, "role2_id", role_id)
         for relationship in fetched_relationships:
-            relationships.append(RoleRelationship(*relationship))
+            relationships.append(RoleRelationship(*relationship, self))
         return relationships
 
     def remove_relationships_role(self, relationship_id_list):

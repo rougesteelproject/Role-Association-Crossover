@@ -4,6 +4,8 @@
 
 from os import link
 
+from werkzeug.wrappers import PlainRequest
+
 class WikiPageGenerator:
     def __init__(self, base_id, layers_to_generate, base_is_actor, enable_actor_swap, db_control):
         self.db_control = db_control
@@ -27,6 +29,8 @@ class WikiPageGenerator:
 
         self.link_actor_relationships = []
         self.plaintext_actor_relationships = []
+        self.link_role_relationships = []
+        self.plaintext_role_relationships = []
 
         self.actor_abilities = []
 
@@ -48,6 +52,10 @@ class WikiPageGenerator:
 
         self.generate_actor_relationships()
         self.generate_actor_abilities()
+
+        self.generate_role_relationships()
+
+        self.alphabetize()
 
         print('generation complete')
 
@@ -173,24 +181,56 @@ class WikiPageGenerator:
 
         self.actor_abilities = abilities
 
+    def generate_role_relationships(self):
+        all_roles = []
+        all_mrs = []
+        role_relationships= []
+        link_role_relationships = []
+        plaintext_role_relationships = []
+
+        all_mrs.extend(self.meta_roles_that_show_all_roles)
+        all_mrs.extend(self.meta_roles_that_dont_show_all_roles)
+
+        for mr in all_mrs:
+            all_roles.extend(mr.roles)
+
+        for role in all_roles:
+            for relationship in role.relationships:
+                if relationship.id not in [relationship.id for relationship in role_relationships]:
+                    relationship.get_other_parent_meta(role.id)
+                    role_relationships.append(relationship)
+
+        for relationship in role_relationships:
+            if relationship.other_role_mr not in [mr.id for mr in all_mrs]:
+                plaintext_role_relationships.append(relationship)
+            else:
+                link_role_relationships.append(relationship)
+
+        self.link_role_relationships = link_role_relationships
+        self.plaintext_role_relationships = plaintext_role_relationships
+
+
+
+
     def alphabetize(self):
+        
         self.meta_roles_that_show_all_roles.sort()
         self.meta_roles_that_dont_show_all_roles.sort()
+        
         self.actors_that_show_all_roles.sort()
+        
         for mr in self.meta_roles_that_show_all_roles:
             mr.roles.sort()
         for mr in self.meta_roles_that_dont_show_all_roles:
             mr.roles.sort()
+       
         self.link_actor_relationships.sort()
         self.plaintext_actor_relationships.sort()
+
         self.actor_abilities.sort()
 
-    #TODO get role relationships as a class variable
-    #ie, list of "other" role id's
-    #get parent_meta for each "other" - can't be a role.parent_meta, because we don't need the whole role
-        #db_cont.get_parent_meta(role_id)
-    #link_relationship - etc if mr not in displayed_mrs
-    #plaintext_etc
+        self.link_role_relationships.sort()
+        self.plaintext_role_relationships.sort()
 
     #TODO a list of power templates,
         #combine from each role

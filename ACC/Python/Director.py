@@ -255,7 +255,7 @@ def ability_editor():
 
 #TODO ability template editor
 
-@app.route('/create_ability', methods=['POST'])
+@app.route('/create_ability', methods=['POST','GET'])
 def create_ability():
     if "create_ability" in request.form:
         name = request.form['name']
