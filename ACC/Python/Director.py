@@ -162,6 +162,10 @@ def role_editor():
             db_control.add_ability_role(editorID, abilities_to_add)
             db_control.commit()
 
+        if "ability_template_remover" in request.form:
+            templates_to_remove = request.form.getlist('remove_template')
+            db_control.remove_template(editorID, templates_to_remove)
+
         if "relationship_adder" in request.form:
             role1_id =request.form['role1_id']
             role1_name = request.form['role1_name']
@@ -185,10 +189,11 @@ def role_editor():
     role = db_control.get_role(editorID)
 
     abilities_that_are_not_connected = db_control.get_ability_list_exclude_role(role.id)
+    ability_templates_that_are_not_connected = db_control.get_ability_template_list_exclude_role(role.id)
 
     all_roles = db_control.get_all_roles()
 
-    return render_template('role_editor.html', goBackUrl=goBackUrl, role=role, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, all_roles=all_roles)
+    return render_template('role_editor.html', goBackUrl=goBackUrl, role=role, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, ability_templates_that_are_not_connected=ability_templates_that_are_not_connected,all_roles=all_roles)
         
 @app.route('/character_connector', methods = ['GET','POST'])
 def character_connector():
@@ -244,8 +249,9 @@ def search():
     search_actors, search_mrs = db_control.search_bar(query)
     return render_template('search.html', search_mrs = search_mrs, search_actors = search_actors)
 
-@app.route('/editor/ability', methods=['POST'])
+@app.route('/editor/ability', methods=['POST', 'GET'])
 def ability_editor():
+    #TODO nothing links here, and IDK how exactly it works
     
     goBackUrl = request.referrer
     ability_id = request.args['id']
@@ -253,7 +259,12 @@ def ability_editor():
     history = db_control.get_ability_history(ability_id)
     return render_template('ability_editor.html',ability=ability, history=history, goBackUrl=goBackUrl)
 
-#TODO ability template editor
+@app.route('editor/template', metoods=['POST'])
+def template_editor():
+
+@app.route('editor/template', methods=['POST','GET'])
+def create_template():
+
 
 @app.route('/create_ability', methods=['POST','GET'])
 def create_ability():

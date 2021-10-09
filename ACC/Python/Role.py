@@ -18,7 +18,7 @@ class Role:
 
         self.relationships = self._db_control.get_relationships_role_by_role_id(self.id)
         self.abilities = self._db_control.get_ability_list_role(self.id)
-        self.ability_templates = []
+        self.ability_templates = self._db_control.get_ability_template_list(self.id)
 
     def __lt__(self, other):
         return self.name.lower() < other.name.lower() 

@@ -9,6 +9,7 @@ from meta_role_history import MetaRoleHistory
 from actor_history import ActorHistory
 from role_history import RoleHistory
 from ability import Ability
+from ability_template import AbilityTemplate
 from ability_history import AbilityHistory
 from actor_relationship import ActorRelationship
 from role_relationship import RoleRelationship
@@ -129,6 +130,7 @@ class DatabaseController():
     def select_not_in(self, select_columns, table_name, where, ability_list):
         result_set = self.cursor.execute("SELECT {} FROM {} WHERE {} NOT IN ".format(select_columns.lower(),table_name.lower(),where.lower()) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
         return result_set.fetchall()
+
 
     #IMAGES#
     def add_image(self,page_type, page_id, image_url, caption):
@@ -497,8 +499,39 @@ class DatabaseController():
         
         return abilities_that_are_not_connected
 
+    def get_ability_template(self, template_id):
+        template = self.select_where("*", "ability_templates", "template_id", template_id)
+        return AbilityTemplate(*template, self)
+
+    def get_ability_template_list(self, role_id):
+        template_id_list = self.select_where("template_id", "roles_to_ability_templates", "role_id", role_id)
+        
+        ability_templates = []
+
+        for template_id in template_id_list:
+            ability_templates.append(self.get_ability_template(template_id))
+
+        return ability_templates
+
     def get_ability_template_list_exclude_role(self, role_id):
-        pass
+        template_id_list = self.select_where("template_id", "roles_to_ability_templates", "role_id", role_id)
+
+        excluded_template_id_list = self.select_not_in("template_id", "roles_to_ability_templates", "template_id", template_id_list)
+
+        ability_templates = []
+
+        for id in excluded_template_id_list:
+            ability_templates.append(AbilityTemplate(*id), self)
+
+        return ability_templates
+
+
+    def get_abilities_template(self, template_id):
+        fetched_ability_id_list = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)
+        ability_list = []
+        for ability_id in fetched_ability_id_list:
+            ability_list.append(self.get_ability(ability_id))
+        return ability_list
 
     def get_all_abilities(self):
         fetched_abilities = self.select('*', 'abilities')
