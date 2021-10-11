@@ -283,7 +283,17 @@ def template_editor():
 
 @app.route('/editor/template', methods=['POST','GET'])
 def create_template():
-    pass
+    if "create_template" in request.form:
+        #TODO
+        name = request.form['name']
+        description = request.form['description']
+        goBackUrl = request.form['goBackUrl']
+        
+        template_id = db_control.create_ability_template(name, description)
+    else:
+        pass
+        #TODO
+
 
 @app.route('/create_ability', methods=['POST','GET'])
 def create_ability():

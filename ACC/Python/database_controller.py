@@ -544,6 +544,10 @@ class DatabaseController():
             ability_list.append(self.get_ability(ability_id))
         return ability_list
 
+    def create_ability_template(self, name, description, ability_id_list):
+        create_template_sql = "INSERT INTO ability_templates()"
+        #TODO
+
     def get_all_abilities(self):
         fetched_abilities = self.select('*', 'abilities')
         abilities = []
