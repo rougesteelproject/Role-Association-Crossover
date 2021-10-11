@@ -277,23 +277,50 @@ def ability_editor():
     history = db_control.get_ability_history(ability_id)
     return render_template('ability_editor.html',ability=ability, history=history, goBackUrl=goBackUrl)
 
-@app.route('/editor/template', methods=['POST'])
+@app.route('/editor/template', methods=['POST', 'GET'])
 def template_editor():
-    pass
+    if request.method == 'POST':
+        template_id = request.form['editorID']
+        goBackUrl = request.form['goBackUrl']
+        
+        if "edit_template" in request.form:
+            new_description  = request.form['description']
+            new_name = request.form['name']
 
-@app.route('/editor/template', methods=['POST','GET'])
+            db_control.create_template_history(template_id, new_name,new_description)
+            db_control.commit()
+
+        if "history_reverter" in request.form:
+            new_name = request.form['name']
+            new_description  = request.form['description']
+
+            db_control.create_template_history(template_id, new_name,new_description)
+            db_control.commit()
+
+    else: 
+        goBackUrl = request.referrer
+        template_id = request.args['id']
+    
+    template = db_control.get_ability_template(template_id)
+    history = db_control.get_template_history(template_id)
+    return render_template('template_editor.html',template=template, history=history, goBackUrl=goBackUrl)
+
+@app.route('/create_template', methods=['POST','GET'])
 def create_template():
     if "create_template" in request.form:
-        #TODO
         name = request.form['name']
         description = request.form['description']
         goBackUrl = request.form['goBackUrl']
         
         template_id = db_control.create_ability_template(name, description)
-    else:
-        pass
-        #TODO
 
+        template = db_control.get_ability_template(template_id)
+        history = db_control.get_template_history(template_id)
+
+        return render_template('template_editor.html', template=template, history=history, goBackUrl=goBackUrl)
+    else:
+        goBackUrl = request.referrer
+        return render_template('create_template.html', goBackUrl=goBackUrl)
 
 @app.route('/create_ability', methods=['POST','GET'])
 def create_ability():

@@ -1,0 +1,16 @@
+{% extends "HeadFoot.html" %}
+
+{% block title %}
+  Create a new Ability Template
+{% endblock %}
+
+#TODO make resizable
+{%block content%}
+    <form method="POST" >
+
+        <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
+        <input type='textarea' name='name' value='Name'>
+        <input type='textarea' name='description' value='Description'>
+        <input id="create_template", name="create_template" type="submit">
+    </form>
+{%endblock%}

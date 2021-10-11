@@ -6,14 +6,20 @@ import constants
 from actor import Actor
 from meta_role import MetaRole
 from role import Role
+
 from meta_role_history import MetaRoleHistory
 from actor_history import ActorHistory
 from role_history import RoleHistory
+
 from ability import Ability
-from ability_template import AbilityTemplate
 from ability_history import AbilityHistory
+
+from ability_template import AbilityTemplate
+from template_history import TemplateHistory
+
 from actor_relationship import ActorRelationship
 from role_relationship import RoleRelationship
+
 from image import Image
 
 
@@ -58,6 +64,7 @@ class DatabaseController():
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, bio TEXT, UNIQUE(id, name, bio))''')
         #history tables for abilities
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT, UNIQUE(id, name, description))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_template_history(id, INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, UNIQUE(id, name, description))''')
 
     #INSERT OR IGNORE#
     def create_actor(self, id, name, bio, birth_date, death_date):
@@ -337,8 +344,6 @@ class DatabaseController():
 
         self.cursor.execute(changeDescSql,(new_description,new_alive_or_dead,new_alignment,id,))  
 
-    
-
     #CHARACTER CONNECTOR#
     def character_connector_switch(self, mode, id1, id2):
         if id1 != None and id2 != None:
@@ -511,10 +516,6 @@ class DatabaseController():
         
         return abilities_that_are_not_connected
 
-    def get_ability_template(self, template_id):
-        template = self.select_where("*", "ability_templates", "template_id", template_id)
-        return AbilityTemplate(*template, self)
-
     def get_ability_template_list(self, role_id):
         template_id_list = self.select_where("template_id", "roles_to_ability_templates", "role_id", role_id)
         
@@ -544,9 +545,32 @@ class DatabaseController():
             ability_list.append(self.get_ability(ability_id))
         return ability_list
 
-    def create_ability_template(self, name, description, ability_id_list):
-        create_template_sql = "INSERT INTO ability_templates()"
-        #TODO
+    def create_ability_template(self, name, description):
+        create_template_sql = "INSERT INTO ability_templates(template_name, template_description) VALUES (?,?)"
+        self.cursor.execute(create_template_sql,(name,description))
+        return self.cursor.lastrowid
+
+    def get_ability_template(self, template_id):
+        template = self.select_where("*", "ability_templates", "template_id", template_id)[0]
+        return AbilityTemplate(*template, self)
+        
+    def create_template_history(self, template_id, new_name, new_description):
+        old_template = self.get_ability_template(template_id)
+        try:
+            historySql = '''INSERT INTO ability_template_history(id, name, description) VALUES (?,?,?) '''
+            self.cursor.execute(historySql, (old_template.id, old_template.name, old_template.description,))
+        except IntegrityError:
+            print(traceback.print_exc())
+
+        changeDescSql='''UPDATE ability_templates SET name=?, description=? WHERE id=?'''
+        self.cursor.execute(changeDescSql, (new_name, new_description, id,))
+
+    def get_template_history(self, template_id):
+        revision_list = []
+        history = self.select_where("*", "ability_template_history", "id", template_id)
+        for revision in history:
+            revision_list.append(TemplateHistory(*revision))
+        return revision_list
 
     def get_all_abilities(self):
         fetched_abilities = self.select('*', 'abilities')
