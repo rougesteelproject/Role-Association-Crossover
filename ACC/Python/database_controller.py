@@ -1,4 +1,5 @@
 import sqlite3
+from sqlite3.dbapi2 import IntegrityError
 import traceback
 
 import constants
@@ -431,6 +432,17 @@ class DatabaseController():
         self.cursor.execute(create_sql, (name, description))
         return self.cursor.lastrowid
 
+    def create_ability_history(self, id, name, description):
+        old_ability = self.get_ability(id)
+        try:
+            historySql = '''INSERT INTO abilities_history(id, name, description) VALUES (?,?,?) '''
+            self.cursor.execute(historySql, (old_ability.id, old_ability.name, old_ability.description,))
+        except IntegrityError:
+            print(traceback.print_exc())
+
+        changeDescSql='''UPDATE abilities SET name=?, description=? WHERE id=?'''
+        self.cursor.execute(changeDescSql, (name, description, id,))
+
     def remove_ability_actor(self, actor_id, ability_list):
         self.cursor.execute("DELETE FROM actors_to_abilities WHERE actor_id={}  AND ability_id IN ".format(actor_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
 
@@ -524,7 +536,6 @@ class DatabaseController():
             ability_templates.append(AbilityTemplate(*id), self)
 
         return ability_templates
-
 
     def get_abilities_template(self, template_id):
         fetched_ability_id_list = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)

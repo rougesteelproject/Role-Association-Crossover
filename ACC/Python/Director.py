@@ -251,20 +251,39 @@ def search():
 
 @app.route('/editor/ability', methods=['POST', 'GET'])
 def ability_editor():
-    #TODO nothing links here, and IDK how exactly it works
+    if request.method == 'POST':
+        ability_id = request.form['editorID']
+        goBackUrl = request.form['goBackUrl']
+        
+        if "edit_ability" in request.form:
+            new_description  = request.form['description']
+            new_name = request.form['name']
+
+            db_control.create_ability_history(ability_id, new_name,new_description)
+            db_control.commit()
+
+        if "history_reverter" in request.form:
+            new_name = request.form['name']
+            new_description  = request.form['description']
+
+            db_control.create_ability_history(ability_id, new_name,new_description)
+            db_control.commit()
+
+    else: 
+        goBackUrl = request.referrer
+        ability_id = request.args['id']
     
-    goBackUrl = request.referrer
-    ability_id = request.args['id']
     ability = db_control.get_ability(ability_id)
     history = db_control.get_ability_history(ability_id)
     return render_template('ability_editor.html',ability=ability, history=history, goBackUrl=goBackUrl)
 
-@app.route('editor/template', metoods=['POST'])
+@app.route('/editor/template', methods=['POST'])
 def template_editor():
+    pass
 
-@app.route('editor/template', methods=['POST','GET'])
+@app.route('/editor/template', methods=['POST','GET'])
 def create_template():
-
+    pass
 
 @app.route('/create_ability', methods=['POST','GET'])
 def create_ability():

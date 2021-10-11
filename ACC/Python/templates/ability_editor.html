@@ -15,8 +15,8 @@
             <textarea id="description" name="description">{{ability.description}}</textarea>
             <input type="text" style="display:none" name="editorID" value="{{ability.id}}">
             <input type="text" style="display:none" name="goBackUrl" value="{{goBackUrl}}">
-            <input type="text" style="display:none" name="name" value="{{ability.name}}">
-            <input type="submit">
+            <textarea id="name" name="name">{{ability.name}}</textarea>
+            <input type="submit", id="edit_ability", name="edit_ability">
           </form>
 
         <h2>Version History</h2>
@@ -28,7 +28,7 @@
           <input type="text" style="display:none" name="name" value="{{version.name}}">
           <input type="text" style="display: none" name="description" value="{{version.description}}">
           <label>{{version.timestamp}}</label>
-          <input type="submit">
+          <input type="submit", id="history_reverter", name="history_reverter">
         </form>
         {%endfor%}
 
