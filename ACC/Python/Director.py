@@ -162,9 +162,14 @@ def role_editor():
             db_control.add_ability_role(editorID, abilities_to_add)
             db_control.commit()
 
+        if "template_adder" in request.form:
+            templates_to_add = request.form.getlist('add_template')
+            #TODO
+
         if "ability_template_remover" in request.form:
             templates_to_remove = request.form.getlist('remove_template')
             db_control.remove_template(editorID, templates_to_remove)
+            #TODO
 
         if "relationship_adder" in request.form:
             role1_id =request.form['role1_id']

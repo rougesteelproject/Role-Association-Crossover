@@ -32,6 +32,30 @@
         </form>
         {%endfor%}
 
+        <h2>Remove Abilities</h2>
+    
+        <form method="POST">
+          <input type="hidden" name="editorID" value="{{role.id}}">
+          <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
+          {%for ability in role.abilities%}
+          <input type="checkbox" name="remove_ability" value="{{ability.id}}"> {{ability.name}}: {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a>
+          {%endfor%}
+          <input type="submit" id="ability_remover" name="ability_remover">
+        </form>
+
+        <h2>Add Abilities</h2>
+    
+        <form method="POST">
+          <input type="hidden" name="editorID" value="{{role.id}}">
+          <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
+          {%for ability in abilities_that_are_not_connected %}
+          <input type="checkbox" name="add_ability" value="{{ability.id}}">{{ability.name}}: {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a> <br>
+          {%endfor%}
+          <input type="submit" id="ability_adder" name="ability_adder">
+        </form>
+        
+        <a href="{{url_for('create_ability')}}">Create a new ability.</a>
+
           #TODO maybe add other templates? Like AMAZO or something who has superman's powers?
 
     </div>
