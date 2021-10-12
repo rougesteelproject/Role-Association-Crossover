@@ -31,6 +31,8 @@ class WikiPageGenerator:
         self.actor_abilities = []
         self.role_abilities = []
 
+        self.templates = []
+
     def generate_content(self):
         processing_layer = 0
         while processing_layer < self.layers_to_generate:
@@ -52,6 +54,8 @@ class WikiPageGenerator:
 
         self.generate_role_relationships()
         self.generate_role_abilities()
+
+        self.generate_templates()
 
         self.alphabetize()
 
@@ -226,6 +230,25 @@ class WikiPageGenerator:
 
         self.role_abilities = all_abilities
 
+    def generate_templates(self):
+        all_roles = []
+        all_mrs = []
+
+        all_mrs.extend(self.meta_roles_that_show_all_roles)
+        all_mrs.extend(self.meta_roles_that_dont_show_all_roles)
+
+        for mr in all_mrs:
+            all_roles.extend(mr.roles)
+
+        all_templates = []
+
+        for role in all_roles:
+            for template in role.ability_templates:
+                if template.id not in [template.id for template in all_templates]:
+                    all_templates.append(template)
+
+        self.templates = all_templates
+
     def alphabetize(self):
         
         self.meta_roles_that_show_all_roles.sort()
@@ -247,6 +270,8 @@ class WikiPageGenerator:
         self.plaintext_role_relationships.sort()
 
         self.role_abilities.sort()
+
+        self.templates.sort()
 
     #TODO a list of power templates,
         #combine from each role

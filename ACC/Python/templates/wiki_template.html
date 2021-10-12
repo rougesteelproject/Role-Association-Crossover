@@ -149,6 +149,17 @@
         {%endfor%}
 
         <h3>Role Abilities:</h3>
+        {%for template in generator.templates %}
+        <p>{{template.name}}:</p> <a href="{{url_for('template_editor')}}?id={{template.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a>
+        <p>{{template.description}}</p>
+        <ul>
+          {%for ability in template.abilities %}
+          <li><p>{{ability.name}}: {{ability.description}}</p></li>
+          {%endfor%}
+        </ul>
+        
+        {%endfor%}
+
         {%for ability in generator.role_abilities %}
         <p>{{ability.name}} - {{ability.description}}</p>
         {%endfor%}
