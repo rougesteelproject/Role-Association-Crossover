@@ -522,38 +522,74 @@ class DatabaseController():
         ability_templates = []
 
         for template_id in template_id_list:
-            ability_templates.append(self.get_ability_template(template_id))
+            ability_templates.append(self.get_ability_template(template_id[0]))
 
         return ability_templates
 
     def get_ability_template_list_exclude_role(self, role_id):
         template_id_list = self.select_where("template_id", "roles_to_ability_templates", "role_id", role_id)
+        new_id_list = [temp_id[0] for temp_id in template_id_list]
 
-        excluded_template_id_list = self.select_not_in("template_id", "roles_to_ability_templates", "template_id", template_id_list)
+        excluded_template_id_list = self.select_not_in("template_id", "ability_templates", "template_id", new_id_list)
 
         ability_templates = []
 
         for id in excluded_template_id_list:
-            ability_templates.append(AbilityTemplate(*id), self)
+            ability_templates.append(self.get_ability_template(id[0]))
 
         return ability_templates
 
     def get_abilities_template(self, template_id):
         fetched_ability_id_list = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)
+        new_id_list = [id[0] for id in fetched_ability_id_list]
         ability_list = []
-        for ability_id in fetched_ability_id_list:
+        for ability_id in new_id_list:
             ability_list.append(self.get_ability(ability_id))
         return ability_list
+
+    def get_ability_list_exclude_template(self, template_id):
+        ability_ids = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)
+       
+
+        abilities_that_are_not_connected = []
+
+        if len(ability_ids) == 1:
+            new_ids = [id for id in ability_ids[0]]
+            db_abilites = self.select_not_in("*","abilities","id", new_ids)
+            for ability in db_abilites:
+                abilities_that_are_not_connected.append(Ability(*ability))
+
+        else:
+            abilities_that_are_not_connected = self.get_all_abilities()
+            
+        
+        return abilities_that_are_not_connected
 
     def create_ability_template(self, name, description):
         create_template_sql = "INSERT INTO ability_templates(template_name, template_description) VALUES (?,?)"
         self.cursor.execute(create_template_sql,(name,description))
         return self.cursor.lastrowid
 
+    def remove_template(self, role_id, template_id_list):
+        self.cursor.execute("DELETE FROM roles_to_ability_templates WHERE role_id={}  AND ability_id IN ".format(role_id) + '(%s)' % ','.join('?'*len(template_id_list)), template_id_list)
+
+    def add_template_role(self, role_id, template_id_list):
+        add_template_sql = '''INSERT OR IGNORE INTO roles_to_ability_templates(role_id, template_id) VALUES (?,?)'''
+        for template_id in template_id_list:
+            self.cursor.execute(add_template_sql, (role_id, template_id))
+
     def get_ability_template(self, template_id):
         template = self.select_where("*", "ability_templates", "template_id", template_id)[0]
         return AbilityTemplate(*template, self)
         
+    def remove_ability_from_template(self, template_id, ability_list):
+        self.cursor.execute("DELETE FROM ability_templates_to_abilities WHERE template_id={} AND ability_id IN".format(template_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
+
+    def add_abilities_to_template(self,template_id, ability_list):
+        connect_template_ability_sql = "INSERT OR IGNORE INTO ability_templates_to_abilities(template_id,ability_id) VALUES (?,?)"
+        for ability_id in ability_list:
+            self.cursor.execute(connect_template_ability_sql,(template_id,ability_id,))
+
     def create_template_history(self, template_id, new_name, new_description):
         old_template = self.get_ability_template(template_id)
         try:
@@ -562,8 +598,8 @@ class DatabaseController():
         except IntegrityError:
             print(traceback.print_exc())
 
-        changeDescSql='''UPDATE ability_templates SET name=?, description=? WHERE id=?'''
-        self.cursor.execute(changeDescSql, (new_name, new_description, id,))
+        changeDescSql='''UPDATE ability_templates SET template_name=?, template_description=? WHERE template_id=?'''
+        self.cursor.execute(changeDescSql, (new_name, new_description, template_id,))
 
     def get_template_history(self, template_id):
         revision_list = []

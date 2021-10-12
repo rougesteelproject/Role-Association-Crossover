@@ -164,12 +164,13 @@ def role_editor():
 
         if "template_adder" in request.form:
             templates_to_add = request.form.getlist('add_template')
-            #TODO
+            db_control.add_template_role(editorID, templates_to_add)
+            db_control.commit()
 
         if "ability_template_remover" in request.form:
             templates_to_remove = request.form.getlist('remove_template')
             db_control.remove_template(editorID, templates_to_remove)
-            #TODO
+            db_control.commit()
 
         if "relationship_adder" in request.form:
             role1_id =request.form['role1_id']
@@ -302,13 +303,24 @@ def template_editor():
             db_control.create_template_history(template_id, new_name,new_description)
             db_control.commit()
 
+        if "ability_remover" in request.form:
+            abilities_to_remove = request.form.getlist('remove_ability')
+            db_control.remove_ability_from_template(template_id, abilities_to_remove)
+            db_control.commit()
+
+        if "ability_adder" in request.form:
+            abilities_to_add = request.form.getlist('add_ability')
+            db_control.add_abilities_to_template(template_id,abilities_to_add)
+            db_control.commit() 
+
     else: 
         goBackUrl = request.referrer
         template_id = request.args['id']
     
+    abilities_that_are_not_connected = db_control.get_ability_list_exclude_template(template_id)
     template = db_control.get_ability_template(template_id)
     history = db_control.get_template_history(template_id)
-    return render_template('template_editor.html',template=template, history=history, goBackUrl=goBackUrl)
+    return render_template('template_editor.html',template=template, abilities_that_are_not_connected=abilities_that_are_not_connected ,history=history, goBackUrl=goBackUrl)
 
 @app.route('/create_template', methods=['POST','GET'])
 def create_template():
@@ -318,11 +330,14 @@ def create_template():
         goBackUrl = request.form['goBackUrl']
         
         template_id = db_control.create_ability_template(name, description)
+        db_control.commit()
 
         template = db_control.get_ability_template(template_id)
         history = db_control.get_template_history(template_id)
+        abilities_that_are_not_connected = db_control.get_ability_list_exclude_template(template_id)
 
-        return render_template('template_editor.html', template=template, history=history, goBackUrl=goBackUrl)
+        #TODO this needs to redirect so it sends the values to temp_editor, while go_back still works
+        return render_template('template_editor.html', template=template, abilities_that_are_not_connected=abilities_that_are_not_connected, history=history, goBackUrl=goBackUrl)
     else:
         goBackUrl = request.referrer
         return render_template('create_template.html', goBackUrl=goBackUrl)

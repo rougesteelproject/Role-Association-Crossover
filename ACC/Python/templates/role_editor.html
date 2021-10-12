@@ -48,9 +48,9 @@
           <input type="hidden" name="editorID" value="{{role.id}}">
           <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
           {%for template in role.ability_templates%}
-          <input type="checkbox" name="remove_template" value="{{template.id}}"> {{template.name}}: {{template.description}}
+          <input type="checkbox" name="remove_template" value="{{template.id}}"> {{template.name}}: {{template.description}} <a href="{{url_for('template_editor')}}?id={{template.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a>
             {%for ability in template.abilities%}
-            <p>{{ability.name}}: {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a> </p>
+            <p>{{ability.name}}: {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a> </p><br>
             {%endfor%}
           {%endfor%}
           <input type="submit" id="ability_template_remover" name="ability_template_remover">
@@ -61,8 +61,10 @@
           <input type="hidden" name="editorID" value="{{role.id}}">
           <input type="hidden" name="goBackUrl" value="{{goBackUrl}}">
           {%for template in ability_templates_that_are_not_connected %}
-          <input type="checkbox" name="add_template" value="{{template.id}}">{{template.name}}: {{template.description}}<br>
+          <input type="checkbox" name="add_template" value="{{template.id}}">{{template.name}}: {{template.description}} <a href="{{url_for('template_editor')}}?id={{template.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a> <br>
+          {%for ability in template.abilities %}
           <p>{{ability.name}}: {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a> </p> 
+          {%endfor%}
           {%endfor%}
           <input type="submit" id="template_adder" name="template_adder">
         </form>
