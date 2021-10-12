@@ -273,8 +273,4 @@ class WikiPageGenerator:
 
         self.templates.sort()
 
-    #TODO a list of power templates,
-        #combine from each role
-            #with duplicate checking
-
     #TODO we'l have to return the Hub Sigils (when we integrate into flask/ the graphviz)
