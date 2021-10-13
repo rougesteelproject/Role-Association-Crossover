@@ -193,6 +193,19 @@ body{
     border-bottom: 2px white solid;
     padding-bottom: 5px;
   }
+
+  .actor_relationships{
+    float: left;
+    border: #51a3a3 solid;
+    padding: 5px;
+  }
+
+  .actor_abilities{
+    float: left;
+  border: #51a3a3 solid;
+  padding: 5px;
+ 
+  }
   
   .character-nav{
     background-color:#51a3a3;
@@ -274,6 +287,12 @@ body{
   }
 
  .role_relationships{
+  float: left;
+  border: #51a3a3 solid;
+  padding: 5px;
+ }
+
+ .role_abilities{
   float: left;
   border: #51a3a3 solid;
   padding: 5px;
