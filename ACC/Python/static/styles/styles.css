@@ -171,18 +171,6 @@ body{
     grid-column:4;
   }
   
-  
-  .bio{
-    width: 270px;
-    border-width:2px;
-    border-color:#51a3a3;
-    border-style:solid;
-    margin-left:10px;
-    margin-top:5px;
-    padding: 5px;
-    color:white;
-  }
-  
   .bio img{
       display: block;
       margin-left: auto;
@@ -192,19 +180,6 @@ body{
   .bio_img_box{
     border-bottom: 2px white solid;
     padding-bottom: 5px;
-  }
-
-  .actor_relationships{
-    float: left;
-    border: #51a3a3 solid;
-    padding: 5px;
-  }
-
-  .actor_abilities{
-    float: left;
-  border: #51a3a3 solid;
-  padding: 5px;
- 
   }
   
   .character-nav{
@@ -240,6 +215,17 @@ body{
   
   .actor-content{
     float:right;
+  }
+
+  .actor-content div{
+    width: 270px;
+    border-width: 2px;
+    border-color: #51a3a3;
+    border-style: solid;
+    margin-left: 10px;
+    margin-top: 5px;
+    padding: 5px;
+    color: white;
   }
 
   .bio .editor-link{
@@ -285,18 +271,6 @@ body{
     grid-row:2;
     margin-left: 5px;
   }
-
- .role_relationships{
-  float: left;
-  border: #51a3a3 solid;
-  padding: 5px;
- }
-
- .role_abilities{
-  float: left;
-  border: #51a3a3 solid;
-  padding: 5px;
- }
   
   label {
     color:white;

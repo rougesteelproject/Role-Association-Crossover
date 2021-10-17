@@ -32,8 +32,9 @@ class MetaRole():
             self.roles.append(role)
 
     def add_roles(self,role_list):
-        self.roles.extend(role_list)
-        #TODO add duplication chaecking
+        for role in role_list:
+            if role.id not in [role.id for role in self.roles]:
+                self.roles.append(role)
 
     def get_actor_swap_roles(self):
         swaps = []

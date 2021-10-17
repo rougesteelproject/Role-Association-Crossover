@@ -35,7 +35,6 @@
       </div>
       <div class="actor-content">
         {%for actor in generator.actors_that_show_all_roles%}
-        
         <div class="bio">
           #TODO make a little box for the gallery and captions
           <h2>{{actor.name}}</h2>
@@ -62,11 +61,11 @@
         </div>
         
         <div class="actor_abilities">
-        <h3>Abilities</h3>>
+        <h3>Abilities</h3>
         {%for ability in generator.actor_abilities%}
-        <p>{{ability.name}} - {{ability.description}}</p>
+        <p>{{ability.name}} - {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a></p> 
         {%endfor%}
-      </div>
+        </div>
 
         <div class="role_relationships">
           <h3>Role Relationships:</h3>
@@ -86,16 +85,16 @@
           <p>{{template.description}}</p>
           <ul>
             {%for ability in template.abilities %}
-            <li><p>{{ability.name}}: {{ability.description}}</p></li>
+            <li><p>{{ability.name}}: {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a></p></li>
             {%endfor%}
           </ul>
           
           {%endfor%}
   
           {%for ability in generator.role_abilities %}
-          <p>{{ability.name}} - {{ability.description}}</p>
+          <p>{{ability.name}} - {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a></p>
           {%endfor%}
-          </div>
+        </div>
          
       </div>
 

@@ -19,8 +19,6 @@ db_control.create_db_if_not_exists()
 #TODO variable types with (name: type)
 #   functions modify lists, so we don't neet to return them. 
 
-#TODO wiki css
-
 #TODO a page with everybody, alphabetically
 
 #TODO a way to add user-made roles to replace the ... or 'additional voices' for actorw w/ multiple roles, like in skyrim
