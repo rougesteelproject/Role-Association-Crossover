@@ -1,0 +1,71 @@
+{%extends "HeadFoot.html" %}
+
+{% block title %}
+    Role Association Crossover
+{% endblock %}
+
+{% block content %}
+<div id="what-are-we">
+    <h2>
+      What is the Role Association Crossover? How does it work?
+    </h2>
+    <p>
+      The Role Assosiation Crossover is a self-updating database of actors
+      and their roles. It links roles to actors and actors to roles in an
+      ever-expanding web. The fun comes in that we treat each combination
+      as one single character, combining powers, skills, and
+      relationships. Use the slider at the top of each page to watch the
+      web grow and the character increse in power, 
+      or use the Web
+      Visualizer to see where the major connections lie. (Not yet)
+    </p>
+    <p> Inspired by classics like <a href="https://www.youtube.com/watch?v=qnEbvTqouME&">Tenzin's Lemon Rant</a>, <a href="https://imgur.com/gallery/6p336">Sherlock Holmes as a Man of Iron</a>, and <a href="https://www.youtube.com/watch?v=D6axMnwoM0I">"These character have the same voice actors"</a> </p>
+  </div>
+  <div class="featured-container">
+    <div class="featured-actor">
+      <div class="feature-header">
+        <h3>
+          Featured Actor
+        </h3>
+        <h2>
+          <a href="/roles/?base_id=89710&level=1&base_is_actor=true">Steven Jay Blum (Placeholder)</a>
+        </h2>
+      </div>
+      <div class="feature-description-div">
+        <img
+             alt="photo of steve blum"
+          src="https://cdn.glitch.com/62e4c1b8-0734-4e2f-aab6-cae214b5a910%2F220px-Steve_Blum_by_Gage_Skidmore.jpg?v=1605038994703"
+        />
+        <p>
+          <strong>Date of Birth:</strong> April 29, 1960<br />
+          <strong>Place of Birth</strong> Santa Monica, California,
+          U.S.<br />
+          <strong>Number of Roles: </strong> (#)
+        </p>
+      </div>
+    </div>
+    <div class="featured-character">
+      <div class="feature-header">
+        <h3>
+          Featured Character
+        </h3>
+        <h2>
+          <a href="/roles/?base_id=162&level=1&base_is_actor=false">
+            Hal Jordan (Placeholder)
+          </a>
+        </h2>
+      </div>
+      <div class="feature-description-div">
+        <p>
+          Hal Jordan is a former combat pilot who works for Ferris
+          Aircraft as a test pilot, a member and occasionally leader of
+          the Green Lantern Corps, as well as a founding member of the
+          Justice League. He is one of the protectors of Sector 2814,
+          which is the sector where Earth resides. His powers derive from
+          his power ring and Green Lantern battery, which allows the user
+          to channel their will power into creating hard light constructs.
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
