@@ -10,3 +10,6 @@ class AbilityTemplate:
         self.db_control = db_control
 
         self.abilities = self.db_control.get_abilities_template(self.id)
+
+    def __lt__(self, other):
+        return self.name.lower() < other.name.lower()
