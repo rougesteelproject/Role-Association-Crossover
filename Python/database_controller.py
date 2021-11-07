@@ -25,6 +25,8 @@ from image import Image
 
 #TODO replace some text with varChar
 
+#TODO a way to remove porn actors, because the 'no adult films' bit doesn't work.
+
 class DatabaseController():
     def __init__(self):
         self._database = constants.DATABASE
