@@ -465,8 +465,10 @@ class DatabaseController():
             self.cursor.execute(create_ability_role_sql,(role_id,ability_id,))
 
     def get_ability(self, ability_id):
-        ability = self.select_where("*","abilities","id",ability_id)[0]
-        return Ability(*ability)
+        fetched_ability = self.select_where("*","abilities","id",ability_id)
+        if len(fetched_ability) == 1:
+            ability = fetched_ability[0]
+            return Ability(*ability)
 
     def get_ability_list_role(self, role_id):
         ability_ids = self.select_where("ability_id", "roles_to_abilities", "role_id", role_id)
