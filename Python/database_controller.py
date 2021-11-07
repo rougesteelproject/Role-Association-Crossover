@@ -473,9 +473,9 @@ class DatabaseController():
     def get_ability_list_role(self, role_id):
         ability_ids = self.select_where("ability_id", "roles_to_abilities", "role_id", role_id)
         abilities = []
-        if len(ability_ids) == 1:
-            for id in ability_ids[0]:
-                abilities.append(self.get_ability(id))
+        if len(ability_ids) >= 1:
+            for id_tuple in ability_ids:
+                abilities.append(self.get_ability(id_tuple[0]))
         return abilities
 
     def get_ability_list_actor(self, actor_id):
