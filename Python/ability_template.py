@@ -1,6 +1,3 @@
-from os import name
-
-
 class AbilityTemplate:
     def __init__(self, id, name, description, db_control) -> None:
         self.id = id

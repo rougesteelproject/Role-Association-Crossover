@@ -1,5 +1,5 @@
 from database_controller import DatabaseController
-import imdb
+from imdb import Cinemagoer
 import constants
 import traceback
 
@@ -7,7 +7,7 @@ import traceback
 class IMDBImporter():
     def __init__(self, db_controller):
         self._db_controller = db_controller
-        self.ia = imdb.IMDb(adultSearch=0)
+        self.ia = Cinemagoer(adultSearch=0)
         #if it's not adult
         self.number_of_actors_to_loop = constants.NUMBER_OF_ACTORS_TO_LOOP
 
