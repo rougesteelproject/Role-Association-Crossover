@@ -126,6 +126,7 @@ class DatabaseController():
         update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
         self.cursor.execute(update_reset_mr_sql, (roleID1,))
 
+    #TODO we can selects the whole web. Maybe adjust accordingly.
     #SELECT#
     def select_where(self, select_columns, table_name, where, where_value):
         select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
