@@ -98,8 +98,10 @@ class DatabaseController():
 
     def create_mr_and_return_id(self, character_name):
         mr_id = str(uuid4())
-        create_mr_neo = '''CREATE mr:META ROLE '''
-        #TODO
+        create_mr_neo = '''CREATE mr:META ROLE {id: $mr_id, name: $character_name, description: auto-generated, historical: 0, religious: 0,fictional_in_universe: 0, is_biggest: 0}'''
+        #TODO is_bigest may be a built-in neo4j function
+        parameters = {"character_name" : character_name, "mr_id": mr_id}
+        self._neo4j_execute(create_mr_neo, parameters=parameters)
         return mr_id
 
     def create_role_and_first_mr(self,character_name, role_id, role_name, actor_id):
@@ -107,6 +109,7 @@ class DatabaseController():
         self.create_role(role_id, role_name, actor_id, mr_id)
 
     #UPDATE#
+    #TODO
     def update(self, table_name, column, column_value, where, where_value):
         update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
         self.cursor.execute(update_sql, (column_value, where_value,))
