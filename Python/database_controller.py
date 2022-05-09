@@ -3,24 +3,24 @@ from sqlite3.dbapi2 import IntegrityError
 import traceback
 
 import constants
-from actor import Actor
-from meta_role import MetaRole
-from role import Role
+from classes.nodes.actor import Actor
+from classes.nodes.meta_role import MetaRole
+from classes.nodes.role import Role
 
-from meta_role_history import MetaRoleHistory
-from actor_history import ActorHistory
-from role_history import RoleHistory
+from classes.histories.meta_role_history import MetaRoleHistory
+from classes.histories.actor_history import ActorHistory
+from classes.histories.role_history import RoleHistory
+from classes.histories.ability_history import AbilityHistory
 
-from ability import Ability
-from ability_history import AbilityHistory
+from classes.nodes.ability import Ability
 
-from ability_template import AbilityTemplate
-from template_history import TemplateHistory
+from classes.nodes.ability_template import AbilityTemplate
+from classes.histories.template_history import TemplateHistory
 
-from actor_relationship import ActorRelationship
-from role_relationship import RoleRelationship
+from classes.nodes.actor_relationship import ActorRelationship
+from classes.nodes.role_relationship import RoleRelationship
 
-from image import Image
+from classes.nodes.image import Image
 
 
 #TODO replace some text with varChar
