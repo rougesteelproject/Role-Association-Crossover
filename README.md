@@ -15,3 +15,7 @@ TODO: SQLAlchemy will be needed for the s3database method
         that don't have the same MR
 
 #TODO we need a better way to store the changelog for actors/mrs/abilities
+
+Now generating MR id equal to the role id. This makes it easy to match a role to it's original mr. It's as close to a natural key as i can get. each mr is derived from the role, after all.
+-This means mr id comes from role id, 
+--which comes from actor id + movie + index of roles by that actor in that movie

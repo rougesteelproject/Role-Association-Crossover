@@ -27,6 +27,8 @@ from image import Image
 
 #TODO a way to remove porn actors, because the 'no adult films' bit doesn't work.
 
+#TODO roles can't be relationships. They have to be nodes, too, because they have realtionships between them
+
 class DatabaseController():
     def __init__(self):
         self.__uri = constants.URI
@@ -67,6 +69,9 @@ class DatabaseController():
                 session.close()
         return response
 
+    def _neo4j_update(self):
+        pass
+
     #TODO each query returns a list
 
     def create_db_if_not_exists(self):
@@ -89,17 +94,19 @@ class DatabaseController():
         self._neo4j_exectue(create_actor_neo, actor_parameters)
 
     def create_role(self,role_id, role_name, actor_id, mr_id):
-        #In neo, roles are edges between actor and mr nodes
-        parameters = {'actor_id': actor_id, 'mr_id': mr_id, 'role_id':role_id, 'role_name':role_name}
-        create_role_neo = '''MATCH (a:ACTOR {id: $actor_id})
-            MATCH (mr:META ROLE {id:$mr_id})
-            MERGE (actor)-[r:ROLE {id:$role_id, name:$role_name}]-(mr)'''
-        self._neo4j_execute(create_role_neo, parameters)
+        
+        role_parameters = {'actor_id': actor_id, 'mr_id': mr_id, 'role_id':role_id, 'role_name':role_name}
+        create_role_neo = '''CREATE r:ROLE {id: $role_id, name: $role_name, first_parent_meta: $mr_id}'''
+        self._neo4j_execute(create_role_neo, role_parameters)
+
+        connect_role_parameters = {'actor_id': actor_id, 'mr_id': mr_id, 'role_id': role_id}
+        connect_role_neo = '''MATCH a:Actor, mr:Meta Role, r:ROLE WHERE a.id = {$actor_id} AND mr.id = {$mr_id} AND r.id={$role_id} CREATE (a)->[p:PLAYS]-(r)-[v:VERSION]->(mr)'''
+        self._neo4j_execute(connect_role_neo,connect_role_parameters)
 
     def create_mr_and_return_id(self, character_name):
         mr_id = str(uuid4())
         create_mr_neo = '''CREATE mr:META ROLE {id: $mr_id, name: $character_name, description: auto-generated, historical: 0, religious: 0,fictional_in_universe: 0, is_biggest: 0}'''
-        #TODO is_bigest may be a built-in neo4j function
+        #no built-in function for is_biggest. You'll have to find them all and sort, then get the first  in the list
         parameters = {"character_name" : character_name, "mr_id": mr_id}
         self._neo4j_execute(create_mr_neo, parameters=parameters)
         return mr_id
