@@ -1,23 +1,28 @@
 from database_controller import DatabaseController
-import imdb
+from imdb import Cinemagoer
 import constants
 import traceback
 
+#TODO switch to the s3dataset method so you can just download once, re-download every so often
+#https://imdbpy.readthedocs.io/en/latest/usage/s3.html
+
+#TODO The get_movie, get_person and get_company methods take an optional info parameter,
+# which can be used to specify the kinds of data to fetch.
 
 class IMDBImporter():
     def __init__(self, db_controller):
         self._db_controller = db_controller
-        self.ia = imdb.IMDb(adultSearch=0)
+        self.ia = Cinemagoer(adultSearch=0)
         #if it's not adult
         self.number_of_actors_to_loop = constants.NUMBER_OF_ACTORS_TO_LOOP
-
-    
 
     #calls create_actor then create_role on all their roles
 
     def get_actor_IMDB(self, actor_ID):
         try:
             actor = self.ia.get_person(str(actor_ID).zfill(8))
+            actor = self.ia.get_person(str(actor_ID).zfill(8), info = ['biography','filmography'])
+            #This is a test of a change to get just what we need
             actor_name = actor['name']
             actor_id = actor.personID
             actor_bio = actor['biography'][0]

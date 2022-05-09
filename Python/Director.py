@@ -1,5 +1,3 @@
-from os import name
-
 from flask.helpers import url_for
 from new_wiki_page_gen import WikiPageGenerator
 from database_controller import DatabaseController
