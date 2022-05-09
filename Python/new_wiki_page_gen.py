@@ -34,34 +34,38 @@ class WikiPageGenerator:
         self.templates = []
 
     def generate_content(self):
+        self._generate_content_sql()
+
+    #SQL Version:
+    def _generate_content_sql(self):
         processing_layer = 0
         while processing_layer < self.layers_to_generate:
             #TODO THis is slow, because the top layer keeps getting bigger
-            self.process_actors_that_dont_show_all_roles()
-            self.process_meta_roles_that_dont_show_all_roles()
+            self._sql_process_actors_that_dont_show_all_roles()
+            self._sql_process_meta_roles_that_dont_show_all_roles()
 
-            self.get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles()
-            self.get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors()
+            self._sql_get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles()
+            self._sql_get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors()
             processing_layer += 1
             print(f'Processed Layer: {processing_layer}')
 
         if self.enable_actor_swap:
             print('Getting Actor Swaps')
-            self.get_actor_swap_roles()
+            self._sql_get_actor_swap_roles()
 
-        self.generate_actor_relationships()
-        self.generate_actor_abilities()
+        self._sql_generate_actor_relationships()
+        self._sql_generate_actor_abilities()
 
-        self.generate_role_relationships()
-        self.generate_role_abilities()
+        self._sql_generate_role_relationships()
+        self._sql_generate_role_abilities()
 
-        self.generate_templates()
+        self._sql_generate_templates()
 
-        self.alphabetize()
+        self._sql_alphabetize()
 
         print('generation complete')
 
-    def process_actors_that_dont_show_all_roles(self):
+    def _sql_process_actors_that_dont_show_all_roles(self):
         print('Process Actors')
         self.top_layer_actors = []
         for actor in self.actors_that_dont_show_all_roles:
@@ -73,7 +77,7 @@ class WikiPageGenerator:
             self.top_layer_actors.append(actor)
             self.actors_that_dont_show_all_roles = []
 
-    def process_meta_roles_that_dont_show_all_roles(self):
+    def _sql_process_meta_roles_that_dont_show_all_roles(self):
         print('process mr')
         self.top_layer_meta_roles = []
         for meta_role in self.meta_roles_that_dont_show_all_roles:
@@ -86,7 +90,7 @@ class WikiPageGenerator:
             self.meta_roles_that_dont_show_all_roles = []
 
 
-    def get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors(self):
+    def _sql_get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors(self):
         print('get meta that dont show')
         #for each active parent:
         for actor in self.top_layer_actors:
@@ -114,7 +118,7 @@ class WikiPageGenerator:
                     self.meta_roles_that_dont_show_all_roles.append(new_meta_role)
 
     #for each inactive parent:
-    def get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles(self):
+    def _sql_get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles(self):
         print('get actors that dont show')
         for mr in self.top_layer_meta_roles:
             for role in mr.roles:
@@ -141,11 +145,11 @@ class WikiPageGenerator:
                     new_actor.add_role(role)
                     self.actors_that_dont_show_all_roles.append(new_actor)
 
-    def get_actor_swap_roles(self):
+    def _sql_get_actor_swap_roles(self):
         for mr in self.meta_roles_that_dont_show_all_roles:
             mr.get_actor_swap_roles()
 
-    def generate_actor_relationships(self):
+    def _sql_generate_actor_relationships(self):
         all_actors = []
         all_actors.extend(self.actors_that_show_all_roles)
         all_actor_ids = [actor.id for actor in all_actors]
@@ -168,7 +172,7 @@ class WikiPageGenerator:
         self.link_actor_relationships = link_relationships
         self.plaintext_actor_relationships = plaintext_relationships
 
-    def generate_actor_abilities(self):
+    def _sql_generate_actor_abilities(self):
         all_actors = []
         all_actors.extend(self.actors_that_show_all_roles)
         #Only actors that show all have bios to put abilities in
@@ -183,7 +187,7 @@ class WikiPageGenerator:
 
         self.actor_abilities = abilities
 
-    def generate_role_relationships(self):
+    def _sql_generate_role_relationships(self):
         all_roles = []
         all_mrs = []
         role_relationships= []
@@ -211,7 +215,7 @@ class WikiPageGenerator:
         self.link_role_relationships = link_role_relationships
         self.plaintext_role_relationships = plaintext_role_relationships
 
-    def generate_role_abilities(self):
+    def _sql_generate_role_abilities(self):
         all_roles = []
         all_mrs = []
 
@@ -230,7 +234,7 @@ class WikiPageGenerator:
 
         self.role_abilities = all_abilities
 
-    def generate_templates(self):
+    def _sql_generate_templates(self):
         all_roles = []
         all_mrs = []
 
@@ -249,7 +253,7 @@ class WikiPageGenerator:
 
         self.templates = all_templates
 
-    def alphabetize(self):
+    def _sql_alphabetize(self):
         
         self.meta_roles_that_show_all_roles.sort()
         self.meta_roles_that_dont_show_all_roles.sort()

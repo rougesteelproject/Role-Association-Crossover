@@ -29,20 +29,38 @@ from classes.nodes.image import Image
 
 class DatabaseController():
     def __init__(self):
-        self._database = constants.DATABASE
+        self._database_uri = constants.URI
         self.connection = None
-        self.cursor = None
+        self._sql_cursor = None
 
     def create_connection(self):
+        self._sql_create_connection()
+
+    def execute(self, command, parameters):
+        self._sql_execute(command, parameters)
+
+    def commit(self):
+        self._sql_commit()
+
+    def _sql_create_connection(self):
         try:
             self.connection = sqlite3.connect(self._database, check_same_thread=False)
-            self.cursor = self.connection.cursor()
+            self._sql_cursor = self.connection.cursor()
         except sqlite3.Error:
             traceback.print_exc()
+
+    def _sql_execute(self, command, parameters):
+        self._sql_cursor.execute(command, parameters)
+
+    def _sql_commit(self):
+        self.connection.commit()
 
     #TODO each select returns a list of tuples. Check that the data is procesed at the right layer.
 
     def create_db_if_not_exists(self):
+        self._sql_create_db_if_not_exists()
+
+    def _sql_create_db_if_not_exists(self):
         # Create table if it doesn't exist
         self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INTEGER PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'Auto-Generated\', historical TEXT DEFAULT \'False\', religious TEXT DEFAULT \'False\', fictional_in_universe TEXT DEFAULT \'False\',is_biggest TEXT DEFAULT \'False\')''')
         #INTERGER PRIMARY KEY does auto-increment for you
@@ -70,22 +88,34 @@ class DatabaseController():
 
     #INSERT OR IGNORE#
     def create_actor(self, id, name, bio, birth_date, death_date):
+        self._sql_create_actor(id, name, bio, birth_date, death_date)
+
+    def create_role(self,role_id, role_name, actor_id, mr_id):
+        self._sql_create_role(role_id, role_name, actor_id, mr_id)
+
+    def create_mr_and_return_id(self, character_name):      
+        self._sql_create_mr_and_return_id(character_name)
+
+    def create_role_and_first_mr(self,character_name, role_id, role_name, actor_id):
+        self._sql_create_role_and_first_mr(character_name, role_id, role_name, actor_id)
+
+    def _sql_create_actor(self, id, name, bio, birth_date, death_date):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
         create_actor_sql = '''INSERT OR IGNORE INTO actors(id, name, bio, birth_date, death_date) VALUES (?,?,?,?,?) '''
         self.cursor.execute(create_actor_sql, (id, name, bio, birth_date, death_date,))
 
-    def create_role(self,role_id, role_name, actor_id, mr_id):
+    def _sql_create_role(self, role_id, role_name, actor_id, mr_id):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
         create_role_sql = '''INSERT OR IGNORE INTO roles(id, name,parent_actor, parent_meta, first_parent_meta) VALUES (?,?,?,?,?) '''
         # Create table if it doesn't exist
-        self.cursor.execute(create_role_sql, (role_id, role_name,actor_id, mr_id, mr_id,))
+        self.execute(create_role_sql, (role_id, role_name,actor_id, mr_id, mr_id,))
 
-    def create_mr_and_return_id(self, character_name):      
+    def _sql_create_mr_and_return_id(self,character_name):
         create_mr_sql = '''INSERT INTO meta_roles(name) VALUES (?) '''
-        self.cursor.execute(create_mr_sql,(character_name,))
-        return self.cursor.lastrowid
+        self.execute(create_mr_sql,(character_name,))
+        return self._sql_cursor.lastrowid
 
-    def create_role_and_first_mr(self,character_name, role_id, role_name, actor_id):
+    def _sql_create_role_and_first_mr(self, character_name, role_id, role_name, actor_id):
         mr_id = self.create_mr_and_return_id(character_name)
         self.create_role(role_id, role_name, actor_id, mr_id)
 
@@ -663,6 +693,3 @@ class DatabaseController():
         for relationship_id in relationship_id_list:
             delete_sql ='''DELETE FROM role_relationships WHERE relationship_id={}'''.format(relationship_id)
             self.cursor.execute(delete_sql)
-
-    def commit(self):
-        self.connection.commit()

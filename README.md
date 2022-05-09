@@ -2,7 +2,10 @@
 
 ##Dependancies: needs (neo4j or sqlite 3), flask, cinemagoer(formerly imdbpy), uuid neomodel needs Shapely, which dowsn't work for python 3.10
 
-##Global TODO: TODO: update per: https://cinemagoer.readthedocs.io/en/latest/ TODO: there may be a new way to get IMDB Id's TODO: does adultSearch=0 still work?
+##Global TODO: 
+TODO: the base needs to be more modular. public methods should be calling db-specific private methods
+
+TODO: update per: https://cinemagoer.readthedocs.io/en/latest/ TODO: there may be a new way to get IMDB Id's TODO: does adultSearch=0 still work?
 
 #TODO we need a better way to store the changelog for actors/mrs/abilities
 
