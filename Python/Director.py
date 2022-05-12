@@ -9,6 +9,7 @@ app = Flask(__name__)
 import distutils
 import distutils.util
 
+#TODO update with new b subclasses, maybe an if statement
 db_control = DatabaseController()
 db_control.create_connection()
 db_control.create_db_if_not_exists()

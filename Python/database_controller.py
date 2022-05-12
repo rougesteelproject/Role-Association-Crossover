@@ -33,7 +33,8 @@ from classes.nodes.image import Image
 class DatabaseController():
     def __init__(self):
 
-        self.connection = None      
+        self.connection = None    
+        #TODO I could put self.create_connection here and any subclass would use it's own create_conn  
 
     def create_connection(self):
         pass
@@ -56,12 +57,8 @@ class DatabaseController():
     def create_role(self,role_id, role_name, actor_id, mr_id):
         pass
 
-    def create_mr_and_return_id(self, character_name):
+    def create_mr(self, character_name, mr_id):
         pass
-
-    def create_role_and_first_mr(self,character_name, role_id, role_name, actor_id):
-        pass
-
     
     #UPDATE#
     def update(self, table_name, column, column_value, where, where_value):
@@ -117,6 +114,7 @@ class DatabaseController():
         self.cursor.execute(sql,(image_url,page_id,caption,))
 
     def get_images_actor(self, actor_id):
+        #LEAVE UN-PASSED
         fetched_images = self.select_where("file, caption", "gallery", "actor", actor_id)
         gallery = []
         for image in fetched_images:
@@ -124,6 +122,7 @@ class DatabaseController():
         return gallery
 
     def get_images_role(self, role_id):
+        #LEAVE UN-PASSED
         fetched_images = self.select_where("file, caption", "gallery", "role", role_id)
         gallery = []
         for image in fetched_images:
@@ -132,6 +131,8 @@ class DatabaseController():
 
     #GET#
     #TODO may search in bios or descriptions?
+
+    #TODO Note: No pass until next note
 
     def get_actor(self, actor_id):
         if actor_id != '':
@@ -288,6 +289,7 @@ class DatabaseController():
             revision_list.append(RoleHistory(*revision))
         return revision_list
 
+    #TODO Pass below
     def create_actor_history(self, id, new_bio):
         old_actor = self.get_actor(id)
         historySql = '''INSERT INTO actors_history(id, name, bio) VALUES (?,?,?) '''
@@ -312,6 +314,7 @@ class DatabaseController():
 
         self.cursor.execute(changeDescSql,(new_description,new_alive_or_dead,new_alignment,id,))  
 
+    #TODO Note: no Pass 'till next note
     #CHARACTER CONNECTOR#
     def character_connector_switch(self, mode, id1, id2):
         if id1 != None and id2 != None:
@@ -399,6 +402,7 @@ class DatabaseController():
                 swap_id_to_clear = result[0][0]
                 self.update("roles","actor_swap_id", 0, "id", swap_id_to_clear)
 
+    #TODO: pass
     #ABILITIES#
     def create_ability(self, name, description):
         create_sql = '''INSERT INTO abilities (name, description) VALUES (?,?)'''
@@ -432,6 +436,7 @@ class DatabaseController():
         for ability_id in ability_list:
             self.cursor.execute(create_ability_role_sql,(role_id,ability_id,))
 
+    #TODO no pass
     def get_ability(self, ability_id):
         fetched_ability = self.select_where("*","abilities","id",ability_id)
         if len(fetched_ability) == 1:
@@ -535,6 +540,7 @@ class DatabaseController():
         
         return abilities_that_are_not_connected
 
+    #TODO PAss
     def create_ability_template(self, name, description):
         create_template_sql = "INSERT INTO ability_templates(template_name, template_description) VALUES (?,?)"
         self.cursor.execute(create_template_sql,(name,description))
@@ -592,6 +598,7 @@ class DatabaseController():
             revision_list.append(AbilityHistory(*revision))
         return revision_list
 
+    #TODO pass
     #RELEATIONSHIPS#
     def add_relationship_actor(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
         sql = '''INSERT INTO actor_relationships(actor1_id, actor1_name, actor2_id, actor2_name, relationship_type) VALUES (?,?,?,?,?)'''

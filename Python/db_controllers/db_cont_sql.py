@@ -31,13 +31,14 @@ class DatabaseControllerSQL(DatabaseController):
 
         self._database_uri = constants.SQL_URI
         self._sql_cursor = None
+        self._sql_connection
 
     #EXECUTION - SQL#
 
     def create_connection(self):
         try:
-            self.connection = sqlite3.connect(self._database, check_same_thread=False)
-            self._sql_cursor = self.connection.cursor()
+            self._sql_connection = sqlite3.connect(self._database, check_same_thread=False)
+            self._sql_cursor = self._sql_connection.cursor()
         except sqlite3.Error:
             traceback.print_exc()
 
@@ -45,7 +46,7 @@ class DatabaseControllerSQL(DatabaseController):
         self._sql_cursor.execute(command, parameters)
 
     def commit(self):
-        self.connection.commit()
+        self._sql_connection.commit()
 
     def create_db_if_not_exists(self):
         # Create table if it doesn't exist
@@ -84,16 +85,13 @@ class DatabaseControllerSQL(DatabaseController):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
         create_role_sql = '''INSERT OR IGNORE INTO roles(id, name,parent_actor, parent_meta, first_parent_meta) VALUES (?,?,?,?,?) '''
         # Create table if it doesn't exist
-        self.execute(create_role_sql, (role_id, role_name,actor_id, mr_id, mr_id,))
+        self.execute(create_role_sql, (role_id, role_name,actor_id, mr_id, role_id,))
 
-    def create_mr_and_return_id(self,character_name):
-        create_mr_sql = '''INSERT INTO meta_roles(name) VALUES (?) '''
-        self.execute(create_mr_sql,(character_name,))
-        return self._sql_cursor.lastrowid
+    def create_mr(self,character_name, mr_id):
+        create_mr_sql = '''INSERT INTO meta_roles(name, id) VALUES (?, ?) '''
+        self.execute(create_mr_sql,(character_name, mr_id))
 
-    def create_role_and_first_mr(self, character_name, role_id, role_name, actor_id):
-        mr_id = self.create_mr_and_return_id(character_name)
-        self.create_role(role_id, role_name, actor_id, mr_id)
+
 
     #UPDATE#
     def update(self, table_name, column, column_value, where, where_value):
@@ -156,19 +154,7 @@ class DatabaseControllerSQL(DatabaseController):
             sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
         self.cursor.execute(sql,(image_url,page_id,caption,))
 
-    def get_images_actor(self, actor_id):
-        fetched_images = self.select_where("file, caption", "gallery", "actor", actor_id)
-        gallery = []
-        for image in fetched_images:
-            gallery.append(Image(*image))
-        return gallery
-
-    def get_images_role(self, role_id):
-        fetched_images = self.select_where("file, caption", "gallery", "role", role_id)
-        gallery = []
-        for image in fetched_images:
-            gallery.append(Image(*image))
-        return gallery
+    
 
     #GET#
     #TODO may search in bios or descriptions?

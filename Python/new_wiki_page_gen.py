@@ -2,13 +2,18 @@
 #Get 'layers'
 #Get 'is_actor' or 'is_mr'
 
+from Python.db_controllers.db_cont_sql import DatabaseControllerSQL
+
+
 class WikiPageGenerator:
     def __init__(self, base_id, layers_to_generate, base_is_actor, enable_actor_swap, db_control):
-        self.db_control = db_control
+        self._db_control = db_control
         self.layers_to_generate = layers_to_generate
         self.base_is_actor = base_is_actor
         self.enable_actor_swap = enable_actor_swap
         self.base_id = base_id
+
+        #TODO all of these can be private
         
         if base_is_actor:
             self.actors_that_dont_show_all_roles = [self.db_control.get_actor(self.base_id)]
@@ -34,7 +39,9 @@ class WikiPageGenerator:
         self.templates = []
 
     def generate_content(self):
-        self._generate_content_sql()
+        #TODO using neo, I may be able to get the whole pile, so to speak.
+        if isinstance(self._db_control, DatabaseControllerSQL):
+            self._generate_content_sql()
 
     #SQL Version:
     def _generate_content_sql(self):
