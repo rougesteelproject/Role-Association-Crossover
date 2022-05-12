@@ -1,106 +1,93 @@
-#Get base Id, add to "parents_that_don't_show_all_roles"
-#Get 'layers'
-#Get 'is_actor' or 'is_mr'
+from email.mime import base
+from wiki_page_generator import WikiPageGenerator
 
-from Python.db_controllers.db_cont_sql import DatabaseControllerSQL
+class PageGeneratorSQL(WikiPageGenerator):
+    def __init__(self, base_id, layers_to_generate, enable_actor_swap, base_actor = None, base_mr = None, db_control):
+        super().__init__(base_id, layers_to_generate, enable_actor_swap, db_control)
+
+        if base_actor is not None:
+            self._get_base_base_is_actor(base_actor)
+        elif base_mr is not None:
+            self._get_base_base_is_mr(base_mr)
+            
+        self._actors_that_show_all_roles = []
+        self._meta_roles_that_show_all_roles = [] 
+        self._top_layer_actors = []
+        self._top_layer_meta_roles = []
 
 
-class WikiPageGenerator:
-    def __init__(self, base_id, layers_to_generate, base_is_actor, enable_actor_swap, db_control):
-        self._db_control = db_control
-        self.layers_to_generate = layers_to_generate
-        self.base_is_actor = base_is_actor
-        self.enable_actor_swap = enable_actor_swap
-        self.base_id = base_id
+    #TODO director should do this, maybe? Per Demeter principle?
+    def _get_base_base_is_actor(self, base_actor):
+        self._actors_that_dont_show_all_roles = [base_actor]
+        self._meta_roles_that_dont_show_all_roles = []
+        self._base_name = base_actor.name
 
-        #TODO all of these can be private
-        
-        if base_is_actor:
-            self.actors_that_dont_show_all_roles = [self.db_control.get_actor(self.base_id)]
-            self.meta_roles_that_dont_show_all_roles = []
-            self.base_name = self.actors_that_dont_show_all_roles[0].name
-        else:
-            self.actors_that_dont_show_all_roles = []
-            self.meta_roles_that_dont_show_all_roles = [self.db_control.get_mr(self.base_id)]
-            self.base_name = self.meta_roles_that_dont_show_all_roles[0].name
-        self.actors_that_show_all_roles = []
-        self.meta_roles_that_show_all_roles = [] 
-        self.top_layer_actors = []
-        self.top_layer_meta_roles = []
+    def _get_base_base_is_mr(self, base_mr):
+        self._actors_that_dont_show_all_roles = []
+        self._meta_roles_that_dont_show_all_roles = [base_mr]
+        self._base_name = base_mr.name
 
-        self.link_actor_relationships = []
-        self.plaintext_actor_relationships = []
-        self.link_role_relationships = []
-        self.plaintext_role_relationships = []
-
-        self.actor_abilities = []
-        self.role_abilities = []
-
-        self.templates = []
-
-    def generate_content(self):
-        #TODO using neo, I may be able to get the whole pile, so to speak.
-        if isinstance(self._db_control, DatabaseControllerSQL):
-            self._generate_content_sql()
 
     #SQL Version:
-    def _generate_content_sql(self):
+    def _generate_content(self):
         processing_layer = 0
-        while processing_layer < self.layers_to_generate:
+        while processing_layer < self._layers_to_generate:
             #TODO THis is slow, because the top layer keeps getting bigger
-            self._sql_process_actors_that_dont_show_all_roles()
-            self._sql_process_meta_roles_that_dont_show_all_roles()
+            #TODO Could we get the whole blob somehow?
 
-            self._sql_get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles()
-            self._sql_get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors()
+            self._process_actors_that_dont_show_all_roles()
+            self._process_meta_roles_that_dont_show_all_roles()
+
+            self._get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles()
+            self._get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors()
             processing_layer += 1
             print(f'Processed Layer: {processing_layer}')
 
         if self.enable_actor_swap:
             print('Getting Actor Swaps')
-            self._sql_get_actor_swap_roles()
+            self._get_actor_swap_roles()
 
-        self._sql_generate_actor_relationships()
-        self._sql_generate_actor_abilities()
+        self._generate_actor_relationships()
+        self._generate_actor_abilities()
 
-        self._sql_generate_role_relationships()
-        self._sql_generate_role_abilities()
+        self._generate_role_relationships()
+        self._generate_role_abilities()
 
-        self._sql_generate_templates()
+        self._generate_templates()
 
-        self._sql_alphabetize()
+        self._alphabetize()
 
         print('generation complete')
 
-    def _sql_process_actors_that_dont_show_all_roles(self):
+    def _process_actors_that_dont_show_all_roles(self):
         print('Process Actors')
-        self.top_layer_actors = []
-        for actor in self.actors_that_dont_show_all_roles:
+        self._top_layer_actors = []
+        for actor in self._actors_that_dont_show_all_roles:
             print(f'{actor.id}: {actor.name}')
         #for each inactive parent:
             #Get it's roles
             actor.get_roles()
-            self.actors_that_show_all_roles.append(actor)
-            self.top_layer_actors.append(actor)
-            self.actors_that_dont_show_all_roles = []
+            self._actors_that_show_all_roles.append(actor)
+            self._top_layer_actors.append(actor)
+            self._actors_that_dont_show_all_roles = []
 
-    def _sql_process_meta_roles_that_dont_show_all_roles(self):
+    def _process_meta_roles_that_dont_show_all_roles(self):
         print('process mr')
-        self.top_layer_meta_roles = []
-        for meta_role in self.meta_roles_that_dont_show_all_roles:
+        self._top_layer_meta_roles = []
+        for meta_role in self._meta_roles_that_dont_show_all_roles:
             print(f'{meta_role.id}: {meta_role.name}')
         #for each inactive parent:
             #Get it's roles
             meta_role.get_roles()
-            self.meta_roles_that_show_all_roles.append(meta_role)
-            self.top_layer_meta_roles.append(meta_role)
-            self.meta_roles_that_dont_show_all_roles = []
+            self._meta_roles_that_show_all_roles.append(meta_role)
+            self._top_layer_meta_roles.append(meta_role)
+            self._meta_roles_that_dont_show_all_roles = []
 
 
-    def _sql_get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors(self):
+    def _get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors(self):
         print('get meta that dont show')
         #for each active parent:
-        for actor in self.top_layer_actors:
+        for actor in self._top_layer_actors:
             for role in actor.roles:
                 
                 #for each role, get it's mr
@@ -108,26 +95,26 @@ class WikiPageGenerator:
                 in_meta_that_dont_show_all = False
 
                 #display that mr as halfway if it's not in the list of fully-displayed
-                for mr in self.meta_roles_that_show_all_roles:
+                for mr in self._meta_roles_that_show_all_roles:
                     if role.parent_meta == mr.id:
                         in_meta_that_show_all = True
 
                 #or halfway mrs
                 if not in_meta_that_show_all:
-                    for mr in self.meta_roles_that_dont_show_all_roles:
+                    for mr in self._meta_roles_that_dont_show_all_roles:
                         if role.parent_meta == mr.id:
                             in_meta_that_dont_show_all = True
                             mr.add_role(role)
 
                 if not in_meta_that_dont_show_all and not in_meta_that_show_all:
-                    new_meta_role = self.db_control.get_mr(role.parent_meta)
+                    new_meta_role = self._db_control.get_mr(role.parent_meta)
                     new_meta_role.add_role(role)
-                    self.meta_roles_that_dont_show_all_roles.append(new_meta_role)
+                    self._meta_roles_that_dont_show_all_roles.append(new_meta_role)
 
     #for each inactive parent:
-    def _sql_get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles(self):
+    def _get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles(self):
         print('get actors that dont show')
-        for mr in self.top_layer_meta_roles:
+        for mr in self._top_layer_meta_roles:
             for role in mr.roles:
                 
                 in_actors_that_show_all = False
@@ -136,29 +123,29 @@ class WikiPageGenerator:
                 #for each role, get it's actor
                     #if not in actors_that_show_all_roles, add to parents_that_dont_show_all_role
 
-                for actor in self.actors_that_show_all_roles:
+                for actor in self._actors_that_show_all_roles:
                     if role.parent_actor == actor.id:
                         in_actors_that_show_all = True
 
                 if not in_actors_that_show_all:
-                    for actor in self.actors_that_dont_show_all_roles:
+                    for actor in self._actors_that_dont_show_all_roles:
                         if role.parent_actor == actor.id:
                             in_actors_that_dont_show_all = True
                             actor.add_role(role)
 
 
                 if not in_actors_that_dont_show_all and not in_actors_that_show_all:
-                    new_actor = self.db_control.get_actor(role.parent_actor)
+                    new_actor = self._db_control.get_actor(role.parent_actor)
                     new_actor.add_role(role)
-                    self.actors_that_dont_show_all_roles.append(new_actor)
+                    self._actors_that_dont_show_all_roles.append(new_actor)
 
-    def _sql_get_actor_swap_roles(self):
-        for mr in self.meta_roles_that_dont_show_all_roles:
+    def _get_actor_swap_roles(self):
+        for mr in self._meta_roles_that_dont_show_all_roles:
             mr.get_actor_swap_roles()
 
-    def _sql_generate_actor_relationships(self):
+    def _generate_actor_relationships(self):
         all_actors = []
-        all_actors.extend(self.actors_that_show_all_roles)
+        all_actors.extend(self._actors_that_show_all_roles)
         all_actor_ids = [actor.id for actor in all_actors]
         #Only actors that show all have bios to put relatioships in
         #Doing this because I dunno what'll happen if I just straight set it to = actors_that_show
@@ -179,9 +166,9 @@ class WikiPageGenerator:
         self.link_actor_relationships = link_relationships
         self.plaintext_actor_relationships = plaintext_relationships
 
-    def _sql_generate_actor_abilities(self):
+    def _generate_actor_abilities(self):
         all_actors = []
-        all_actors.extend(self.actors_that_show_all_roles)
+        all_actors.extend(self._actors_that_show_all_roles)
         #Only actors that show all have bios to put abilities in
         #Doing this because I dunno what'll happen if I just straight set it to = actors_that_show
 
@@ -194,15 +181,15 @@ class WikiPageGenerator:
 
         self.actor_abilities = abilities
 
-    def _sql_generate_role_relationships(self):
+    def _generate_role_relationships(self):
         all_roles = []
         all_mrs = []
         role_relationships= []
         link_role_relationships = []
         plaintext_role_relationships = []
 
-        all_mrs.extend(self.meta_roles_that_show_all_roles)
-        all_mrs.extend(self.meta_roles_that_dont_show_all_roles)
+        all_mrs.extend(self._meta_roles_that_show_all_roles)
+        all_mrs.extend(self._meta_roles_that_dont_show_all_roles)
 
         for mr in all_mrs:
             all_roles.extend(mr.roles)
@@ -222,12 +209,12 @@ class WikiPageGenerator:
         self.link_role_relationships = link_role_relationships
         self.plaintext_role_relationships = plaintext_role_relationships
 
-    def _sql_generate_role_abilities(self):
+    def _generate_role_abilities(self):
         all_roles = []
         all_mrs = []
 
-        all_mrs.extend(self.meta_roles_that_show_all_roles)
-        all_mrs.extend(self.meta_roles_that_dont_show_all_roles)
+        all_mrs.extend(self._meta_roles_that_show_all_roles)
+        all_mrs.extend(self._meta_roles_that_dont_show_all_roles)
 
         for mr in all_mrs:
             all_roles.extend(mr.roles)
@@ -241,12 +228,12 @@ class WikiPageGenerator:
 
         self.role_abilities = all_abilities
 
-    def _sql_generate_templates(self):
+    def _generate_templates(self):
         all_roles = []
         all_mrs = []
 
-        all_mrs.extend(self.meta_roles_that_show_all_roles)
-        all_mrs.extend(self.meta_roles_that_dont_show_all_roles)
+        all_mrs.extend(self._meta_roles_that_show_all_roles)
+        all_mrs.extend(self._meta_roles_that_dont_show_all_roles)
 
         for mr in all_mrs:
             all_roles.extend(mr.roles)
@@ -260,16 +247,16 @@ class WikiPageGenerator:
 
         self.templates = all_templates
 
-    def _sql_alphabetize(self):
+    def _alphabetize(self):
         
-        self.meta_roles_that_show_all_roles.sort()
-        self.meta_roles_that_dont_show_all_roles.sort()
+        self._meta_roles_that_show_all_roles.sort()
+        self._meta_roles_that_dont_show_all_roles.sort()
         
-        self.actors_that_show_all_roles.sort()
+        self._actors_that_show_all_roles.sort()
         
-        for mr in self.meta_roles_that_show_all_roles:
+        for mr in self._meta_roles_that_show_all_roles:
             mr.roles.sort()
-        for mr in self.meta_roles_that_dont_show_all_roles:
+        for mr in self._meta_roles_that_dont_show_all_roles:
             mr.roles.sort()
        
         self.link_actor_relationships.sort()
@@ -283,5 +270,3 @@ class WikiPageGenerator:
         self.role_abilities.sort()
 
         self.templates.sort()
-
-    #TODO we'l have to return the Hub Sigils (when we integrate into flask/ the graphviz)

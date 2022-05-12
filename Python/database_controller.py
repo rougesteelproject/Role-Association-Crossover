@@ -1,8 +1,3 @@
-import sqlite3
-from sqlite3.dbapi2 import IntegrityError
-import traceback
-
-import constants
 from classes.nodes.actor import Actor
 from classes.nodes.meta_role import MetaRole
 from classes.nodes.role import Role
@@ -22,21 +17,20 @@ from classes.nodes.role_relationship import RoleRelationship
 
 from classes.nodes.image import Image
 
-
 #TODO replace some text with varChar
 
 #TODO a way to remove porn actors, because the 'no adult films' bit doesn't work.
 
-#TODO maybe break SQL and NEO into their own classes? Maybe by extending DB_CONT?
-#TODO   set all functions here to 'pass'
-
 class DatabaseController():
     def __init__(self):
 
-        self.connection = None    
-        #TODO I could put self.create_connection here and any subclass would use it's own create_conn  
+        self.connection = self._create_connection() 
+        self._create_db_if_not_exists
+        #Sublcalsses will use their owwn versions
 
-    def create_connection(self):
+        #TODO use 'with' more often
+
+    def _create_connection(self):
         pass
 
     def execute(self, command, parameters):
@@ -47,7 +41,7 @@ class DatabaseController():
 
     #TODO each select returns a list of tuples. Check that the data is procesed at the right layer.
 
-    def create_db_if_not_exists(self):
+    def _create_db_if_not_exists(self):
         pass
 
     #CREATE#
@@ -81,37 +75,23 @@ class DatabaseController():
         pass
 
     def select_and(self, select_columns, table_name, where_column, where_value, where_column_2, where_value_2):
-        select_sql = "SELECT {} FROM {} WHERE {}=? AND {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())
-        self.cursor.execute(select_sql,(where_value,where_value_2,))
-        return self.cursor.fetchall()
+        pass
 
     def select_or(self, select_columns, table_name, where_column, where_value, where_column_2, where_value_2):
-        select_sql = "SELECT {} FROM {} WHERE {}=? OR {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())
-        self.cursor.execute(select_sql,(where_value,where_value_2,))
-        return self.cursor.fetchall()
+        pass
 
     def select_max_where(self, select_column, table_name, where_column, where_value):
-        select_sql = "SELECT MAX({}) FROM {} WHERE {}=?".format(select_column.lower(),table_name.lower(),where_column.lower())
-        self.cursor.execute(select_sql, (where_value,))
-        return self.cursor.fetchone()
+        pass
 
     def select_like(self, select_columns, table_name, where_column, like_value):
-        select_sql = "SELECT {} FROM {} WHERE {} LIKE \'%{}%\'".format(select_columns, table_name, where_column, like_value)
-        self.cursor.execute(select_sql)
-        return self.cursor.fetchall()
+        pass
 
     def select_not_in(self, select_columns, table_name, where, ability_list):
-        result_set = self.cursor.execute("SELECT {} FROM {} WHERE {} NOT IN ".format(select_columns.lower(),table_name.lower(),where.lower()) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
-        return result_set.fetchall()
-
+        pass
 
     #IMAGES#
     def add_image(self,page_type, page_id, image_url, caption):
-        if page_type == 'actor':
-            sql = '''INSERT INTO gallery (file, actor, caption) VALUES (?,?,?)'''
-        else:
-            sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
-        self.cursor.execute(sql,(image_url,page_id,caption,))
+       pass
 
     def get_images_actor(self, actor_id):
         #LEAVE UN-PASSED
@@ -131,8 +111,6 @@ class DatabaseController():
 
     #GET#
     #TODO may search in bios or descriptions?
-
-    #TODO Note: No pass until next note
 
     def get_actor(self, actor_id):
         if actor_id != '':
@@ -289,32 +267,15 @@ class DatabaseController():
             revision_list.append(RoleHistory(*revision))
         return revision_list
 
-    #TODO Pass below
     def create_actor_history(self, id, new_bio):
-        old_actor = self.get_actor(id)
-        historySql = '''INSERT INTO actors_history(id, name, bio) VALUES (?,?,?) '''
-        self.cursor.execute(historySql,(id, old_actor.name, old_actor.bio))
-        
-        changeDescSql='''UPDATE actors SET bio=? WHERE id=?'''
-        self.cursor.execute(changeDescSql,(new_bio,id,))
+        pass
 
     def create_mr_history(self, id, new_description, historical, religious, fictional_in_universe):
-        old_mr = self.get_mr(id)
-        historySql = '''INSERT INTO meta_roles_history(id, name, description, historical, religious, fictional_in_universe) VALUES (?,?,?,?,?,?) '''
-        self.cursor.execute(historySql,(id, old_mr.name, old_mr.description, old_mr.historical, old_mr.religious, old_mr.fictional_in_universe))
-        changeDescSql='''UPDATE meta_roles SET description=?, historical=?, religious=?, fictional_in_universe=? WHERE id=?'''
-
-        self.cursor.execute(changeDescSql,(new_description,historical, religious, fictional_in_universe,id,))
+        pass
 
     def create_role_history(self, id, new_description, new_alive_or_dead, new_alignment):
-        old_role = self.get_role(id)
-        historySql = '''INSERT INTO roles_history(id, name, description, alive_or_dead, alignment) VALUES (?,?,?,?,?) '''
-        self.cursor.execute(historySql,(id, old_role.name, old_role.description, old_role.alive_or_dead, old_role.alignment))
-        changeDescSql='''UPDATE roles SET description=?, alive_or_dead=?,alignment=? WHERE id=?'''
+        pass
 
-        self.cursor.execute(changeDescSql,(new_description,new_alive_or_dead,new_alignment,id,))  
-
-    #TODO Note: no Pass 'till next note
     #CHARACTER CONNECTOR#
     def character_connector_switch(self, mode, id1, id2):
         if id1 != None and id2 != None:
@@ -360,6 +321,7 @@ class DatabaseController():
             
             parent_meta = max(mr_id_1,mr_id_2)
             
+            #TODO actor_swap may be a relationship in neo
             
             swap_id_1 = self.select_where("actor_swap_id", "roles", "id", roleID1)[0][0]
             swap_id_2 = self.select_where("actor_swap_id", "roles", "id", roleID2)[0][0]
@@ -402,41 +364,25 @@ class DatabaseController():
                 swap_id_to_clear = result[0][0]
                 self.update("roles","actor_swap_id", 0, "id", swap_id_to_clear)
 
-    #TODO: pass
     #ABILITIES#
     def create_ability(self, name, description):
-        create_sql = '''INSERT INTO abilities (name, description) VALUES (?,?)'''
-        self.cursor.execute(create_sql, (name, description))
-        return self.cursor.lastrowid
+        pass
 
     def create_ability_history(self, id, name, description):
-        old_ability = self.get_ability(id)
-        try:
-            historySql = '''INSERT INTO abilities_history(id, name, description) VALUES (?,?,?) '''
-            self.cursor.execute(historySql, (old_ability.id, old_ability.name, old_ability.description,))
-        except IntegrityError:
-            print(traceback.print_exc())
-
-        changeDescSql='''UPDATE abilities SET name=?, description=? WHERE id=?'''
-        self.cursor.execute(changeDescSql, (name, description, id,))
+        pass
 
     def remove_ability_actor(self, actor_id, ability_list):
-        self.cursor.execute("DELETE FROM actors_to_abilities WHERE actor_id={}  AND ability_id IN ".format(actor_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
+        pass
 
     def remove_ability_role(self, role_id, ability_list):
-        self.cursor.execute("DELETE FROM roles_to_abilities WHERE role_id={}  AND ability_id IN ".format(role_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
+        pass
 
     def add_ability_actor(self, actor_id, ability_list):
-        create_ability_actor_sql = "INSERT OR IGNORE INTO actors_to_abilities(actor_id,ability_id) VALUES (?,?)"
-        for ability_id in ability_list:
-            self.cursor.execute(create_ability_actor_sql,(actor_id,ability_id,))
+        pass
 
     def add_ability_role(self, role_id, ability_list):
-        create_ability_role_sql = "INSERT OR IGNORE INTO roles_to_abilities(role_id,ability_id) VALUES (?,?)"
-        for ability_id in ability_list:
-            self.cursor.execute(create_ability_role_sql,(role_id,ability_id,))
+        pass
 
-    #TODO no pass
     def get_ability(self, ability_id):
         fetched_ability = self.select_where("*","abilities","id",ability_id)
         if len(fetched_ability) == 1:
@@ -471,7 +417,6 @@ class DatabaseController():
 
         else:
             abilities_that_are_not_connected = self.get_all_abilities()
-            
         
         return abilities_that_are_not_connected
 
@@ -486,8 +431,7 @@ class DatabaseController():
                 abilities_that_are_not_connected.append(Ability(*ability))
 
         else:
-            abilities_that_are_not_connected = self.get_all_abilities()
-            
+            abilities_that_are_not_connected = self.get_all_abilities()  
         
         return abilities_that_are_not_connected
 
@@ -524,7 +468,6 @@ class DatabaseController():
 
     def get_ability_list_exclude_template(self, template_id):
         ability_ids = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)
-       
 
         abilities_that_are_not_connected = []
 
@@ -536,46 +479,30 @@ class DatabaseController():
 
         else:
             abilities_that_are_not_connected = self.get_all_abilities()
-            
         
         return abilities_that_are_not_connected
 
-    #TODO PAss
     def create_ability_template(self, name, description):
-        create_template_sql = "INSERT INTO ability_templates(template_name, template_description) VALUES (?,?)"
-        self.cursor.execute(create_template_sql,(name,description))
-        return self.cursor.lastrowid
+        pass
 
     def remove_template(self, role_id, template_id_list):
-        self.cursor.execute("DELETE FROM roles_to_ability_templates WHERE role_id={}  AND ability_id IN ".format(role_id) + '(%s)' % ','.join('?'*len(template_id_list)), template_id_list)
+        pass
 
     def add_template_role(self, role_id, template_id_list):
-        add_template_sql = '''INSERT OR IGNORE INTO roles_to_ability_templates(role_id, template_id) VALUES (?,?)'''
-        for template_id in template_id_list:
-            self.cursor.execute(add_template_sql, (role_id, template_id))
+        pass
 
     def get_ability_template(self, template_id):
         template = self.select_where("*", "ability_templates", "template_id", template_id)[0]
         return AbilityTemplate(*template, self)
         
     def remove_ability_from_template(self, template_id, ability_list):
-        self.cursor.execute("DELETE FROM ability_templates_to_abilities WHERE template_id={} AND ability_id IN".format(template_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
+        pass
 
     def add_abilities_to_template(self,template_id, ability_list):
-        connect_template_ability_sql = "INSERT OR IGNORE INTO ability_templates_to_abilities(template_id,ability_id) VALUES (?,?)"
-        for ability_id in ability_list:
-            self.cursor.execute(connect_template_ability_sql,(template_id,ability_id,))
+        pass
 
     def create_template_history(self, template_id, new_name, new_description):
-        old_template = self.get_ability_template(template_id)
-        try:
-            historySql = '''INSERT INTO ability_template_history(id, name, description) VALUES (?,?,?) '''
-            self.cursor.execute(historySql, (old_template.id, old_template.name, old_template.description,))
-        except IntegrityError:
-            print(traceback.print_exc())
-
-        changeDescSql='''UPDATE ability_templates SET template_name=?, template_description=? WHERE template_id=?'''
-        self.cursor.execute(changeDescSql, (new_name, new_description, template_id,))
+        pass
 
     def get_template_history(self, template_id):
         revision_list = []
@@ -598,11 +525,9 @@ class DatabaseController():
             revision_list.append(AbilityHistory(*revision))
         return revision_list
 
-    #TODO pass
     #RELEATIONSHIPS#
     def add_relationship_actor(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
-        sql = '''INSERT INTO actor_relationships(actor1_id, actor1_name, actor2_id, actor2_name, relationship_type) VALUES (?,?,?,?,?)'''
-        self.cursor.execute(sql, (actor1_id, actor1_name, actor2_id, actor2_name, relationship_type))
+        pass
 
     def get_relationships_actor_by_actor_id(self, actor_id):
         relationships = []
@@ -617,13 +542,10 @@ class DatabaseController():
         return relationships
 
     def remove_relationships_actor(self, relationship_id_list):
-        for relationship_id in relationship_id_list:
-            delete_sql ='''DELETE FROM actor_relationships WHERE relationship_id={}'''.format(relationship_id)
-            self.cursor.execute(delete_sql)
+        pass
 
     def add_relationship_role(self, role1_id, role1_name, role2_id, role2_name, relationship_type):
-        sql = '''INSERT INTO role_relationships(role1_id, role1_name, role2_id, role2_name, relationship_type) VALUES (?,?,?,?,?)'''
-        self.cursor.execute(sql, (role1_id, role1_name, role2_id, role2_name, relationship_type))
+        pass
 
     def get_relationships_role_by_role_id(self, role_id):
         relationships = []
@@ -633,6 +555,4 @@ class DatabaseController():
         return relationships
 
     def remove_relationships_role(self, relationship_id_list):
-        for relationship_id in relationship_id_list:
-            delete_sql ='''DELETE FROM role_relationships WHERE relationship_id={}'''.format(relationship_id)
-            self.cursor.execute(delete_sql)
+        pass

@@ -1,6 +1,5 @@
 from flask.helpers import url_for
 from new_wiki_page_gen import WikiPageGenerator
-from database_controller import DatabaseController
 from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
 
@@ -9,10 +8,13 @@ app = Flask(__name__)
 import distutils
 import distutils.util
 
-#TODO update with new b subclasses, maybe an if statement
-db_control = DatabaseController()
-db_control.create_connection()
-db_control.create_db_if_not_exists()
+db_type = 'sql'
+
+if db_type == 'sql':
+
+    from db_controllers.db_cont_sql import DatabaseControllerSQL
+
+    db_control = DatabaseControllerSQL()
 
 #TODO more intuitive variable names, a sweep to make it pythonic
 #TODO variable types with (name: type)
@@ -30,7 +32,6 @@ def index():
 @app.route('/roles/', methods = ['GET', 'POST'])
 def wiki():
     #?my_var=my_value
-
 
     level = int(request.args['level'])
     base_id = request.args['base_id']
@@ -89,9 +90,6 @@ def actor_editor():
             relationship_ids = request.form.getlist('remove_relationship')
             db_control.remove_relationships_actor(relationship_ids)
             db_control.commit()
-
-        
-
             
     else:
         editorID = request.args['editorID']
@@ -216,7 +214,6 @@ def character_connector():
         id1 = request.form['id1']
         id2 = request.form['id2']
         mode = request.form['mode']
-        
 
         db_control.character_connector_switch(mode,id1,id2)
 
@@ -225,7 +222,6 @@ def character_connector():
         connector_mrs, connector_mrs2 = db_control.search_char_connector(name_1, name_2)
 
         return render_template('character_connector.html', have_results=True ,connector_mrs=connector_mrs, connector_mrs2=connector_mrs2, name_1=name_1, name_2=name_2)
-
     
     return render_template('character_connector.html', have_results = False)
 

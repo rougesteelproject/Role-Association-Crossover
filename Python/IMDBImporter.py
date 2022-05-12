@@ -1,4 +1,3 @@
-from database_controller import DatabaseController
 from imdb import Cinemagoer
 import constants
 import traceback
@@ -81,11 +80,12 @@ class IMDBImporter():
         role_name = (f'{character_name} ({movie_title}) ({actor_name})')
         return role_name
 
-def main():
-    db_controller = DatabaseController()
-    db_controller.create_connection()
-    db_controller.create_db_if_not_exists()
-    #TODO db_cont should create_db on it's own
+def main(db_type):
+    if db_type == 'sql':
+        from db_controllers.db_cont_sql import DatabaseControllerSQL
+
+        db_controller = DatabaseControllerSQL()
+
     imdbImp = IMDBImporter(db_controller)
     imdbImp.get_actor_IMDB(469)
 
