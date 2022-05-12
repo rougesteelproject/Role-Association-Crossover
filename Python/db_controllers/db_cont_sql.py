@@ -1,8 +1,11 @@
+from Python.database_controller import DatabaseController
+
+import constants
+
 import sqlite3
 from sqlite3.dbapi2 import IntegrityError
 import traceback
 
-import constants
 from classes.nodes.actor import Actor
 from classes.nodes.meta_role import MetaRole
 from classes.nodes.role import Role
@@ -22,66 +25,103 @@ from classes.nodes.role_relationship import RoleRelationship
 
 from classes.nodes.image import Image
 
-
-#TODO replace some text with varChar
-
-#TODO a way to remove porn actors, because the 'no adult films' bit doesn't work.
-
-#TODO maybe break SQL and NEO into their own classes? Maybe by extending DB_CONT?
-#TODO   set all functions here to 'pass'
-
-class DatabaseController():
+class DatabaseControllerSQL(DatabaseController):
     def __init__(self):
+        super().__init__()
 
-        self.connection = None      
+        self._database_uri = constants.SQL_URI
+        self._sql_cursor = None
+
+    #EXECUTION - SQL#
 
     def create_connection(self):
-        pass
+        try:
+            self.connection = sqlite3.connect(self._database, check_same_thread=False)
+            self._sql_cursor = self.connection.cursor()
+        except sqlite3.Error:
+            traceback.print_exc()
 
     def execute(self, command, parameters):
-        pass
+        self._sql_cursor.execute(command, parameters)
 
     def commit(self):
-        pass
-
-    #TODO each select returns a list of tuples. Check that the data is procesed at the right layer.
+        self.connection.commit()
 
     def create_db_if_not_exists(self):
-        pass
+        # Create table if it doesn't exist
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles(id INTEGER PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'Auto-Generated\', historical TEXT DEFAULT \'False\', religious TEXT DEFAULT \'False\', fictional_in_universe TEXT DEFAULT \'False\',is_biggest TEXT DEFAULT \'False\')''')
+        #INTERGER PRIMARY KEY does auto-increment for you
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role TEXT, actor INT, caption TEXT DEFAULT \'Auto-Generated\')''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY, name TEXT NOT NULL, bio TEXT, birth_date TEXT, death_date TEXT,is_biggest TEXT DEFAULT \'False\')''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0, first_parent_meta INT )''')
+        #relationships
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actor_relationships(relationship_id INTEGER PRIMARY KEY, actor1_id INT, actor1_name TEXT, actor2_id INT, actor2_name TEXT,relationship_type TEXT) ''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INTEGER PRIMARY KEY, role1_id TEXT, role1_name TEXT ,role2_id TEXT, role2_name TEXT,relationship_type TEXT)''')
+        #map role/actor to ability or template, ability to description
+        #abilities include languages
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_to_abilities(actor_id INT, ability_id INT, UNIQUE(actor_id, ability_id))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates_to_abilities(template_id INT, ability_id INT, UNIQUE(template_id,ability_id))''') #[species/power source: ability_id]
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_templates(template_id INTEGER PRIMARY KEY, template_name TEXT, template_description TEXT)''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_ability_templates(role_id TEXT, template_id TEXT, UNIQUE (role_id, template_id))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_to_abilities(role_id TEXT, ability_id TEXT, UNIQUE (role_id, ability_id))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities(id INTEGER PRIMARY KEY, name TEXT, description TEXT)''') #[krypt: strength (kyptonian): kryptonians can lift quintillion tons blah blah]
+        #create history tables
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS meta_roles_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, historical TEXT, religious TEXT, fictional_in_universe TEXT, UNIQUE(id, name, description, historical, religious, fictional_in_universe))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS roles_history(id TEXT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, alive_or_dead TEXT, alignment TEXT, UNIQUE (id, name, description, alive_or_dead, alignment))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS actors_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, bio TEXT, UNIQUE(id, name, bio))''')
+        #history tables for abilities
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS abilities_history(id INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT, description TEXT, UNIQUE(id, name, description))''')
+        self.cursor.execute('''CREATE TABLE IF NOT EXISTS ability_template_history(id, INT NOT NULL, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, name TEXT NOT NULL, description TEXT, UNIQUE(id, name, description))''')
 
-    #CREATE#
+    #CREATE - SQL#
+
     def create_actor(self, id, name, bio, birth_date, death_date):
-        pass
+        #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
+        create_actor_sql = '''INSERT OR IGNORE INTO actors(id, name, bio, birth_date, death_date) VALUES (?,?,?,?,?) '''
+        self.cursor.execute(create_actor_sql, (id, name, bio, birth_date, death_date,))
 
-    def create_role(self,role_id, role_name, actor_id, mr_id):
-        pass
+    def create_role(self, role_id, role_name, actor_id, mr_id):
+        #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
+        create_role_sql = '''INSERT OR IGNORE INTO roles(id, name,parent_actor, parent_meta, first_parent_meta) VALUES (?,?,?,?,?) '''
+        # Create table if it doesn't exist
+        self.execute(create_role_sql, (role_id, role_name,actor_id, mr_id, mr_id,))
 
-    def create_mr_and_return_id(self, character_name):
-        pass
+    def create_mr_and_return_id(self,character_name):
+        create_mr_sql = '''INSERT INTO meta_roles(name) VALUES (?) '''
+        self.execute(create_mr_sql,(character_name,))
+        return self._sql_cursor.lastrowid
 
-    def create_role_and_first_mr(self,character_name, role_id, role_name, actor_id):
-        pass
+    def create_role_and_first_mr(self, character_name, role_id, role_name, actor_id):
+        mr_id = self.create_mr_and_return_id(character_name)
+        self.create_role(role_id, role_name, actor_id, mr_id)
 
-    
     #UPDATE#
     def update(self, table_name, column, column_value, where, where_value):
-        pass
+        update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
+        self.cursor.execute(update_sql, (column_value, where_value,))
 
     def update_or(self, table_name, column, column_value, where_1, where_value_1, where_2, where_value_2):
-        pass
+        update_sql = "UPDATE {} SET {}=? WHERE {}=? OR {}=?".format(table_name.lower(), column.lower(), where_1.lower(), where_2.lower())
+        self.cursor.execute(update_sql, (column_value,where_value_1,where_value_2,))
     
     def update_and(self, table_name, column, column_value, where_1, where_value_1, where_2, where_value_2):
-        pass
+        update_sql = "UPDATE {} SET {}=? WHERE {}=? AND {}=?".format(table_name, column, where_1, where_2)
+        self.cursor.execute(update_sql, (column_value, where_value_1, where_value_2,))
 
     def update_reset_mr(self, roleID1):
-        pass
+        update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
+        self.cursor.execute(update_reset_mr_sql, (roleID1,))
 
     #SELECT#
     def select_where(self, select_columns, table_name, where, where_value):
-        pass
+        select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
+        self.cursor.execute(select_sql, (where_value,))
+        return self.cursor.fetchall()
 
     def select(self, select_columns, table_name):
-        pass
+        select_sql = "SELECT {} FROM {}".format(select_columns.lower(), table_name.lower())
+        self.cursor.execute(select_sql)
+        return self.cursor.fetchall()
 
     def select_and(self, select_columns, table_name, where_column, where_value, where_column_2, where_value_2):
         select_sql = "SELECT {} FROM {} WHERE {}=? AND {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())

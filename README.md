@@ -11,4 +11,6 @@ TODO: update per: https://cinemagoer.readthedocs.io/en/latest/ TODO: there may b
 
 Now generating MR id equal to the role id. This makes it easy to match a role to it's original mr. It's as close to a natural key as i can get. each mr is derived from the role, after all. -This means mr id comes from role id, --which comes from actor id + movie + index of roles by that actor in that movie
 
-##Reject Pile: ###cinemagoer: SQLAlchemy will be needed for the s3database method there may be a way to go right from one DB to another Actually, this has poroblems with characters. In the SQL, every character with the same name has the same ID While this may be more efficient, we'd actually have to spend time separating chars that don't have the same MR
+##Reject Pile: 
+###cinemagoer: 
+SQLAlchemy will be needed for the s3database method there may be a way to go right from one DB to another Actually, this has poroblems with characters. In the SQL, every character with the same name has the same ID While this may be more efficient, we'd actually have to spend time separating chars that don't have the same MR
