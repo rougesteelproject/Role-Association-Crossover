@@ -4,6 +4,14 @@
 
 ##Global TODO: 
 TODO: the base needs to be more modular. public methods should be calling db-specific private methods
+- Law of Demeter: each class shouls only 'know' it's own methods or variables, and the top-level methods
+of any other classes it has been given
+-Have getters vs public variables
+#TODO variable types with (name: type)
+
+#TODO more intuitive variable names, a sweep to make it pythonic
+
+#TODO I shouldn't need "go_back_url"
 
 TODO: update per: https://cinemagoer.readthedocs.io/en/latest/ TODO: there may be a new way to get IMDB Id's TODO: does adultSearch=0 still work?
 
