@@ -24,6 +24,8 @@ from classes.nodes.image import Image
 class DatabaseController():
     def __init__(self):
 
+        self.requests = []
+
         self.connection = self._create_connection() 
         self._create_db_if_not_exists
         #Sublcalsses will use their owwn versions

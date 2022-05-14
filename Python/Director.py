@@ -1,28 +1,49 @@
-from flask.helpers import url_for
-from new_wiki_page_gen import WikiPageGenerator
-from flask import Flask, render_template, request, redirect
-app = Flask(__name__)
-
 #TODO replace exceptions with traceback.print_exc()
 
-import distutils
-import distutils.util
-
-db_type = 'sql'
-
-if db_type == 'sql':
-
-    from db_controllers.db_cont_sql import DatabaseControllerSQL
-
-    db_control = DatabaseControllerSQL()
-
-#TODO more intuitive variable names, a sweep to make it pythonic
-#TODO variable types with (name: type)
 #   functions modify lists, so we don't neet to return them. 
 
 #TODO a page with everybody, alphabetically
 
 #TODO a way to add user-made roles to replace the ... or 'additional voices' for actorw w/ multiple roles, like in skyrim
+
+import distutils
+import distutils.util
+
+class Director:
+    def __init__(self, db_type : str = 'sql'):
+        self._db_type = db_type
+        
+        self._create_db_controller()
+        self._import_page_generator()
+
+    def _create_db_controller(self):
+        if self._db_type == 'sql':
+            from db_controllers.db_cont_sql import DatabaseControllerSQL
+            self._db_control = DatabaseControllerSQL()
+
+    def _import_page_generator(self):
+        if self._db_type == 'sql':
+            from page_generators.page_generator_sql import PageGeneratorSQL
+
+    def run_flask(self, **kwargs):
+        from Python.flask_wrapper import FlaskWrapper
+
+        self._flask_wrapper = FlaskWrapper()
+
+        self._add_flask_endpoints()
+
+        self._flask_wrapper.run(**kwargs)
+
+    def import_imdb(self):
+        import IMDBImporter
+
+        self._IMDB_importer = IMDBImporter()
+
+        self._IMDB_importer.get_all_IMDB()
+
+    def _add_flask_endpoints(self):
+        
+        self._flask_wrapper.add_endpoint()
 
 @app.route('/')
 def index():
@@ -357,4 +378,11 @@ def create_ability():
         #render the template with the form (the normal response to this link)
         return render_template('create_ability.html', goBackUrl=goBackUrl)
 
-app.run(port=5000)
+
+def main():
+    db_type = 'sql'
+    director = Director(db_type=db_type)
+    director.run_flask(port=5000)
+
+if __name__ == '__main__':
+    main()
