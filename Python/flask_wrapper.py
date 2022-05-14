@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 class FlaskWrapper:
     def __init__(self, app = Flask(__name__)):
@@ -12,3 +12,6 @@ class FlaskWrapper:
 
     def run(self, **kwargs):
         self._app.run(**kwargs)
+
+    def request():
+        return request

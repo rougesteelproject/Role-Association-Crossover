@@ -2,7 +2,7 @@ from email.mime import base
 from wiki_page_generator import WikiPageGenerator
 
 class PageGeneratorSQL(WikiPageGenerator):
-    def __init__(self, base_id, layers_to_generate, enable_actor_swap, base_actor = None, base_mr = None, db_control):
+    def __init__(self, base_id, layers_to_generate, db_control, enable_actor_swap = False, base_actor = None, base_mr = None):
         super().__init__(base_id, layers_to_generate, enable_actor_swap, db_control)
 
         if base_actor is not None:

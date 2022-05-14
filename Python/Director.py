@@ -9,6 +9,8 @@
 import distutils
 import distutils.util
 
+from Python.page_generators.page_generator_sql import PageGeneratorSQL
+
 class Director:
     def __init__(self, db_type : str = 'sql'):
         self._db_type = db_type
@@ -24,6 +26,13 @@ class Director:
     def _import_page_generator(self):
         if self._db_type == 'sql':
             from page_generators.page_generator_sql import PageGeneratorSQL
+
+    def _generate_page(self, base_id, layers_to_generate, db_control, enable_actor_swap = False, base_actor = None, base_mr = None):
+        page_generator = PageGeneratorSQL(base_id, layers_to_generate,  db_control, enable_actor_swap, base_actor, base_mr)
+
+        page_generator.generate_content()
+
+        return page_generator
 
     def run_flask(self, **kwargs):
         from Python.flask_wrapper import FlaskWrapper
@@ -43,88 +52,104 @@ class Director:
 
     def _add_flask_endpoints(self):
         
-        self._flask_wrapper.add_endpoint()
+        #index
+        #TODO generate featured articles based off of hits or connections (after the webview/ hub sigils works)
+        self._flask_wrapper.add_endpoint(endpoint= '/', endpoint_name= 'index', handler= self._route_index)
 
-@app.route('/')
-def index():
-    #TODO generate featured articles based off of hits or connections (after the webview/ hub sigils works)
-    return render_template('index.html')
+        #roles (wiki)
+        self._flask_wrapper.add_endpoint(endpoint= '/roles/', endpoint_name= '/roles/', handler = self._route_wiki, methods= ['GET', 'POST'])
 
-@app.route('/roles/', methods = ['GET', 'POST'])
-def wiki():
-    #?my_var=my_value
+        #actor editor
+        self._flask_wrapper.add_endpoint(endpoint= '/editor/actor', endpoint_name= 'actor_editor', handler=self._route_actor_editor, methods=['GET','POST'])
 
-    level = int(request.args['level'])
-    base_id = request.args['base_id']
-    base_is_actor = bool(distutils.util.strtobool(request.args['base_is_actor']))
-    if "enable_actor_swap" in request.args:
-        enable_actor_swap = True
-    else:
-        enable_actor_swap = False
-    print(f'director: id to fetch: {base_id}')
-    
-    
-    wiki_page_generator = WikiPageGenerator(base_id, level, base_is_actor, enable_actor_swap, db_control)
-    wiki_page_generator.generate_content()
-    return render_template('wiki_template.html', generator=wiki_page_generator, blurb_editor_link="", hub_sigils="" )
-       
-@app.route('/editor/actor', methods = ['GET','POST'])
-def actor_editor():
+    def _route_index(self):
+        self._flask_wrapper.render()
 
-    if request.method == 'POST':
+    def _route_wiki(self):
+        #?my_var=my_value
 
-        editorID = request.form['editorID']
-        goBackUrl = request.form['goBackUrl']
+        request = self._flask_wrapper.request().args
 
-        if "bio_editor" in request.form:
-            new_bio  = request.form['bio']
+        base_actor = None
+        base_mr = None
 
-            #gets the old desc, plops it into history, then replaces it with the new
-            db_control.create_actor_history(editorID,new_bio)
-            db_control.commit()
+        level = int(request['level'])
+        base_id = request['base_id']
+        base_is_actor = bool(distutils.util.strtobool(request['base_is_actor']))
+        if "enable_actor_swap" in request:
+            enable_actor_swap = True
+        else:
+            enable_actor_swap = False
+        print(f'director: id to fetch: {base_id}')
 
-        if "history_reverter" in request.form:
-            new_bio  = request.form['bio']
-            
-            db_control.create_actor_history(editorID,new_bio)
-            db_control.commit()
-
-        if "ability_remover" in request.form:
-            abilities_to_remove = request.form.getlist('remove_ability')
-            db_control.remove_ability_actor(editorID, abilities_to_remove)
-            db_control.commit()
-
-        if "ability_adder" in request.form:
-            abilities_to_add = request.form.getlist('add_ability')
-            db_control.add_ability_actor(editorID, abilities_to_add)
-            db_control.commit()
-
-        if "relationship_adder" in request.form:
-            actor1_id =request.form['actor1_id']
-            actor1_name = request.form['actor1_name']
-            actor2_id, actor2_name = request.form['actor2'].split('|')
-            type = request.form['relationship_type']
-            db_control.add_relationship_actor(actor1_id,actor1_name,actor2_id, actor2_name, type)
-            db_control.commit()
-
-        if "relationship_remover" in request.form:
-            relationship_ids = request.form.getlist('remove_relationship')
-            db_control.remove_relationships_actor(relationship_ids)
-            db_control.commit()
-            
-    else:
-        editorID = request.args['editorID']
-        goBackUrl = request.referrer
+        if base_is_actor:
+            base_actor = self._db_control.get_actor(base_id)
+        else:
+            base_mr = self._db_control.get_mr(base_id)
         
-        #a list of all histry entries
+        #TODO there's probably a way to send a dictionary or something instead of the generator itself.
+        
+        generator = self._generate_page(base_id, level, self._db_control, enable_actor_swap, base_actor, base_mr)
+        return self._flask_wrapper.render('wiki_template.html', generator=generator, blurb_editor_link="", hub_sigils="" )
+       
+    def _route_actor_editor(self):
 
-    actor = db_control.get_actor(editorID)
-    history = db_control.get_actor_history(editorID)
-    abilities_that_are_not_connected = db_control.get_ability_list_exclude_actor(actor.id)
+        request = self._flask_wrapper.request()
 
-    all_actors = db_control.get_all_actors()
+        if request.method == 'POST':
 
-    return render_template('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, all_actors=all_actors)
+            editorID = request.form['editorID']
+            goBackUrl = request.form['goBackUrl']
+
+            if "bio_editor" in request.form:
+                new_bio  = request.form['bio']
+
+                #gets the old desc, plops it into history, then replaces it with the new
+                self._db_control.create_actor_history(editorID,new_bio)
+                self._db_control.commit()
+
+            if "history_reverter" in request.form:
+                new_bio  = request.form['bio']
+                
+                self._db_control.create_actor_history(editorID,new_bio)
+                self._db_control.commit()
+
+            if "ability_remover" in request.form:
+                abilities_to_remove = request.form.getlist('remove_ability')
+                self._db_control.remove_ability_actor(editorID, abilities_to_remove)
+                self._db_control.commit()
+
+            if "ability_adder" in request.form:
+                abilities_to_add = request.form.getlist('add_ability')
+                self._db_control.add_ability_actor(editorID, abilities_to_add)
+                self._db_control.commit()
+
+            if "relationship_adder" in request.form:
+                actor1_id =request.form['actor1_id']
+                actor1_name = request.form['actor1_name']
+                actor2_id, actor2_name = request.form['actor2'].split('|')
+                type = request.form['relationship_type']
+                self._db_control.add_relationship_actor(actor1_id,actor1_name,actor2_id, actor2_name, type)
+                self._db_control.commit()
+
+            if "relationship_remover" in request.form:
+                relationship_ids = request.form.getlist('remove_relationship')
+                self._db_control.remove_relationships_actor(relationship_ids)
+                self._db_control.commit()
+                
+        else:
+            editorID = request.args['editorID']
+            goBackUrl = request.referrer
+            
+            #a list of all histry entries
+
+        actor = self._db_control.get_actor(editorID)
+        history = self._db_control.get_actor_history(editorID)
+        abilities_that_are_not_connected = self._db_control.get_ability_list_exclude_actor(actor.id)
+
+        all_actors = self._db_control.get_all_actors()
+
+        self._flask_wrapper.render('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, all_actors=all_actors)
 
 @app.route('/editor/meta', methods = ['GET','POST'])
 def mr_editor():
