@@ -6,8 +6,11 @@
 
 #TODO a way to add user-made roles to replace the ... or 'additional voices' for actorw w/ multiple roles, like in skyrim
 
+#TODO commit should be up to db_cont
+
 import distutils
 import distutils.util
+from urllib import request
 
 from Python.page_generators.page_generator_sql import PageGeneratorSQL
 
@@ -27,7 +30,7 @@ class Director:
         if self._db_type == 'sql':
             from page_generators.page_generator_sql import PageGeneratorSQL
 
-    def _generate_page(self, base_id, layers_to_generate, db_control, enable_actor_swap = False, base_actor = None, base_mr = None):
+    def _generate_page(self, layers_to_generate, enable_actor_swap = False, base_actor = None, base_mr = None):
         page_generator = PageGeneratorSQL(layers_to_generate=layers_to_generate, callback_get_actor=self._db_control.get_actor, callback_get_mr=self._db_control.get_mr, enable_actor_swap=enable_actor_swap, base_actor=base_actor, base_mr=base_mr)
 
         page_generator.generate_content()
@@ -73,6 +76,24 @@ class Director:
 
         #web view
         self._flask_wrapper.add_endpoint(endpoint='/webview', endpoint_name='webview', handler= self._route_webview)
+
+        #submit image
+        self._flask_wrapper.add_endpoint(endpoint='/submit_image', endpoint_name='submit_image', handler=self._route_submit_image,methods=['POST'])
+
+        #search
+        self._flask_wrapper.add_endpoint(endpoint='/search', endpoint_name='search', handler=self._route_search)
+
+        #edit ability
+        self._flask_wrapper.add_endpoint(endpoint='/editor/ability', endpoint_name = 'ability_editor', handler = self._route_ability_editor,methods=['POST','GET'])
+
+        #edit template
+        self._flask_wrapper.add_endpoint(endpoint='editor/template', endpoint_name='template_editor', handler=self._route_template_editor, methods=['POST', 'GET'])
+
+        #create template
+        self._flask_wrapper.add_endpoint(endpoint='/create_template', endpoint_name='create_template', handler=self._route_create_template, methods=['POST', 'GET'])
+
+        #create_ability
+        self._flask_wrapper.add_endpoint(endpoint='/create_ability', endpoint_name='create_ability', handler=self._route_create_ability, methods=['POST', 'GET'])
 
     def _route_index(self):
         self._flask_wrapper.render()
@@ -290,133 +311,143 @@ class Director:
     def _route_webview(self):
         self._flask_wrapper._render('webview.html')
 
-@app.route('/submit_image', methods=['POST'])
-def submit_image():
-    page_type=request.form['typeImg']
-    page_id = request.form['IDImg'] 
-    caption = request.form['caption']
-    uploaded_file = request.files['file']
-    go_back_url = request.form['goBackUrlImg']
-    if uploaded_file.filename != '':
-        uploaded_file.save('static/' + uploaded_file.filename)
+    def _route_submit_image(self):
+        request = self._flask_wrapper.request()
 
-    db_control.add_image(page_type, page_id, uploaded_file.filename, caption)
-    return(redirect(go_back_url))
-    #TODO this needs to stay on the same page, instead
-        #a form with stay_here url or something (request.referer?)
-
-@app.route('/search')
-def search():
-    query = request.args['query']
-    search_actors, search_mrs = db_control.search_bar(query)
-    return render_template('search.html', search_mrs = search_mrs, search_actors = search_actors)
-
-@app.route('/editor/ability', methods=['POST', 'GET'])
-def ability_editor():
-    if request.method == 'POST':
-        ability_id = request.form['editorID']
-        goBackUrl = request.form['goBackUrl']
+        page_type=request.form['typeImg']
+        page_id = request.form['IDImg'] 
+        caption = request.form['caption']
+        uploaded_file = request.files['file']
+        go_back_url = request.form['goBackUrlImg']
         
-        if "edit_ability" in request.form:
-            new_description  = request.form['description']
-            new_name = request.form['name']
+        if uploaded_file.filename != '':
+            uploaded_file.save('static/' + uploaded_file.filename)
 
-            db_control.create_ability_history(ability_id, new_name,new_description)
-            db_control.commit()
+        self._db_control.add_image(page_type, page_id, uploaded_file.filename, caption)
 
-        if "history_reverter" in request.form:
-            new_name = request.form['name']
-            new_description  = request.form['description']
+        #TODO this needs to stay on the same page, instead
+            #a form with stay_here url or something (request.referer?)
+        self._flask_wrapper.redirect(go_back_url)       
 
-            db_control.create_ability_history(ability_id, new_name,new_description)
-            db_control.commit()
+    def _route_search(self):
+        request = self._flask_wrapper.request()
 
-    else: 
-        goBackUrl = request.referrer
-        ability_id = request.args['id']
-    
-    ability = db_control.get_ability(ability_id)
-    history = db_control.get_ability_history(ability_id)
-    return render_template('ability_editor.html',ability=ability, history=history, goBackUrl=goBackUrl)
+        query = request.args['query']
+        search_actors, search_mrs = self._db_control.search_bar(query)
 
-@app.route('/editor/template', methods=['POST', 'GET'])
-def template_editor():
-    if request.method == 'POST':
-        template_id = request.form['editorID']
-        goBackUrl = request.form['goBackUrl']
+        self._flask_wrapper.render('search.html', search_mrs = search_mrs, search_actors = search_actors)
+
+    def _route_ability_editor(self):
         
-        if "edit_template" in request.form:
-            new_description  = request.form['description']
-            new_name = request.form['name']
+        request = self._flask_wrapper.request()
 
-            db_control.create_template_history(template_id, new_name,new_description)
-            db_control.commit()
+        if request.method == 'POST':
+            ability_id = request.form['editorID']
+            goBackUrl = request.form['goBackUrl']
+            
+            if "edit_ability" in request.form:
+                new_description  = request.form['description']
+                new_name = request.form['name']
 
-        if "history_reverter" in request.form:
-            new_name = request.form['name']
-            new_description  = request.form['description']
+                self._db_control.create_ability_history(ability_id, new_name,new_description)
+                self._db_control.commit()
 
-            db_control.create_template_history(template_id, new_name,new_description)
-            db_control.commit()
+            if "history_reverter" in request.form:
+                new_name = request.form['name']
+                new_description  = request.form['description']
 
-        if "ability_remover" in request.form:
-            abilities_to_remove = request.form.getlist('remove_ability')
-            db_control.remove_ability_from_template(template_id, abilities_to_remove)
-            db_control.commit()
+                self._db_control.create_ability_history(ability_id, new_name,new_description)
+                self._db_control.commit()
 
-        if "ability_adder" in request.form:
-            abilities_to_add = request.form.getlist('add_ability')
-            db_control.add_abilities_to_template(template_id,abilities_to_add)
-            db_control.commit() 
-
-    else: 
-        goBackUrl = request.referrer
-        template_id = request.args['id']
-    
-    abilities_that_are_not_connected = db_control.get_ability_list_exclude_template(template_id)
-    template = db_control.get_ability_template(template_id)
-    history = db_control.get_template_history(template_id)
-    return render_template('template_editor.html',template=template, abilities_that_are_not_connected=abilities_that_are_not_connected ,history=history, goBackUrl=goBackUrl)
-
-@app.route('/create_template', methods=['POST','GET'])
-def create_template():
-    if "create_template" in request.form:
-        name = request.form['name']
-        description = request.form['description']
-        goBackUrl = request.form['goBackUrl']
+        else: 
+            goBackUrl = request.referrer
+            ability_id = request.args['id']
         
-        template_id = db_control.create_ability_template(name, description)
-        db_control.commit()
+        ability = self._db_control.get_ability(ability_id)
+        history = self._db_control.get_ability_history(ability_id)
+        self._flask_wrapper.render('ability_editor.html',ability=ability, history=history, goBackUrl=goBackUrl)
 
-        template = db_control.get_ability_template(template_id)
-        history = db_control.get_template_history(template_id)
-        abilities_that_are_not_connected = db_control.get_ability_list_exclude_template(template_id)
+    def _route_template_editor(self):
+        request = self._flask_wrapper.request()
 
-        #TODO this needs to redirect so it sends the values to temp_editor, while go_back still works
-        return render_template('template_editor.html', template=template, abilities_that_are_not_connected=abilities_that_are_not_connected, history=history, goBackUrl=goBackUrl)
-    else:
-        goBackUrl = request.referrer
-        return render_template('create_template.html', goBackUrl=goBackUrl)
+        if request.method == 'POST':
+            template_id = request.form['editorID']
+            goBackUrl = request.form['goBackUrl']
+            
+            if "edit_template" in request.form:
+                new_description  = request.form['description']
+                new_name = request.form['name']
 
-@app.route('/create_ability', methods=['POST','GET'])
-def create_ability():
-    if "create_ability" in request.form:
-        name = request.form['name']
-        description = request.form['description']
-        goBackUrl = request.form['goBackUrl']
+                self._db_control.create_template_history(template_id, new_name,new_description)
+                self._db_control.commit()
 
-        ability_id = db_control.create_ability(name, description)
+            if "history_reverter" in request.form:
+                new_name = request.form['name']
+                new_description  = request.form['description']
+
+                self._db_control.create_template_history(template_id, new_name,new_description)
+                self._db_control.commit()
+
+            if "ability_remover" in request.form:
+                abilities_to_remove = request.form.getlist('remove_ability')
+                self._db_control.remove_ability_from_template(template_id, abilities_to_remove)
+                self._db_control.commit()
+
+            if "ability_adder" in request.form:
+                abilities_to_add = request.form.getlist('add_ability')
+                self._db_control.add_abilities_to_template(template_id,abilities_to_add)
+                self._db_control.commit() 
+
+        else: 
+            goBackUrl = request.referrer
+            template_id = request.args['id']
         
-        ability = db_control.get_ability(ability_id)
-        history = db_control.get_ability_history(ability_id)
+        abilities_that_are_not_connected = self._db_control.get_ability_list_exclude_template(template_id)
+        template = self._db_control.get_ability_template(template_id)
+        history = self._db_control.get_template_history(template_id)
+        self._flask_wrapper.render('template_editor.html',template=template, abilities_that_are_not_connected=abilities_that_are_not_connected ,history=history, goBackUrl=goBackUrl)
 
-        return render_template('ability_editor.html', ability=ability, history=history, goBackUrl=goBackUrl)
-        
-        #create the ability using db_cont, then go to ability_editor
-    else:
-        goBackUrl = request.referrer
-        #render the template with the form (the normal response to this link)
-        return render_template('create_ability.html', goBackUrl=goBackUrl)
+    def _route_create_template(self):
+        request = self._flask_wrapper.request()
+
+        if "create_template" in request.form:
+            name = request.form['name']
+            description = request.form['description']
+            goBackUrl = request.form['goBackUrl']
+            
+            template_id = self._db_control.create_ability_template(name, description)
+            self._db_control.commit()
+
+            template = self._db_control.get_ability_template(template_id)
+            history = self._db_control.get_template_history(template_id)
+            abilities_that_are_not_connected = self._db_control.get_ability_list_exclude_template(template_id)
+
+            #TODO this needs to redirect so it sends the values to temp_editor, while go_back still works
+            self._flask_wrapper.render('template_editor.html', template=template, abilities_that_are_not_connected=abilities_that_are_not_connected, history=history, goBackUrl=goBackUrl)
+        else:
+            goBackUrl = request.referrer
+            return self._flask_wrapper.render('create_template.html', goBackUrl=goBackUrl)
+
+    def _route_create_ability(self):
+        request = self._flask_wrapper.request()
+
+        if "create_ability" in request.form:
+            name = request.form['name']
+            description = request.form['description']
+            goBackUrl = request.form['goBackUrl']
+
+            ability_id = self._db_control.create_ability(name, description)
+            
+            ability = self._db_control.get_ability(ability_id)
+            history = self._db_control.get_ability_history(ability_id)
+
+            self._flask_wrapper.render('ability_editor.html', ability=ability, history=history, goBackUrl=goBackUrl)
+            
+            #create the ability using db_cont, then go to ability_editor
+        else:
+            goBackUrl = request.referrer
+            #render the template with the form (the normal response to this link)
+            self._flask_wrapper.render('create_ability.html', goBackUrl=goBackUrl)
 
 
 def main():
