@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 
 class FlaskWrapper:
     def __init__(self, app = Flask(__name__)):
@@ -9,6 +9,9 @@ class FlaskWrapper:
         
     def render(template: str = 'index.html', **kwargs):
         return render_template(template, kwargs)
+
+    def redirect(url):
+        return redirect(url)
 
     def run(self, **kwargs):
         self._app.run(**kwargs)
