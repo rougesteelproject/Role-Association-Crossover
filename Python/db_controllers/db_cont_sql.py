@@ -1,4 +1,4 @@
-from Python.database_controller import DatabaseController
+from database_controller import DatabaseController
 
 import constants
 
@@ -8,18 +8,18 @@ import traceback
 
 class DatabaseControllerSQL(DatabaseController):
     def __init__(self):
-        super().__init__()
-
-        self._database_uri = constants.SQL_URI
+        super().__init__(database_uri=constants.SQL_URI)
         self._sql_cursor = None
-        self._sql_connection
 
     #EXECUTION - SQL#
 
-    def create_connection(self):
+    def _create_connection(self):
         try:
-            self._sql_connection = sqlite3.connect(self._database, check_same_thread=False)
-            self._sql_cursor = self._sql_connection.cursor()
+            connection = sqlite3.connect(self._database_uri, check_same_thread=False)
+            
+            self._sql_cursor = connection.cursor()
+
+            return connection
         except sqlite3.Error:
             traceback.print_exc()
 

@@ -12,7 +12,7 @@ import distutils
 import distutils.util
 from urllib import request
 
-from Python.page_generators.page_generator_sql import PageGeneratorSQL
+from page_generators.page_generator_sql import PageGeneratorSQL
 
 class Director:
     def __init__(self, db_type : str = 'sql'):
@@ -47,11 +47,13 @@ class Director:
         self._flask_wrapper.run(**kwargs)
 
     def import_imdb(self):
-        import IMDBImporter
+        from IMDB_importer import IMDBImporter as IMDBimp
 
-        self._IMDB_importer = IMDBImporter()
+        self._IMDB_importer = IMDBimp(callback_create_actor = self._db_control.create_actor, callback_create_role = self._db_control.create_role, callback_create_mr = self._db_control.create_mr)
 
         self._IMDB_importer.get_all_IMDB()
+
+        self._db_control.commit()
 
     def _add_flask_endpoints(self):
         
@@ -453,6 +455,7 @@ class Director:
 def main():
     db_type = 'sql'
     director = Director(db_type=db_type)
+    director.import_imdb()
     director.run_flask(port=5000)
 
 if __name__ == '__main__':

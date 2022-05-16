@@ -22,10 +22,10 @@ from classes.nodes.image import Image
 #TODO a way to remove porn actors, because the 'no adult films' bit doesn't work.
 
 class DatabaseController():
-    def __init__(self):
+    def __init__(self, database_uri):
 
         self.requests = []
-
+        self._database_uri = database_uri
         self.connection = self._create_connection() 
         self._create_db_if_not_exists
         #Sublcalsses will use their owwn versions
