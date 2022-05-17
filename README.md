@@ -11,6 +11,8 @@ of any other classes it has been given
 
 #TODO more intuitive variable names, a sweep to make it pythonic
 
+#TODO I shouldn't need "go_back_url"
+
 TODO: update per: https://cinemagoer.readthedocs.io/en/latest/ TODO: there may be a new way to get IMDB Id's TODO: does adultSearch=0 still work?
 
 #TODO we need a better way to store the changelog for actors/mrs/abilities
