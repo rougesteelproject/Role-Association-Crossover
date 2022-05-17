@@ -115,6 +115,7 @@ class DatabaseController():
     #TODO may search in bios or descriptions?
 
     def get_actor(self, actor_id):
+        #TODO callback to get an actor that's not already in the db (send an error: no such actor in db, then try imdbImp, then imdbImp will give an error if no such person)
         if actor_id != '':
             fetched_actor = self.select_where("*","actors","id",actor_id)[0]
             actor = Actor(*fetched_actor, self)
