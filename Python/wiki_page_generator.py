@@ -5,11 +5,9 @@
 #TODO get the director to do the db stuff
 
 class WikiPageGenerator:
-    def __init__(self, base_id, layers_to_generate, base_is_actor, enable_actor_swap, db_control):
-        self._db_control = db_control
+    def __init__(self, layers_to_generate, enable_actor_swap = False):
         self._layers_to_generate = layers_to_generate
         self._enable_actor_swap = enable_actor_swap
-        self._base_id = base_id
 
         self.link_actor_relationships = []
         self.plaintext_actor_relationships = []
