@@ -1,4 +1,4 @@
-from image import Image
+from classes.nodes.image import Image
 
 class Role:
 

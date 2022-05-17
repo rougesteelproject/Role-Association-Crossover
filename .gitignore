@@ -1,7 +1,6 @@
 Python/__pycache__/
 Python/classes/__pycache__/
-Python/classes/histories/
+Python/classes/histories/__pycache__/
 Python/classes/nodes/__pycache__/
 Python/db_controllers/__pycache__/
 Python/page_generators/__pycache__/
-__pycache__/
