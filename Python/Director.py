@@ -38,7 +38,7 @@ class Director:
         return page_generator
 
     def run_flask(self, **kwargs):
-        from Python.flask_wrapper import FlaskWrapper
+        from flask_wrapper import FlaskWrapper
 
         self._flask_wrapper = FlaskWrapper()
 
@@ -61,8 +61,8 @@ class Director:
         #TODO generate featured articles based off of hits or connections (after the webview/ hub sigils works)
         self._flask_wrapper.add_endpoint(endpoint= '/', endpoint_name= 'index', handler= self._route_index)
 
-        #roles (wiki)
-        self._flask_wrapper.add_endpoint(endpoint= '/roles/', endpoint_name= '/roles/', handler = self._route_wiki, methods= ['GET', 'POST'])
+        #wiki
+        self._flask_wrapper.add_endpoint(endpoint= '/wiki', endpoint_name= 'wiki', handler = self._route_wiki, methods= ['GET', 'POST'])
 
         #actor editor
         self._flask_wrapper.add_endpoint(endpoint= '/editor/actor', endpoint_name= 'actor_editor', handler=self._route_actor_editor, methods=['GET','POST'])
@@ -71,7 +71,7 @@ class Director:
         self._flask_wrapper.add_endpoint(endpoint='/editor/meta/', endpoint_name='mr_editor', handler=self._route_mr_editor, methods=['GET','POST'])
 
         #role editor
-        self._flask_wrapper.add_endpoint(endpoint= 'editor/role', endpoint_name= 'role_editor', handler = self._route_role_editor, methods=['GET','POST'])
+        self._flask_wrapper.add_endpoint(endpoint= '/editor/role', endpoint_name= 'role_editor', handler = self._route_role_editor, methods=['GET','POST'])
 
         #character connector
         self._flask_wrapper.add_endpoint(endpoint='/character_connector', endpoint_name='character_connector', handler = self._route_character_connector, methods=['GET', 'POST'])
@@ -89,7 +89,7 @@ class Director:
         self._flask_wrapper.add_endpoint(endpoint='/editor/ability', endpoint_name = 'ability_editor', handler = self._route_ability_editor,methods=['POST','GET'])
 
         #edit template
-        self._flask_wrapper.add_endpoint(endpoint='editor/template', endpoint_name='template_editor', handler=self._route_template_editor, methods=['POST', 'GET'])
+        self._flask_wrapper.add_endpoint(endpoint='/editor/template', endpoint_name='template_editor', handler=self._route_template_editor, methods=['POST', 'GET'])
 
         #create template
         self._flask_wrapper.add_endpoint(endpoint='/create_template', endpoint_name='create_template', handler=self._route_create_template, methods=['POST', 'GET'])
@@ -98,7 +98,7 @@ class Director:
         self._flask_wrapper.add_endpoint(endpoint='/create_ability', endpoint_name='create_ability', handler=self._route_create_ability, methods=['POST', 'GET'])
 
     def _route_index(self):
-        self._flask_wrapper.render()
+        return self._flask_wrapper.render()
 
     def _route_wiki(self):
         #?my_var=my_value
@@ -184,7 +184,7 @@ class Director:
 
         all_actors = self._db_control.get_all_actors()
 
-        self._flask_wrapper.render('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, all_actors=all_actors)
+        return self._flask_wrapper.render('actor_editor.html', goBackUrl=goBackUrl, actor=actor, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, all_actors=all_actors)
 
     def _route_mr_editor(self):
 
@@ -207,7 +207,7 @@ class Director:
 
             mr = self._db_control.get_mr(editorID)
 
-            self._flask_wrapper.render('mr_editor.html', goBackUrl=goBackUrl, mr=mr, history=history)
+            return self._flask_wrapper.render('mr_editor.html', goBackUrl=goBackUrl, mr=mr, history=history)
 
     def _route_role_editor(self):
         #When the user presses 'Submit'
@@ -280,7 +280,7 @@ class Director:
 
         all_roles = self._db_control.get_all_roles()
 
-        self._flask_wrapper.render('role_editor.html', goBackUrl=goBackUrl, role=role, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, ability_templates_that_are_not_connected=ability_templates_that_are_not_connected,all_roles=all_roles)
+        return self._flask_wrapper.render('role_editor.html', goBackUrl=goBackUrl, role=role, history=history, abilities_that_are_not_connected=abilities_that_are_not_connected, ability_templates_that_are_not_connected=ability_templates_that_are_not_connected,all_roles=all_roles)
         
     def _route_character_connector(self):
 
@@ -308,10 +308,10 @@ class Director:
 
             self._flask_wrapper._render('character_connector.html', have_results=True ,connector_mrs=connector_mrs, connector_mrs2=connector_mrs2, name_1=name_1, name_2=name_2)
         
-        self._flask_wrapper._render('character_connector.html', have_results = False)
+        return self._flask_wrapper._render('character_connector.html', have_results = False)
 
     def _route_webview(self):
-        self._flask_wrapper._render('webview.html')
+        return self._flask_wrapper._render('webview.html')
 
     def _route_submit_image(self):
         request = self._flask_wrapper.request()
@@ -329,7 +329,7 @@ class Director:
 
         #TODO this needs to stay on the same page, instead
             #a form with stay_here url or something (request.referer?)
-        self._flask_wrapper.redirect(go_back_url)       
+        return self._flask_wrapper.redirect(go_back_url)       
 
     def _route_search(self):
         request = self._flask_wrapper.request()
@@ -337,7 +337,7 @@ class Director:
         query = request.args['query']
         search_actors, search_mrs = self._db_control.search_bar(query)
 
-        self._flask_wrapper.render('search.html', search_mrs = search_mrs, search_actors = search_actors)
+        return self._flask_wrapper.render('search.html', search_mrs = search_mrs, search_actors = search_actors)
 
     def _route_ability_editor(self):
         
@@ -367,7 +367,7 @@ class Director:
         
         ability = self._db_control.get_ability(ability_id)
         history = self._db_control.get_ability_history(ability_id)
-        self._flask_wrapper.render('ability_editor.html',ability=ability, history=history, goBackUrl=goBackUrl)
+        return self._flask_wrapper.render('ability_editor.html',ability=ability, history=history, goBackUrl=goBackUrl)
 
     def _route_template_editor(self):
         request = self._flask_wrapper.request()
@@ -407,7 +407,7 @@ class Director:
         abilities_that_are_not_connected = self._db_control.get_ability_list_exclude_template(template_id)
         template = self._db_control.get_ability_template(template_id)
         history = self._db_control.get_template_history(template_id)
-        self._flask_wrapper.render('template_editor.html',template=template, abilities_that_are_not_connected=abilities_that_are_not_connected ,history=history, goBackUrl=goBackUrl)
+        return self._flask_wrapper.render('template_editor.html',template=template, abilities_that_are_not_connected=abilities_that_are_not_connected ,history=history, goBackUrl=goBackUrl)
 
     def _route_create_template(self):
         request = self._flask_wrapper.request()
@@ -425,7 +425,7 @@ class Director:
             abilities_that_are_not_connected = self._db_control.get_ability_list_exclude_template(template_id)
 
             #TODO this needs to redirect so it sends the values to temp_editor, while go_back still works
-            self._flask_wrapper.render('template_editor.html', template=template, abilities_that_are_not_connected=abilities_that_are_not_connected, history=history, goBackUrl=goBackUrl)
+            return self._flask_wrapper.render('template_editor.html', template=template, abilities_that_are_not_connected=abilities_that_are_not_connected, history=history, goBackUrl=goBackUrl)
         else:
             goBackUrl = request.referrer
             return self._flask_wrapper.render('create_template.html', goBackUrl=goBackUrl)
@@ -443,19 +443,19 @@ class Director:
             ability = self._db_control.get_ability(ability_id)
             history = self._db_control.get_ability_history(ability_id)
 
-            self._flask_wrapper.render('ability_editor.html', ability=ability, history=history, goBackUrl=goBackUrl)
+            return self._flask_wrapper.render('ability_editor.html', ability=ability, history=history, goBackUrl=goBackUrl)
             
             #create the ability using db_cont, then go to ability_editor
         else:
             goBackUrl = request.referrer
             #render the template with the form (the normal response to this link)
-            self._flask_wrapper.render('create_ability.html', goBackUrl=goBackUrl)
+            return self._flask_wrapper.render('create_ability.html', goBackUrl=goBackUrl)
 
 
 def main():
     db_type = 'sql'
     director = Director(db_type=db_type)
-    director.import_imdb()
+    #director.import_imdb()
     director.run_flask(port=5000)
 
 if __name__ == '__main__':

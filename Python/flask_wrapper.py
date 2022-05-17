@@ -7,10 +7,10 @@ class FlaskWrapper:
     def add_endpoint(self, endpoint=None, endpoint_name=None, handler=None, methods=['GET'], *args, **kwargs):
         self._app.add_url_rule(endpoint, endpoint_name, handler, methods=methods, *args, **kwargs)
         
-    def render(template: str = 'index.html', **kwargs):
-        return render_template(template, kwargs)
+    def render(self, template: str = 'index.html', **kwargs):
+        return render_template(template, **kwargs)
 
-    def redirect(url):
+    def redirect(self, url):
         return redirect(url)
 
     def run(self, **kwargs):
