@@ -9,8 +9,10 @@ import traceback
 # which can be used to specify the kinds of data to fetch.
 
 class IMDBImporter():
-    def __init__(self, db_controller):
-        self._db_controller = db_controller
+    def __init__(self, callback_create_actor, callback_create_mr, callback_create_role):
+        self._create_actor = callback_create_actor
+        self._create_role = callback_create_role
+        self._create_mr = callback_create_mr
         self.ia = Cinemagoer(adultSearch=0)
         #if it's not adult
         self.number_of_actors_to_loop = constants.NUMBER_OF_ACTORS_TO_LOOP
@@ -20,7 +22,7 @@ class IMDBImporter():
     def get_actor_IMDB(self, actor_ID):
         try:
             actor = self.ia.get_person(str(actor_ID).zfill(8))
-            actor = self.ia.get_person(str(actor_ID).zfill(8), info = ['biography','filmography'])
+            #TODO actor = self.ia.get_person(str(actor_ID).zfill(8), info = ['biography','filmography'])
             #This is a test of a change to get only what we need
             actor_name = actor['name']
             actor_id = actor.personID
@@ -35,31 +37,25 @@ class IMDBImporter():
 
             for job in actor['filmography'].keys():
                 if job == 'actress' or job == 'actor':
-
-                    with self._db_controller.connection:
                         
-                        # create a new row in the actor table
-                        self._db_controller.create_actor(actor_id, actor_name, actor_bio,birth_date,death_date)
+                    # create a new row in the actor table
+                    self._create_actor(actor_id, actor_name, actor_bio,birth_date,death_date)
 
-                        #add filmography
-                        for movie in actor['filmography'][job]:
+                    #add filmography
+                    for movie in actor['filmography'][job]:
 
-                            movie_title = movie['title']
+                        movie_title = movie['title']
+                        
+                        role_names = str(movie.currentRole).split("/")
+                        
+                        for role_index, character_name in enumerate(role_names):
                             
-                            role_names = str(movie.currentRole).split("/")
-                            
-                            for role_index, character_name in enumerate(role_names):
-                                
-                                role_id = self._create_role_id(actor_id, movie,role_index+1)
-                                role_name = self._create_role_name(character_name,movie_title,actor_name)
-                                print(role_name)
-                            
-                                self._db_controller.create_mr(character_name, role_id)
-                                self._db_controller.create_role(role_id, role_name, actor_id, role_id)
-                                
-
-            self._db_controller.commit()
-
+                            role_id = self._create_role_id(actor_id, movie,role_index+1)
+                            role_name = self._create_role_name(character_name,movie_title,actor_name)
+                            print(role_name)
+                        
+                            self._create_mr(character_name, role_id)
+                            self._controller.create_role(role_id, role_name, actor_id, role_id)
         except:
             traceback.print_exc()       
         print('* * *')
@@ -79,16 +75,3 @@ class IMDBImporter():
     def _create_role_name(self, character_name, movie_title,actor_name):
         role_name = (f'{character_name} ({movie_title}) ({actor_name})')
         return role_name
-
-def main(db_type):
-    if db_type == 'sql':
-        from db_controllers.db_cont_sql import DatabaseControllerSQL
-
-        db_controller = DatabaseControllerSQL()
-
-    imdbImp = IMDBImporter(db_controller)
-    imdbImp.get_actor_IMDB(469)
-
-
-if __name__ == '__main__':
-    main()

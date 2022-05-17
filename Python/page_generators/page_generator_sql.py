@@ -2,8 +2,13 @@ from email.mime import base
 from wiki_page_generator import WikiPageGenerator
 
 class PageGeneratorSQL(WikiPageGenerator):
-    def __init__(self, base_id, layers_to_generate, enable_actor_swap, base_actor = None, base_mr = None, db_control):
-        super().__init__(base_id, layers_to_generate, enable_actor_swap, db_control)
+    def __init__(self, layers_to_generate, callback_get_actor, callback_get_mr, enable_actor_swap = False, base_actor = None, base_mr = None):
+        super().__init__(layers_to_generate, enable_actor_swap)
+
+        self._callback_get_actor = callback_get_actor
+        self._callback_get_mr = callback_get_mr
+        
+        self._base_name = None
 
         if base_actor is not None:
             self._get_base_base_is_actor(base_actor)
@@ -15,8 +20,6 @@ class PageGeneratorSQL(WikiPageGenerator):
         self._top_layer_actors = []
         self._top_layer_meta_roles = []
 
-
-    #TODO director should do this, maybe? Per Demeter principle?
     def _get_base_base_is_actor(self, base_actor):
         self._actors_that_dont_show_all_roles = [base_actor]
         self._meta_roles_that_dont_show_all_roles = []
@@ -30,34 +33,37 @@ class PageGeneratorSQL(WikiPageGenerator):
 
     #SQL Version:
     def _generate_content(self):
-        processing_layer = 0
-        while processing_layer < self._layers_to_generate:
-            #TODO THis is slow, because the top layer keeps getting bigger
-            #TODO Could we get the whole blob somehow?
+        if self._base_name is not None:
+            processing_layer = 0
+            while processing_layer < self._layers_to_generate:
+                #TODO THis is slow, because the top layer keeps getting bigger
+                #TODO Could we get the whole blob somehow?
 
-            self._process_actors_that_dont_show_all_roles()
-            self._process_meta_roles_that_dont_show_all_roles()
+                self._process_actors_that_dont_show_all_roles()
+                self._process_meta_roles_that_dont_show_all_roles()
 
-            self._get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles()
-            self._get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors()
-            processing_layer += 1
-            print(f'Processed Layer: {processing_layer}')
+                self._get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles()
+                self._get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors()
+                processing_layer += 1
+                print(f'Processed Layer: {processing_layer}')
 
-        if self.enable_actor_swap:
-            print('Getting Actor Swaps')
-            self._get_actor_swap_roles()
+            if self.enable_actor_swap:
+                print('Getting Actor Swaps')
+                self._get_actor_swap_roles()
 
-        self._generate_actor_relationships()
-        self._generate_actor_abilities()
+            self._generate_actor_relationships()
+            self._generate_actor_abilities()
 
-        self._generate_role_relationships()
-        self._generate_role_abilities()
+            self._generate_role_relationships()
+            self._generate_role_abilities()
 
-        self._generate_templates()
+            self._generate_templates()
 
-        self._alphabetize()
+            self._alphabetize()
 
-        print('generation complete')
+            print('generation complete')
+        else:
+            print('Error: attempt to generate page with no base mr or actor')
 
     def _process_actors_that_dont_show_all_roles(self):
         print('Process Actors')
@@ -107,7 +113,7 @@ class PageGeneratorSQL(WikiPageGenerator):
                             mr.add_role(role)
 
                 if not in_meta_that_dont_show_all and not in_meta_that_show_all:
-                    new_meta_role = self._db_control.get_mr(role.parent_meta)
+                    new_meta_role = self._callback_get_mr(role.parent_meta)
                     new_meta_role.add_role(role)
                     self._meta_roles_that_dont_show_all_roles.append(new_meta_role)
 
@@ -135,7 +141,7 @@ class PageGeneratorSQL(WikiPageGenerator):
 
 
                 if not in_actors_that_dont_show_all and not in_actors_that_show_all:
-                    new_actor = self._db_control.get_actor(role.parent_actor)
+                    new_actor = self._callback_get_actor(role.parent_actor)
                     new_actor.add_role(role)
                     self._actors_that_dont_show_all_roles.append(new_actor)
 

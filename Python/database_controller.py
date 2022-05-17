@@ -22,8 +22,10 @@ from classes.nodes.image import Image
 #TODO a way to remove porn actors, because the 'no adult films' bit doesn't work.
 
 class DatabaseController():
-    def __init__(self):
+    def __init__(self, database_uri):
 
+        self.requests = []
+        self._database_uri = database_uri
         self.connection = self._create_connection() 
         self._create_db_if_not_exists
         #Sublcalsses will use their owwn versions
@@ -113,6 +115,7 @@ class DatabaseController():
     #TODO may search in bios or descriptions?
 
     def get_actor(self, actor_id):
+        #TODO callback to get an actor that's not already in the db (send an error: no such actor in db, then try imdbImp, then imdbImp will give an error if no such person)
         if actor_id != '':
             fetched_actor = self.select_where("*","actors","id",actor_id)[0]
             actor = Actor(*fetched_actor, self)
