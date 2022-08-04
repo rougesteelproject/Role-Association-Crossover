@@ -23,7 +23,7 @@ class DatabaseControllerSQL(DatabaseController):
         except sqlite3.Error:
             traceback.print_exc()
 
-    def execute(self, command, parameters):
+    def execute(self, command, parameters = None):
         self._sql_cursor.execute(command, parameters)
 
     def commit(self):
