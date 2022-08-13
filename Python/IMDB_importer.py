@@ -9,10 +9,8 @@ import traceback
 # which can be used to specify the kinds of data to fetch.
 
 class IMDBImporter():
-    def __init__(self, callback_create_actor, callback_create_mr, callback_create_role):
-        self._create_actor = callback_create_actor
-        self._create_role = callback_create_role
-        self._create_mr = callback_create_mr
+    def __init__(self, callback_db_control):
+        self._callback_db_control = callback_db_control
         self.ia = Cinemagoer(adultSearch=0)
         #if it's not adult
         self.number_of_actors_to_loop = constants.NUMBER_OF_ACTORS_TO_LOOP
@@ -75,3 +73,12 @@ class IMDBImporter():
     def _create_role_name(self, character_name, movie_title,actor_name):
         role_name = (f'{character_name} ({movie_title}) ({actor_name})')
         return role_name
+
+    def _create_actor(self):
+        self._callback_db_control.create_actor()
+
+    def _create_role(self):
+        self._callback_db_control.create_role()
+
+    def _create_mr(self):
+        self._callback_db_control.create_mr()

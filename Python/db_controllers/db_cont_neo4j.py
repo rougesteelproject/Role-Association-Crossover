@@ -1,12 +1,16 @@
 from uuid import uuid4
-from Python.db_controllers.database_controller import DatabaseController
 import constants
 from neo4j import GraphDatabase
 import traceback
 
-class DatabaseControllerNeo(DatabaseController):
+class DatabaseControllerNeo():
     def __init__(self, database_uri = constants.NEO_URI):
-        super().__init__()
+        self._database_uri = database_uri
+        self.connection = self._create_connection() 
+        self._create_db_if_not_exists
+        #Sublcalsses will use their owwn versions
+
+        #TODO use 'with' more often
 
 #TODO roles can't be relationships. They have to be nodes, too, because they have realtionships between them
 
@@ -73,17 +77,15 @@ class DatabaseControllerNeo(DatabaseController):
         connect_role_neo = '''MATCH a:Actor, mr:Meta Role, r:ROLE WHERE a.id = {$actor_id} AND mr.id = {$mr_id} AND r.id={$role_id} CREATE (a)->[p:PLAYS]-(r)-[v:VERSION]->(mr)'''
         self.execute(connect_role_neo,connect_role_parameters)
 
-    def create_mr_and_return_id(self, character_name):
-        mr_id = str(uuid4())
+    def create_mr(self, character_name, mr_id):
         create_mr_neo = '''CREATE mr:META ROLE {id: $mr_id, name: $character_name, description: auto-generated, historical: 0, religious: 0,fictional_in_universe: 0, is_biggest: 0}'''
         #no built-in function for is_biggest. You'll have to find them all and sort, then get the first  in the list
         parameters = {"character_name" : character_name, "mr_id": mr_id}
         self.execute(create_mr_neo, parameters=parameters)
-        return mr_id
 
     def create_role_and_first_mr(self,character_name, role_id, role_name, actor_id):
-        mr_id = self.create_mr_and_return_id(character_name)
-        self.create_role(role_id, role_name, actor_id, mr_id)
+        self.create_mr(character_name, role_id)
+        self.create_role(role_id, role_name, actor_id, role_id)
 
     #UPDATE#
     #TODO
@@ -99,7 +101,7 @@ class DatabaseControllerNeo(DatabaseController):
         update_sql = "UPDATE {} SET {}=? WHERE {}=? AND {}=?".format(table_name, column, where_1, where_2)
         self.cursor.execute(update_sql, (column_value, where_value_1, where_value_2,))
 
-    def update_reset_mr(self, roleID1):
+    def _update_reset_mr(self, roleID1):
         update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
         self.cursor.execute(update_reset_mr_sql, (roleID1,))
 
@@ -148,8 +150,181 @@ class DatabaseControllerNeo(DatabaseController):
             sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
         self.cursor.execute(sql,(image_url,page_id,caption,))
 
+    def get_images_actor(self, actor_id):
+        #LEAVE UN-PASSED
+        fetched_images = self.select_where("file, caption", "gallery", "actor", actor_id)
+        gallery = []
+        for image in fetched_images:
+            gallery.append(Image(*image))
+        return gallery
+
+    def get_images_role(self, role_id):
+        #LEAVE UN-PASSED
+        fetched_images = self.select_where("file, caption", "gallery", "role", role_id)
+        gallery = []
+        for image in fetched_images:
+            gallery.append(Image(*image))
+        return gallery
+
+    #GET#
+    #TODO may search in bios or descriptions?
+
+    def get_actor(self, actor_id):
+        #TODO callback to get an actor that's not already in the db (send an error: no such actor in db, then try imdbImp, then imdbImp will give an error if no such person)
+        if actor_id != '':
+            fetched_actor = self.select_where("*","actors","id",actor_id)[0]
+            actor = Actor(*fetched_actor, self)
+            return actor
+        else:
+            print('get_actor error: there was no base_id')
+
+    def get_actors_search(self, query):
+        actors = []
+        fetched_actors = self.select_like("*","actors","name", query)
+        for actor in fetched_actors:
+            actors.append(Actor(*actor, self))
+        return actors
+
+    def get_all_actors(self):
+        all_actors_fetched = self.select("*", "actors")
+        all_actors = []
+        for actor in all_actors_fetched:
+            all_actors.append(Actor(*actor, self))
+        return all_actors
+
+    def get_mr(self, mr_id):
+        fetched_mr = self.select_where("*","meta_roles", "id",mr_id)[0]
+        return MetaRole(*fetched_mr, self)
+
+    def get_mrs_search(self,query):
+        mrs = []
+        fetched_mrs = self.select_like("*","meta_roles","name",query)
+        for mr in fetched_mrs:
+            new_mr = MetaRole(*mr, self)
+            new_mr.get_roles()
+            if new_mr.roles != []:
+                mrs.append(new_mr)
+            
+        return mrs
+
+    def get_role(self, role_id):
+        fetched_role = self.select_where("*","roles","id",role_id)
+        if len(fetched_role) != 0:
+            return Role(*fetched_role[0], self)
+        else:
+            print(f'No such role: {role_id}')
+
+    def get_roles(self, parent_id, is_actor):
+        roles = []
+        if is_actor:
+            fetched_roles = self.select_where("*", "roles", "parent_actor", parent_id)
+        else:
+            fetched_roles = self.select_where("*","roles","parent_meta",parent_id)
+        for role in fetched_roles:
+            roles.append(Role(*role, self))
+        return roles
+
+    def get_all_roles(self):
+        all_roles_fetched = self.select("*", "roles")
+        all_roles = []
+        for role in all_roles_fetched:
+            all_roles.append(Role(*role, self))
+        return all_roles
+
+    def get_roles_search(self, query):
+        roles = []
+        fetched_roles = self.select_like("*","roles","name",query)
+        for role in fetched_roles:
+            roles.append(Role(*role, self))
+        return roles
+        
+    def get_roles_swap(self, mr_id, actor_swap_id):
+        roles = []
+        fetched_roles = self.select_and("*","roles","parent_meta",mr_id, "actor_swap_id", actor_swap_id)
+        for role in fetched_roles:
+            roles.append(Role(*role,self))
+        return roles
+
+    def get_parent_meta(self, role_id):
+        parent_meta = self.select_where("parent_meta", "roles", "id", role_id)[0][0]
+        return parent_meta
+
+    def search_char_connector(self, query1, query2):
+        connector_mrs_1 = self.get_mrs_search(query1)
+        connector_mrs_2 = self.get_mrs_search(query2)
+
+        roles_1 = self.get_roles_search(query1)
+        roles_2 = self.get_roles_search(query2)
+
+        for role in roles_1:
+            mr_in_list = False
+            for mr in connector_mrs_1:
+                if mr.id == role.parent_meta:
+                    mr_in_list= True
+
+            if not mr_in_list:
+                new_mr = self.get_mr(role.parent_meta)
+                new_mr.get_roles()
+                if new_mr.roles != []:
+                    connector_mrs_1.append(new_mr)
+
+        for role in roles_2:
+            mr_in_list = False
+            for mr in connector_mrs_2:
+                if mr.id == role.parent_meta:
+                    mr_in_list= True
+
+            if not mr_in_list:
+                new_mr = self.get_mr(role.parent_meta)
+                new_mr.get_roles()
+                if new_mr.roles != []:
+                    connector_mrs_2.append(new_mr)
+
+        if query1 != query2:
+            id_list = [mr.id for mr in connector_mrs_1]
+            connector_mrs_2 = [mr for mr in connector_mrs_2 if mr.id not in id_list]
+
+        return connector_mrs_1, connector_mrs_2
+
+    def search_bar(self, query):
+        search_bar_actors  = self.get_actors_search(query)
+        search_bar_mrs = self.get_mrs_search(query)
+
+        roles = self.get_roles_search(query)
+
+        for role in roles:
+            in_mrs = False
+            for mr in search_bar_mrs:
+                if role.parent_meta == mr.id:
+                    in_mrs = True
+
+            if not in_mrs:
+                search_bar_mrs.append(self.get_mr(role.parent_meta))
+
+        return search_bar_actors, search_bar_mrs
+
     #HISTORY#
-   
+    def get_actor_history(self,id):
+        revision_list = []
+        history = self.select_where("*", "actors_history", "id", id)
+        for revision in history:
+            revision_list.append(ActorHistory(*revision))
+        return revision_list
+
+    def get_mr_history(self, id):
+        revision_list = []
+        history = self.select_where("*", "meta_roles_history", "id", id)
+        for revision in history:
+            revision_list.append(MetaRoleHistory(*revision))
+        return revision_list
+
+    def get_role_history(self,id):
+        revision_list = []
+        history = self.select_where("*", "roles_history", "id", id)
+        for revision in history:
+            revision_list.append(RoleHistory(*revision))
+        return revision_list
+
     def create_actor_history(self, id, new_bio):
         old_actor = self.get_actor(id)
         historySql = '''INSERT INTO actors_history(id, name, bio) VALUES (?,?,?) '''
@@ -173,6 +348,45 @@ class DatabaseControllerNeo(DatabaseController):
         changeDescSql='''UPDATE roles SET description=?, alive_or_dead=?,alignment=? WHERE id=?'''
 
         self.cursor.execute(changeDescSql,(new_description,new_alive_or_dead,new_alignment,id,))  
+
+    #CHARACTER CONNECTOR#
+    def character_connector_switch(self, mode, id1, id2):
+        if id1 != None and id2 != None:
+            role_id_1, mr_id_1 = id1.split('|')
+            role_id_2, mr_id_2 = id2.split('|')
+
+            if mode == "changeMR":
+                self.changeMR(role_id_1, mr_id_2)
+            elif mode == "resetMR":
+                self.resetMR(role_id_1)
+            elif mode == "mergeMR":
+                self.mergeMR(mr_id_1,mr_id_2)
+            elif mode == "actorSwap":
+                self.actorSwap(role_id_1,role_id_2, mr_id_1, mr_id_2)
+            elif mode == "removeActorSwap":
+                self.removeActorSwap(role_id_1)
+            else:
+                print(f'Opperation \'{mode}\' does not exist.')
+
+            self.commit()
+    #TODO create a splitter function that makes two MR's with roles divided based on their id (maybe two lists of id's to check against?)
+
+    #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
+    # You can revert an mr change by ID without changing the ID's
+    def changeMR(self):
+        pass
+
+    def resetMR(self, role_id_1):
+        self._update_reset_mr(role_id_1)
+
+    def mergeMR(self):
+        pass
+
+    def connect_actor_swap(self):
+        pass
+
+    def remove_actor_swap(self):
+        pass
 
     #ABILITIES#
     def create_ability(self, name, description):
@@ -207,6 +421,105 @@ class DatabaseControllerNeo(DatabaseController):
         for ability_id in ability_list:
             self.cursor.execute(create_ability_role_sql,(role_id,ability_id,))
 
+    def get_ability(self, ability_id):
+        fetched_ability = self.select_where("*","abilities","id",ability_id)
+        if len(fetched_ability) == 1:
+            ability = fetched_ability[0]
+            return Ability(*ability)
+
+    def get_ability_list_role(self, role_id):
+        ability_ids = self.select_where("ability_id", "roles_to_abilities", "role_id", role_id)
+        abilities = []
+        if len(ability_ids) >= 1:
+            for id_tuple in ability_ids:
+                abilities.append(self.get_ability(id_tuple[0]))
+        return abilities
+
+    def get_ability_list_actor(self, actor_id):
+        ability_ids = self.select_where("ability_id", "actors_to_abilities", "actor_id", actor_id)
+        abilities = []
+        if len(ability_ids) == 1:
+            for id in ability_ids[0]:
+                abilities.append(self.get_ability(id))
+        return abilities
+
+    def get_ability_list_exclude_actor(self, actor_id):
+        ability_ids = self.select_where("ability_id", "actors_to_abilities", "actor_id", actor_id)
+        
+        abilities_that_are_not_connected = []
+
+        if len(ability_ids) == 1:
+            db_abilites = self.select_not_in("*","abilities","id", ability_ids[0])
+            for ability in db_abilites:
+                abilities_that_are_not_connected.append(Ability(*ability))
+
+        else:
+            abilities_that_are_not_connected = self.get_all_abilities()
+        
+        return abilities_that_are_not_connected
+
+    def get_ability_list_exclude_role(self, role_id):
+        ability_ids = self.select_where("ability_id", "roles_to_abilities", "role_id", role_id)
+        
+        abilities_that_are_not_connected = []
+
+        if len(ability_ids) == 1:
+            db_abilites = self.select_not_in("*","abilities","id", ability_ids[0])
+            for ability in db_abilites:
+                abilities_that_are_not_connected.append(Ability(*ability))
+
+        else:
+            abilities_that_are_not_connected = self.get_all_abilities()  
+        
+        return abilities_that_are_not_connected
+
+    def get_ability_template_list(self, role_id):
+        template_id_list = self.select_where("template_id", "roles_to_ability_templates", "role_id", role_id)
+        
+        ability_templates = []
+
+        for template_id in template_id_list:
+            ability_templates.append(self.get_ability_template(template_id[0]))
+
+        return ability_templates
+
+    def get_ability_template_list_exclude_role(self, role_id):
+        template_id_list = self.select_where("template_id", "roles_to_ability_templates", "role_id", role_id)
+        new_id_list = [temp_id[0] for temp_id in template_id_list]
+
+        excluded_template_id_list = self.select_not_in("template_id", "ability_templates", "template_id", new_id_list)
+
+        ability_templates = []
+
+        for id in excluded_template_id_list:
+            ability_templates.append(self.get_ability_template(id[0]))
+
+        return ability_templates
+
+    def get_abilities_template(self, template_id):
+        fetched_ability_id_list = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)
+        new_id_list = [id[0] for id in fetched_ability_id_list]
+        ability_list = []
+        for ability_id in new_id_list:
+            ability_list.append(self.get_ability(ability_id))
+        return ability_list
+
+    def get_ability_list_exclude_template(self, template_id):
+        ability_ids = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)
+
+        abilities_that_are_not_connected = []
+
+        if len(ability_ids) == 1:
+            new_ids = [id for id in ability_ids[0]]
+            db_abilites = self.select_not_in("*","abilities","id", new_ids)
+            for ability in db_abilites:
+                abilities_that_are_not_connected.append(Ability(*ability))
+
+        else:
+            abilities_that_are_not_connected = self.get_all_abilities()
+        
+        return abilities_that_are_not_connected
+
     def create_ability_template(self, name, description):
         create_template_sql = "INSERT INTO ability_templates(template_name, template_description) VALUES (?,?)"
         self.cursor.execute(create_template_sql,(name,description))
@@ -219,6 +532,10 @@ class DatabaseControllerNeo(DatabaseController):
         add_template_sql = '''INSERT OR IGNORE INTO roles_to_ability_templates(role_id, template_id) VALUES (?,?)'''
         for template_id in template_id_list:
             self.cursor.execute(add_template_sql, (role_id, template_id))
+
+    def get_ability_template(self, template_id):
+        template = self.select_where("*", "ability_templates", "template_id", template_id)[0]
+        return AbilityTemplate(*template, self)
         
     def remove_ability_from_template(self, template_id, ability_list):
         self.cursor.execute("DELETE FROM ability_templates_to_abilities WHERE template_id={} AND ability_id IN".format(template_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
@@ -239,10 +556,43 @@ class DatabaseControllerNeo(DatabaseController):
         changeDescSql='''UPDATE ability_templates SET template_name=?, template_description=? WHERE template_id=?'''
         self.cursor.execute(changeDescSql, (new_name, new_description, template_id,))
 
+    def get_template_history(self, template_id):
+        revision_list = []
+        history = self.select_where("*", "ability_template_history", "id", template_id)
+        for revision in history:
+            revision_list.append(TemplateHistory(*revision))
+        return revision_list
+
+    def get_all_abilities(self):
+        fetched_abilities = self.select('*', 'abilities')
+        abilities = []
+        for ability in fetched_abilities:
+            abilities.append(Ability(*ability))
+        return abilities
+
+    def get_ability_history(self, id):
+        revision_list = []
+        history = self.select_where("*", "abilities_history", "id", id)
+        for revision in history:
+            revision_list.append(AbilityHistory(*revision))
+        return revision_list
+
     #RELEATIONSHIPS#
     def add_relationship_actor(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
         sql = '''INSERT INTO actor_relationships(actor1_id, actor1_name, actor2_id, actor2_name, relationship_type) VALUES (?,?,?,?,?)'''
         self.cursor.execute(sql, (actor1_id, actor1_name, actor2_id, actor2_name, relationship_type))
+
+    def get_relationships_actor_by_actor_id(self, actor_id):
+        relationships = []
+        fetched_relationships = self.select_or("*", "actor_relationships", "actor1_id", actor_id, "actor2_id", actor_id)
+        if len(fetched_relationships) != 0:
+            for relationship in fetched_relationships:
+                new_relationship = ActorRelationship(*relationship)
+                new_relationship.set_link_actor(actor_id)
+                relationships.append(new_relationship)
+        else:
+            print(f'No relationships for actor {actor_id}')
+        return relationships
 
     def remove_relationships_actor(self, relationship_id_list):
         for relationship_id in relationship_id_list:
@@ -252,6 +602,13 @@ class DatabaseControllerNeo(DatabaseController):
     def add_relationship_role(self, role1_id, role1_name, role2_id, role2_name, relationship_type):
         sql = '''INSERT INTO role_relationships(role1_id, role1_name, role2_id, role2_name, relationship_type) VALUES (?,?,?,?,?)'''
         self.cursor.execute(sql, (role1_id, role1_name, role2_id, role2_name, relationship_type))
+
+    def get_relationships_role_by_role_id(self, role_id):
+        relationships = []
+        fetched_relationships = self.select_or("*", "role_relationships", "role1_id", role_id, "role2_id", role_id)
+        for relationship in fetched_relationships:
+            relationships.append(RoleRelationship(*relationship, self))
+        return relationships
 
     def remove_relationships_role(self, relationship_id_list):
         for relationship_id in relationship_id_list:

@@ -49,7 +49,7 @@ class Director:
     def import_imdb(self):
         from IMDB_importer import IMDBImporter as IMDBimp
 
-        self._IMDB_importer = IMDBimp(callback_create_actor = self._db_control.create_actor, callback_create_role = self._db_control.create_role, callback_create_mr = self._db_control.create_mr)
+        self._IMDB_importer = IMDBimp(callback_db_control = self._db_control)
 
         self._IMDB_importer.get_all_IMDB()
 
