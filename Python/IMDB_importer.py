@@ -52,8 +52,8 @@ class IMDBImporter():
                             role_name = self._create_role_name(character_name,movie_title,actor_name)
                             print(role_name)
                         
-                            self._create_mr(character_name, role_id)
-                            self._controller.create_role(role_id, role_name, actor_id, role_id)
+                            self._create_role_and_first_mr(character_name, role_id, role_name, actor_id)
+
         except:
             traceback.print_exc()       
         print('* * *')
@@ -74,11 +74,8 @@ class IMDBImporter():
         role_name = (f'{character_name} ({movie_title}) ({actor_name})')
         return role_name
 
-    def _create_actor(self):
-        self._callback_db_control.create_actor()
+    def _create_actor(self, actor_id, actor_name, actor_bio,birth_date,death_date):
+        self._callback_db_control.create_actor(actor_id, actor_name, actor_bio,birth_date,death_date)
 
-    def _create_role(self):
-        self._callback_db_control.create_role()
-
-    def _create_mr(self):
-        self._callback_db_control.create_mr()
+    def _create_role_and_first_mr(self, character_name, role_id, role_name, actor_id):
+        self._callback_db_control.create_role_and_first_mr(character_name, role_id, role_name, actor_id)
