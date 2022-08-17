@@ -2,6 +2,10 @@ from uuid import uuid4
 import constants
 from neo4j import GraphDatabase
 import traceback
+from classes.nodes.image import Image
+
+#TODO this needs a lot of testing, because i'm sure I do it wrong
+#TODO clean up methods that are never called
 
 class DatabaseControllerNeo():
     def __init__(self, database_uri = constants.NEO_URI):
@@ -43,9 +47,6 @@ class DatabaseControllerNeo():
             if session is not None:
                 session.close()
         return response
-
-    def _neo4j_update(self):
-        pass
 
     #TODO each query returns a list
 
@@ -90,8 +91,8 @@ class DatabaseControllerNeo():
     #UPDATE#
     #TODO
     def update(self, table_name, column, column_value, where, where_value):
-        update_sql = "UPDATE {} SET {}=? WHERE {}=?".format(table_name.lower(), column.lower(), where.lower())
-        self.cursor.execute(update_sql, (column_value, where_value,))
+        update_neo = "MATCH (n:$table_name {$where: $where_value}) SET n.$column = $column_value"
+        self.cursor.execute(update_neo, (table_name, where, where_value, column, column_value,))
 
     def update_or(self, table_name, column, column_value, where_1, where_value_1, where_2, where_value_2):
         update_sql = "UPDATE {} SET {}=? WHERE {}=? OR {}=?".format(table_name.lower(), column.lower(), where_1.lower(), where_2.lower())
@@ -101,12 +102,57 @@ class DatabaseControllerNeo():
         update_sql = "UPDATE {} SET {}=? WHERE {}=? AND {}=?".format(table_name, column, where_1, where_2)
         self.cursor.execute(update_sql, (column_value, where_value_1, where_value_2,))
 
-    def _update_reset_mr(self, roleID1):
-        update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
-        self.cursor.execute(update_reset_mr_sql, (roleID1,))
+    def _changeMR(self, role_id, mr_id):
+        delete_neo = """MATCH (r:ROLE {id: $role_id}) - [v:VERSION] -> ()
+        DELETE v"""
+        match_parameters = {'role_id': role_id}
+        self.execute(delete_neo, match_parameters)
+
+        connect_role_parameters = {'mr_id': mr_id, 'role_id': role_id}
+        connect_role_neo = '''mr:Meta Role, r:ROLE WHERE mr.id = {$mr_id} AND r.id={$role_id} CREATE (r)-[v:VERSION]->(mr)'''
+        self.execute(connect_role_neo,connect_role_parameters)
+
+
+    def _resetMR(self, role_id):
+        match_and_delete_neo = """MATCH (r:ROLE {id: $role_id}) - [v:VERSION] -> ()
+        DELETE v"""
+        match_parameters = {'role_id': role_id}
+        self.execute(match_and_delete_neo, match_parameters)
+
+        connect_role_parameters = {'role_id': role_id}
+        connect_role_neo = '''mr:Meta Role, r:ROLE WHERE mr.id = r.first_parent_meta AND r.id={$role_id} CREATE (r)-[v:VERSION]->(mr)'''
+        self.execute(connect_role_neo,connect_role_parameters)
+
+    def _mergeMR(self, metaID1, metaID2):
+        if (metaID1 != metaID2):
+            lowest = min(metaID1, metaID2)
+            highest = max(metaID1, metaID2)
+            delete_neo = """MATCH (r:ROLE) - [v:VERSION] -> (mr:META ROLE {id: $lowest})
+            DELETE v
+            MATCH (mr:Meta Role {id: $highest}) CREATE (r)-[v:VERSION]->(mr)"""
+            match_parameters = {'highest': highest,'lowest': lowest}
+            self.execute(delete_neo, match_parameters)
+
+    def _connect_actor_swap(self, roleID1, roleID2, mr_id_1, mr_id_2):
+        if roleID1 != roleID2:
+
+            if mr_id_1 != mr_id_2:
+                self._mergeMR(mr_id_1, mr_id_2)
+
+            actor_swap_parameters = {'role1':roleID1, 'role2':roleID2}
+            actor_swap_neo = """MATCH (r1:ROLE {id:$role1}), (r2:ROLE {id:$role2}) CREATE (r1) - [actor_swap] - (r2)"""
+            self.execute(actor_swap_neo, actor_swap_parameters)
+            
+        else:
+            print("Actor Swap Error: IDs are the same.")
+
+    #TODO
+    def _remove_actor_swap(self):
+        pass
 
     #TODO we can selects the whole web. Maybe adjust accordingly.
     #SELECT#
+    #TODO after doing the get functions, in case these never get used
     def select_where(self, select_columns, table_name, where, where_value):
         select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
         self.cursor.execute(select_sql, (where_value,))
@@ -166,6 +212,7 @@ class DatabaseControllerNeo():
             gallery.append(Image(*image))
         return gallery
 
+    #TODO rewrite
     #GET#
     #TODO may search in bios or descriptions?
 
@@ -372,21 +419,7 @@ class DatabaseControllerNeo():
     #TODO create a splitter function that makes two MR's with roles divided based on their id (maybe two lists of id's to check against?)
 
     #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
-    # You can revert an mr change by ID without changing the ID's
-    def changeMR(self):
-        pass
-
-    def resetMR(self, role_id_1):
-        self._update_reset_mr(role_id_1)
-
-    def mergeMR(self):
-        pass
-
-    def connect_actor_swap(self):
-        pass
-
-    def remove_actor_swap(self):
-        pass
+    # You can revert an mr change by ID without changing the ID's 
 
     #ABILITIES#
     def create_ability(self, name, description):

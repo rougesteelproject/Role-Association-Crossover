@@ -94,17 +94,26 @@ class DatabaseControllerSQL():
         update_sql = "UPDATE {} SET {}=? WHERE {}=? AND {}=?".format(table_name, column, where_1, where_2)
         self.execute(update_sql, (column_value, where_value_1, where_value_2,))
 
-    def changeMR(self, role_id, mr_id):
+    #TODO create a splitter function that makes two MR's with roles divided based on their id (maybe two lists of id's to check against?)
+
+    #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
+    # You can revert an mr change by ID without changing the ID's
+
+    def _changeMR(self, role_id, mr_id):
         #changes the meta of role_id to mr_id
         self.update("roles", "parent_meta", mr_id, "id", role_id)
 
-    def _update_reset_mr(self, roleID1):
+    def _resetMR(self, role_id_1):
         update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
-        self.cursor.execute(update_reset_mr_sql, (roleID1,))
+        self.execute(update_reset_mr_sql, (role_id_1,))
 
-    
+    def _mergeMR(self, metaID1, metaID2):
+        if (metaID1 != metaID2):
+            lowest = min(metaID1, metaID2)
+            highest = max(metaID1, metaID2)
+            self.update("roles", "parent_meta", highest, "parent_meta", lowest)
 
-    def connectActorSwap(self, roleID1, roleID2, mr_id_1, mr_id_2):
+    def _connect_actor_swap(self, roleID1, roleID2, mr_id_1, mr_id_2):
         if roleID1 != roleID2:
 
             if mr_id_1 != mr_id_2:
@@ -138,7 +147,7 @@ class DatabaseControllerSQL():
         else:
             print("Actor Swap Error: IDs are the same.")
         
-    def removeActorSwap(self, roleID1, parent_id_1):
+    def _remove_actor_swap(self, roleID1, parent_id_1):
         actor_swap_data = self.select_where("actor_swap_id, parent_meta", "roles", "id", roleID1)
         actor_swap_id = actor_swap_data[0]
         
@@ -406,40 +415,20 @@ class DatabaseControllerSQL():
             role_id_2, mr_id_2 = id2.split('|')
 
             if mode == "changeMR":
-                self.changeMR(role_id_1, mr_id_2)
+                self._changeMR(role_id_1, mr_id_2)
             elif mode == "resetMR":
-                self.resetMR(role_id_1)
+                self._resetMR(role_id_1)
             elif mode == "mergeMR":
-                self.mergeMR(mr_id_1,mr_id_2)
+                self._mergeMR(mr_id_1,mr_id_2)
             elif mode == "actorSwap":
-                self.actorSwap(role_id_1,role_id_2, mr_id_1, mr_id_2)
+                self._connect_actor_swap(role_id_1,role_id_2, mr_id_1, mr_id_2)
             elif mode == "removeActorSwap":
-                self.removeActorSwap(role_id_1)
+                self._remove_actor_swap(role_id_1)
             else:
                 print(f'Opperation \'{mode}\' does not exist.')
 
             self.commit()
-    #TODO create a splitter function that makes two MR's with roles divided based on their id (maybe two lists of id's to check against?)
-
-    #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
-    # You can revert an mr change by ID without changing the ID's
-    def changeMR(self):
-        pass
-
-    def resetMR(self, role_id_1):
-        self._update_reset_mr(role_id_1)
-
-    def mergeMR(self, metaID1, metaID2):
-        if (metaID1 != metaID2):
-            lowest = min(metaID1, metaID2)
-            highest = max(metaID1, metaID2)
-            self.update("roles", "parent_meta", highest, "parent_meta", lowest)
-
-    def connect_actor_swap(self):
-        pass
-
-    def remove_actor_swap(self):
-        pass
+    
 
     #ABILITIES#
     def create_ability(self, name, description):
