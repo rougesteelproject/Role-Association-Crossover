@@ -3,7 +3,7 @@ NUMBER_OF_ACTORS_TO_LOOP = 100000000
 
 SQL_URI = r'/Databases/rac.db'
 
-NEO_URI = 'neo4j://localhost:7474'
+NEO_URI = "bolt://127.0.0.1:7687"
 neo_user = 'neo4j'
 neo_pass = 'perform-royal-strong-sardine-beach-206'
 #TODO store password not as plaintext

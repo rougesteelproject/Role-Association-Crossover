@@ -55,7 +55,7 @@ class IMDBImporter():
                             self._create_role_and_first_mr(character_name, role_id, role_name, actor_id)
 
         except:
-            logging.exception()      
+            logging.exception(f'An exception ocured while getting actor with id: {actor_ID}')
         print('* * *')
 
     def get_all_IMDB(self):
