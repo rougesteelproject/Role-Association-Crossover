@@ -1,4 +1,4 @@
-#TODO replace exceptions with traceback.print_exc()
+#TODO replace exceptions with logging
 
 #   functions modify lists, so we don't neet to return them. 
 
@@ -10,32 +10,37 @@
 
 import distutils
 import distutils.util
-from urllib import request
 
-from page_generators.page_generator_sql import PageGeneratorSQL
+import logging
+import constants as constants
 
 class Director:
     def __init__(self, db_type : str = 'sql'):
         self._db_type = db_type
+        self._bug_filename = constants.ERROR_LOG_URI
+        logging.basicConfig(filename= self._bug_filename, encoding='utf-8', level=logging.WARNING)
         
         self._create_db_controller()
-        self._import_page_generator()
 
     def _create_db_controller(self):
         if self._db_type == 'sql':
             from db_controllers.db_cont_sql import DatabaseControllerSQL
             self._db_control = DatabaseControllerSQL()
-
-    def _import_page_generator(self):
-        if self._db_type == 'sql':
-            from page_generators.page_generator_sql import PageGeneratorSQL
+        elif self._db_type == 'neo4j':
+            from db_controllers.db_cont_neo4j import DatabaseControllerNeo
+            self._db_control = DatabaseControllerNeo()
 
     def _generate_page(self, layers_to_generate, enable_actor_swap = False, base_actor = None, base_mr = None):
-        page_generator = PageGeneratorSQL(layers_to_generate=layers_to_generate, callback_get_actor=self._db_control.get_actor, callback_get_mr=self._db_control.get_mr, enable_actor_swap=enable_actor_swap, base_actor=base_actor, base_mr=base_mr)
+        if self._db_type == 'sql':
+            from page_generators.page_generator_sql import PageGeneratorSQL
+            _page_generator = PageGeneratorSQL(layers_to_generate=layers_to_generate, callback_get_actor=self._db_control.get_actor, callback_get_mr=self._db_control.get_mr, enable_actor_swap=enable_actor_swap, base_actor=base_actor, base_mr=base_mr)
+        elif self._db_type == 'neo4j':
+            from page_generators.page_generator_neo import PageGeneratorNeo
+            _page_generator = PageGeneratorNeo(layers_to_generate=layers_to_generate, callback_get_actor=self._db_control.get_actor, callback_get_mr=self._db_control.get_mr, enable_actor_swap=enable_actor_swap, base_actor=base_actor, base_mr=base_mr)
 
-        page_generator.generate_content()
+        _page_generator.generate_content()
 
-        return page_generator
+        return _page_generator
 
     def run_flask(self, **kwargs):
         from flask_wrapper import FlaskWrapper
@@ -46,14 +51,15 @@ class Director:
 
         self._flask_wrapper.run(**kwargs)
 
-    def import_imdb(self):
+    def import_imdb(self, testing = False):
         from IMDB_importer import IMDBImporter as IMDBimp
 
         self._IMDB_importer = IMDBimp(callback_db_control = self._db_control)
 
-        self._IMDB_importer.get_all_IMDB()
-
-        self._db_control.commit()
+        if not testing:
+            self._IMDB_importer.get_all_IMDB()
+        else:
+            self._IMDB_importer.get_testing_IMDB()
 
     def _add_flask_endpoints(self):
         
@@ -141,23 +147,19 @@ class Director:
 
                 #gets the old desc, plops it into history, then replaces it with the new
                 self._db_control.create_actor_history(editorID,new_bio)
-                self._db_control.commit()
 
             if "history_reverter" in request.form:
                 new_bio  = request.form['bio']
                 
                 self._db_control.create_actor_history(editorID,new_bio)
-                self._db_control.commit()
 
             if "ability_remover" in request.form:
                 abilities_to_remove = request.form.getlist('remove_ability')
                 self._db_control.remove_ability_actor(editorID, abilities_to_remove)
-                self._db_control.commit()
 
             if "ability_adder" in request.form:
                 abilities_to_add = request.form.getlist('add_ability')
                 self._db_control.add_ability_actor(editorID, abilities_to_add)
-                self._db_control.commit()
 
             if "relationship_adder" in request.form:
                 actor1_id =request.form['actor1_id']
@@ -165,12 +167,10 @@ class Director:
                 actor2_id, actor2_name = request.form['actor2'].split('|')
                 type = request.form['relationship_type']
                 self._db_control.add_relationship_actor(actor1_id,actor1_name,actor2_id, actor2_name, type)
-                self._db_control.commit()
 
             if "relationship_remover" in request.form:
                 relationship_ids = request.form.getlist('remove_relationship')
                 self._db_control.remove_relationships_actor(editorID, relationship_ids)
-                self._db_control.commit()
                 
         else:
             editorID = request.args['editorID']
@@ -451,12 +451,12 @@ class Director:
             #render the template with the form (the normal response to this link)
             return self._flask_wrapper.render('create_ability.html', goBackUrl=goBackUrl)
 
-#TODO an arror page if an actor does not exist in imdb
+#TODO an error page if an actor does not exist in imdb
 
 def main():
-    db_type = 'sql'
+    db_type = 'neo4j'
     director = Director(db_type=db_type)
-    #director.import_imdb()
+    director.import_imdb(testing=True)
     director.run_flask(port=5000)
 
 if __name__ == '__main__':

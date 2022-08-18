@@ -1,6 +1,6 @@
 import constants
 from neo4j import GraphDatabase
-import traceback
+import logging
 
 from classes.nodes.image import Image
 from classes.nodes.actor import Actor
@@ -23,20 +23,18 @@ from classes.histories.ability_history import AbilityHistory
 class DatabaseControllerNeo():
     def __init__(self, database_uri = constants.NEO_URI):
         self._database_uri = database_uri
+        self._auth = (constants.neo_user, constants.neo_pass)
         self.connection = self._create_connection() 
-        self._create_db_if_not_exists
-        #Sublcalsses will use their owwn versions
-
         #TODO use 'with' more often
 
-#TODO roles can't be relationships. They have to be nodes, too, because they have realtionships between them
+#Roles have to be nodes, too, because they have realtionships between them
 
     def _create_connection(self):
         try:
-            return GraphDatabase.driver(self.__uri, auth=(self.__user,self.__pass))
+            return GraphDatabase.driver(self._database_uri, auth=self._auth)
         except:
-            traceback.print_exc()
-            print("Failed to create neo4j Driver!")
+            logging.exception()
+            logging.error("Failed to create neo4j Driver!")
 
     def _neo4j_close_driver(self):
         if self.connection is not None:
@@ -52,9 +50,9 @@ class DatabaseControllerNeo():
             response = list(session.run(command,parameters))
             #TODO because this is a list, double check it's processed at the right level
         except Exception:
-            traceback.print_exc()
-            print(f"Query failed: query \'{command}\', parameters:")
-            print(parameters)
+            logging.exception()
+            logging.error(f"Query failed: query \'{command}\', parameters:")
+            logging.error(parameters)
         finally:
             #finally is always executed after a 'try', no matter what
             if session is not None:
@@ -79,7 +77,7 @@ class DatabaseControllerNeo():
     def create_actor(self, id, name, bio, birth_date, death_date):
         actor_parameters = {'id': id, 'name':name, 'bio':bio, 'birth_date':birth_date, 'death_date':death_date}
         create_actor_neo = '''CREATE a:ACTOR {id: $id, name: $name, bio: $bio, birth_date: $birth_date, death_date: $death_date}'''
-        self.exectue(create_actor_neo, actor_parameters)
+        self.execute(create_actor_neo, actor_parameters)
 
     def create_role(self,role_id, role_name, actor_id, mr_id):
         
@@ -152,44 +150,8 @@ class DatabaseControllerNeo():
         remove_actor_swap_parameters = {'role_id':role_id}
         self.execute(remove_actor_swap_neo,remove_actor_swap_parameters)
 
-    #TODO we can selects the whole web. Maybe adjust accordingly.
-    #SELECT#
-    #TODO after doing the get functions, in case these never get used
-    def select_where(self, select_columns, table_name, where, where_value):
-        select_sql = "SELECT {} FROM {} WHERE {}=?".format(select_columns.lower(),table_name.lower(),where.lower())
-        self.cursor.execute(select_sql, (where_value,))
-        return self.cursor.fetchall()
+    #TODO we can select the whole web. Maybe adjust accordingly.
 
-    def select(self, select_columns, table_name):
-        select_sql = "SELECT {} FROM {}".format(select_columns.lower(), table_name.lower())
-        self.cursor.execute(select_sql)
-        return self.cursor.fetchall()
-
-    def select_and(self, select_columns, table_name, where_column, where_value, where_column_2, where_value_2):
-        select_sql = "SELECT {} FROM {} WHERE {}=? AND {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())
-        self.cursor.execute(select_sql,(where_value,where_value_2,))
-        return self.cursor.fetchall()
-
-    def select_or(self, select_columns, table_name, where_column, where_value, where_column_2, where_value_2):
-        select_sql = "SELECT {} FROM {} WHERE {}=? OR {}=?".format(select_columns.lower(),table_name.lower(),where_column.lower(),where_column_2.lower())
-        self.cursor.execute(select_sql,(where_value,where_value_2,))
-        return self.cursor.fetchall()
-
-    def select_max_where(self, select_column, table_name, where_column, where_value):
-        select_sql = "SELECT MAX({}) FROM {} WHERE {}=?".format(select_column.lower(),table_name.lower(),where_column.lower())
-        self.cursor.execute(select_sql, (where_value,))
-        return self.cursor.fetchone()
-
-    def select_like(self, select_columns, table_name, where_column, like_value):
-        select_sql = "SELECT {} FROM {} WHERE {} LIKE \'%{}%\'".format(select_columns, table_name, where_column, like_value)
-        self.cursor.execute(select_sql)
-        return self.cursor.fetchall()
-
-    def select_not_in(self, select_columns, table_name, where, ability_list):
-        result_set = self.cursor.execute("SELECT {} FROM {} WHERE {} NOT IN ".format(select_columns.lower(),table_name.lower(),where.lower()) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
-        return result_set.fetchall()
-
-    #TODO
     #IMAGES#
     def add_image(self,page_type, page_id, image_url, caption):
         if page_type == 'actor':
@@ -215,9 +177,8 @@ class DatabaseControllerNeo():
             gallery.append(Image(*image))
         return gallery
 
-    #TODO rewrite
     #GET#
-    #TODO may search in bios or descriptions?
+    #TODO maybe search in bios or descriptions?
 
     def get_actor(self, actor_id):
         #TODO callback to get an actor that's not already in the db (send an error: no such actor in db, then try imdbImp, then imdbImp will give an error if no such person)
@@ -425,47 +386,55 @@ class DatabaseControllerNeo():
     #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
     # You can revert an mr change by ID without changing the ID's 
 
-    #TODO
+    #TODO abilities need to be nodes
     #ABILITIES#
     def create_ability(self, name, description):
+        pass
         create_sql = '''INSERT INTO abilities (name, description) VALUES (?,?)'''
         self.cursor.execute(create_sql, (name, description))
         return self.cursor.lastrowid
 
     def create_ability_history(self, id, name, description):
+        pass
         old_ability = self.get_ability(id)
         try:
             historySql = '''INSERT INTO abilities_history(id, name, description) VALUES (?,?,?) '''
             self.cursor.execute(historySql, (old_ability.id, old_ability.name, old_ability.description,))
         except IntegrityError:
-            print(traceback.print_exc())
+            logging.error()
 
         changeDescSql='''UPDATE abilities SET name=?, description=? WHERE id=?'''
         self.cursor.execute(changeDescSql, (name, description, id,))
 
     def remove_ability_actor(self, actor_id, ability_list):
+        pass
         self.cursor.execute("DELETE FROM actors_to_abilities WHERE actor_id={}  AND ability_id IN ".format(actor_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
 
     def remove_ability_role(self, role_id, ability_list):
+        pass
         self.cursor.execute("DELETE FROM roles_to_abilities WHERE role_id={}  AND ability_id IN ".format(role_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
 
     def add_ability_actor(self, actor_id, ability_list):
+        pass
         create_ability_actor_sql = "INSERT OR IGNORE INTO actors_to_abilities(actor_id,ability_id) VALUES (?,?)"
         for ability_id in ability_list:
             self.cursor.execute(create_ability_actor_sql,(actor_id,ability_id,))
 
     def add_ability_role(self, role_id, ability_list):
+        pass
         create_ability_role_sql = "INSERT OR IGNORE INTO roles_to_abilities(role_id,ability_id) VALUES (?,?)"
         for ability_id in ability_list:
             self.cursor.execute(create_ability_role_sql,(role_id,ability_id,))
 
     def get_ability(self, ability_id):
+        pass
         fetched_ability = self.select_where("*","abilities","id",ability_id)
         if len(fetched_ability) == 1:
             ability = fetched_ability[0]
             return Ability(*ability)
 
     def get_ability_list_role(self, role_id):
+        pass
         ability_ids = self.select_where("ability_id", "roles_to_abilities", "role_id", role_id)
         abilities = []
         if len(ability_ids) >= 1:
@@ -474,6 +443,7 @@ class DatabaseControllerNeo():
         return abilities
 
     def get_ability_list_actor(self, actor_id):
+        pass
         ability_ids = self.select_where("ability_id", "actors_to_abilities", "actor_id", actor_id)
         abilities = []
         if len(ability_ids) == 1:
@@ -482,6 +452,7 @@ class DatabaseControllerNeo():
         return abilities
 
     def get_ability_list_exclude_actor(self, actor_id):
+        pass
         ability_ids = self.select_where("ability_id", "actors_to_abilities", "actor_id", actor_id)
         
         abilities_that_are_not_connected = []
@@ -497,6 +468,7 @@ class DatabaseControllerNeo():
         return abilities_that_are_not_connected
 
     def get_ability_list_exclude_role(self, role_id):
+        pass
         ability_ids = self.select_where("ability_id", "roles_to_abilities", "role_id", role_id)
         
         abilities_that_are_not_connected = []
@@ -512,6 +484,7 @@ class DatabaseControllerNeo():
         return abilities_that_are_not_connected
 
     def get_ability_template_list(self, role_id):
+        pass
         template_id_list = self.select_where("template_id", "roles_to_ability_templates", "role_id", role_id)
         
         ability_templates = []
@@ -522,6 +495,7 @@ class DatabaseControllerNeo():
         return ability_templates
 
     def get_ability_template_list_exclude_role(self, role_id):
+        pass
         template_id_list = self.select_where("template_id", "roles_to_ability_templates", "role_id", role_id)
         new_id_list = [temp_id[0] for temp_id in template_id_list]
 
@@ -535,6 +509,7 @@ class DatabaseControllerNeo():
         return ability_templates
 
     def get_abilities_template(self, template_id):
+        pass
         fetched_ability_id_list = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)
         new_id_list = [id[0] for id in fetched_ability_id_list]
         ability_list = []
@@ -543,6 +518,7 @@ class DatabaseControllerNeo():
         return ability_list
 
     def get_ability_list_exclude_template(self, template_id):
+        pass
         ability_ids = self.select_where("ability_id", "ability_templates_to_abilities", "template_id", template_id)
 
         abilities_that_are_not_connected = []
@@ -559,42 +535,50 @@ class DatabaseControllerNeo():
         return abilities_that_are_not_connected
 
     def create_ability_template(self, name, description):
+        pass
         create_template_sql = "INSERT INTO ability_templates(template_name, template_description) VALUES (?,?)"
         self.cursor.execute(create_template_sql,(name,description))
         return self.cursor.lastrowid
 
     def remove_template(self, role_id, template_id_list):
+        pass
         self.cursor.execute("DELETE FROM roles_to_ability_templates WHERE role_id={}  AND ability_id IN ".format(role_id) + '(%s)' % ','.join('?'*len(template_id_list)), template_id_list)
 
     def add_template_role(self, role_id, template_id_list):
+        pass
         add_template_sql = '''INSERT OR IGNORE INTO roles_to_ability_templates(role_id, template_id) VALUES (?,?)'''
         for template_id in template_id_list:
             self.cursor.execute(add_template_sql, (role_id, template_id))
 
     def get_ability_template(self, template_id):
+        pass
         template = self.select_where("*", "ability_templates", "template_id", template_id)[0]
         return AbilityTemplate(*template, self)
         
     def remove_ability_from_template(self, template_id, ability_list):
+        pass
         self.cursor.execute("DELETE FROM ability_templates_to_abilities WHERE template_id={} AND ability_id IN".format(template_id) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
 
     def add_abilities_to_template(self,template_id, ability_list):
+        pass
         connect_template_ability_sql = "INSERT OR IGNORE INTO ability_templates_to_abilities(template_id,ability_id) VALUES (?,?)"
         for ability_id in ability_list:
             self.cursor.execute(connect_template_ability_sql,(template_id,ability_id,))
 
     def create_template_history(self, template_id, new_name, new_description):
+        pass
         old_template = self.get_ability_template(template_id)
         try:
             historySql = '''INSERT INTO ability_template_history(id, name, description) VALUES (?,?,?) '''
             self.cursor.execute(historySql, (old_template.id, old_template.name, old_template.description,))
         except IntegrityError:
-            print(traceback.print_exc())
+            logging.exception()
 
         changeDescSql='''UPDATE ability_templates SET template_name=?, template_description=? WHERE template_id=?'''
         self.cursor.execute(changeDescSql, (new_name, new_description, template_id,))
 
     def get_template_history(self, template_id):
+        pass
         revision_list = []
         history = self.select_where("*", "ability_template_history", "id", template_id)
         for revision in history:
@@ -602,6 +586,7 @@ class DatabaseControllerNeo():
         return revision_list
 
     def get_all_abilities(self):
+        pass
         fetched_abilities = self.select('*', 'abilities')
         abilities = []
         for ability in fetched_abilities:
@@ -609,13 +594,13 @@ class DatabaseControllerNeo():
         return abilities
 
     def get_ability_history(self, id):
+        pass
         revision_list = []
         history = self.select_where("*", "abilities_history", "id", id)
         for revision in history:
             revision_list.append(AbilityHistory(*revision))
         return revision_list
 
-    #TODO
     #RELEATIONSHIPS#
     def add_relationship_actor(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
         add_relationship_neo = '''MATCH (a1:ACTOR {id:$actor1_id}), (a2:ACTOR {id:$actor2_id}}) CREATE (a1) - [$relationship_type] - (a2)'''

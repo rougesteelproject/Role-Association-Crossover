@@ -1,6 +1,6 @@
 from imdb import Cinemagoer
 import constants
-import traceback
+import logging
 
 #TODO switch to the s3dataset method so you can just download once, re-download every so often
 #https://imdbpy.readthedocs.io/en/latest/usage/s3.html
@@ -21,7 +21,7 @@ class IMDBImporter():
         try:
             actor = self.ia.get_person(str(actor_ID).zfill(8))
             #TODO actor = self.ia.get_person(str(actor_ID).zfill(8), info = ['biography','filmography'])
-            #This is a test of a change to get only what we need
+            #This will be a test of a change to get only what we need
             actor_name = actor['name']
             actor_id = actor.personID
             actor_bio = actor['biography'][0]
@@ -55,7 +55,7 @@ class IMDBImporter():
                             self._create_role_and_first_mr(character_name, role_id, role_name, actor_id)
 
         except:
-            traceback.print_exc()       
+            logging.exception()      
         print('* * *')
 
     def get_all_IMDB(self):
@@ -65,6 +65,11 @@ class IMDBImporter():
             self.get_actor_IMDB(actor_id)
             actor_id += 1
         print('Done')
+
+    def get_testing_IMDB(self):
+        self.get_actor_IMDB(89707)
+        self.get_actor_IMDB(284)
+        self.get_actor_IMDB(1281932)
 
     def _create_role_id(self, actor_id, movie, role_index):
         role_id = actor_id + '-' + movie.movieID + '-' + str(role_index)

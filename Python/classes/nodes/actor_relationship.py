@@ -8,7 +8,7 @@ class ActorRelationship():
         self.type = type
         self.link_actor_id = None
         self.link_actor_name = None
-        #TODO rename this a bit, because we still need linck_actor_name for plaintext, it's the "other" member
+        #TODO rename this a bit, because we still need link_actor_name for plaintext, it's the "other" member
         self.plaintext_actor_id = None
         self.plaintext_actor_name = None
 

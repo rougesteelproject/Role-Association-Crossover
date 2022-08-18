@@ -1,10 +1,22 @@
-
-
 import constants
-
+import logging
 import sqlite3
 from sqlite3.dbapi2 import IntegrityError
-import traceback
+from classes.nodes.image import Image
+from classes.nodes.actor import Actor
+from classes.nodes.meta_role import MetaRole
+from classes.nodes.role import Role
+from classes.nodes.ability import Ability
+from classes.nodes.ability_template import AbilityTemplate
+from classes.nodes.actor_relationship import ActorRelationship
+from classes.nodes.role_relationship import RoleRelationship
+
+from classes.histories.actor_history import ActorHistory
+from classes.histories.meta_role_history import MetaRoleHistory
+from classes.histories.role_history import RoleHistory
+from classes.histories.template_history import TemplateHistory
+from classes.histories.ability_history import AbilityHistory
+
 
 class DatabaseControllerSQL():
     def __init__(self, database_uri = constants.SQL_URI):
@@ -26,12 +38,11 @@ class DatabaseControllerSQL():
 
             return connection
         except sqlite3.Error:
-            traceback.print_exc()
+            logging.exception()
 
     def execute(self, command, parameters = None):
         self._sql_cursor.execute(command, parameters)
 
-    def commit(self):
         self._sql_connection.commit()
 
     def create_db_if_not_exists(self):
@@ -442,7 +453,7 @@ class DatabaseControllerSQL():
             historySql = '''INSERT INTO abilities_history(id, name, description) VALUES (?,?,?) '''
             self.execute(historySql, (old_ability.id, old_ability.name, old_ability.description,))
         except IntegrityError:
-            print(traceback.print_exc())
+            logging.exception()
 
         changeDescSql='''UPDATE abilities SET name=?, description=? WHERE id=?'''
         self.execute(changeDescSql, (name, description, id,))
@@ -593,7 +604,7 @@ class DatabaseControllerSQL():
             historySql = '''INSERT INTO ability_template_history(id, name, description) VALUES (?,?,?) '''
             self.execute(historySql, (old_template.id, old_template.name, old_template.description,))
         except IntegrityError:
-            print(traceback.print_exc())
+            logging.exception()
 
         changeDescSql='''UPDATE ability_templates SET template_name=?, template_description=? WHERE template_id=?'''
         self.execute(changeDescSql, (new_name, new_description, template_id,))
