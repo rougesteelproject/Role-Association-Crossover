@@ -4,3 +4,9 @@ Python/classes/histories/__pycache__/
 Python/classes/nodes/__pycache__/
 Python/db_controllers/__pycache__/
 Python/page_generators/__pycache__/
+
+errors.log
+
+RAC_env/
+RAC_env/
+RAC_env/

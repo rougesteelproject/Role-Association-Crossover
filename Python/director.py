@@ -17,8 +17,7 @@ import constants as constants
 class Director:
     def __init__(self, db_type : str = 'sql'):
         self._db_type = db_type
-        self._bug_filename = constants.ERROR_LOG_URI
-        logging.basicConfig(filename= self._bug_filename, encoding='utf-8', level=logging.WARNING)
+        logging.basicConfig(filename= constants.ERROR_LOG_URI, encoding='utf-8', level=logging.WARNING)
         
         self._create_db_controller()
 
