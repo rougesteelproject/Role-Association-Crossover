@@ -1,8 +1,21 @@
-from uuid import uuid4
 import constants
 from neo4j import GraphDatabase
 import traceback
+
 from classes.nodes.image import Image
+from classes.nodes.actor import Actor
+from classes.nodes.meta_role import MetaRole
+from classes.nodes.role import Role
+from classes.nodes.actor_relationship import ActorRelationship
+from classes.nodes.role_relationship import RoleRelationship
+from classes.nodes.ability import Ability
+from classes.nodes.ability_template import AbilityTemplate
+
+from classes.histories.actor_history import ActorHistory
+from classes.histories.meta_role_history import MetaRoleHistory
+from classes.histories.role_history import RoleHistory
+from classes.histories.template_history import TemplateHistory
+from classes.histories.ability_history import AbilityHistory
 
 #TODO this needs a lot of testing, because i'm sure I do it wrong
 #TODO clean up methods that are never called
@@ -89,18 +102,6 @@ class DatabaseControllerNeo():
         self.create_role(role_id, role_name, actor_id, role_id)
 
     #UPDATE#
-    #TODO
-    def update(self, table_name, column, column_value, where, where_value):
-        update_neo = "MATCH (n:$table_name {$where: $where_value}) SET n.$column = $column_value"
-        self.cursor.execute(update_neo, (table_name, where, where_value, column, column_value,))
-
-    def update_or(self, table_name, column, column_value, where_1, where_value_1, where_2, where_value_2):
-        update_sql = "UPDATE {} SET {}=? WHERE {}=? OR {}=?".format(table_name.lower(), column.lower(), where_1.lower(), where_2.lower())
-        self.cursor.execute(update_sql, (column_value,where_value_1,where_value_2,))
-    
-    def update_and(self, table_name, column, column_value, where_1, where_value_1, where_2, where_value_2):
-        update_sql = "UPDATE {} SET {}=? WHERE {}=? AND {}=?".format(table_name, column, where_1, where_2)
-        self.cursor.execute(update_sql, (column_value, where_value_1, where_value_2,))
 
     def _changeMR(self, role_id, mr_id):
         delete_neo = """MATCH (r:ROLE {id: $role_id}) - [v:VERSION] -> ()
@@ -146,9 +147,10 @@ class DatabaseControllerNeo():
         else:
             print("Actor Swap Error: IDs are the same.")
 
-    #TODO
-    def _remove_actor_swap(self):
-        pass
+    def _remove_actor_swap(self, role_id):
+        remove_actor_swap_neo = """MATCH (r:ROLE {id:$role_id}) REMOVE (r) - [actor_swap] - () """
+        remove_actor_swap_parameters = {'role_id':role_id}
+        self.execute(remove_actor_swap_neo,remove_actor_swap_parameters)
 
     #TODO we can selects the whole web. Maybe adjust accordingly.
     #SELECT#
@@ -187,18 +189,19 @@ class DatabaseControllerNeo():
         result_set = self.cursor.execute("SELECT {} FROM {} WHERE {} NOT IN ".format(select_columns.lower(),table_name.lower(),where.lower()) + '(%s)' % ','.join('?'*len(ability_list)), ability_list)
         return result_set.fetchall()
 
-
+    #TODO
     #IMAGES#
     def add_image(self,page_type, page_id, image_url, caption):
         if page_type == 'actor':
-            sql = '''INSERT INTO gallery (file, actor, caption) VALUES (?,?,?)'''
+            neo = '''MATCH (a:ACTOR {id:$page_id}) CREATE (i:IMAGE {url:$image_url, caption:$caption})-[GALLERY]-(a)'''
         else:
-            sql = '''INSERT INTO gallery (file, role, caption) VALUES (?,?,?)'''
-        self.cursor.execute(sql,(image_url,page_id,caption,))
+            neo = '''MATCH (r:ROLE {id:$page_id}) CREATE (i:IMAGE {url:$image_url, caption:$caption})-[GALLERY]-(r)'''
+        parameters = {'page_id':page_id, 'image_url': image_url, 'caption':caption}
+        self.execute(neo, parameters)
 
     def get_images_actor(self, actor_id):
         #LEAVE UN-PASSED
-        fetched_images = self.select_where("file, caption", "gallery", "actor", actor_id)
+        fetched_images = self.execute('''MATCH (i:IMAGE)-[GALLERY]-(a:ACTOR {id:$page_id})''', parameters={'page_id': actor_id})
         gallery = []
         for image in fetched_images:
             gallery.append(Image(*image))
@@ -206,7 +209,7 @@ class DatabaseControllerNeo():
 
     def get_images_role(self, role_id):
         #LEAVE UN-PASSED
-        fetched_images = self.select_where("file, caption", "gallery", "role", role_id)
+        fetched_images = self.execute('''MATCH (i:IMAGE)-[GALLERY]-(r:ROLE {id:$page_id})''', parameters={'page_id': role_id})
         gallery = []
         for image in fetched_images:
             gallery.append(Image(*image))
@@ -219,7 +222,7 @@ class DatabaseControllerNeo():
     def get_actor(self, actor_id):
         #TODO callback to get an actor that's not already in the db (send an error: no such actor in db, then try imdbImp, then imdbImp will give an error if no such person)
         if actor_id != '':
-            fetched_actor = self.select_where("*","actors","id",actor_id)[0]
+            fetched_actor = self.execute('''MATCH (a:ACTOR {id:$actor_id})''', {'actor_id':actor_id})
             actor = Actor(*fetched_actor, self)
             return actor
         else:
@@ -227,25 +230,25 @@ class DatabaseControllerNeo():
 
     def get_actors_search(self, query):
         actors = []
-        fetched_actors = self.select_like("*","actors","name", query)
+        fetched_actors = self.execute('''MATCH (a:ACTOR) WHERE a.name CONTAINS $query''', {'query':query})
         for actor in fetched_actors:
             actors.append(Actor(*actor, self))
         return actors
 
     def get_all_actors(self):
-        all_actors_fetched = self.select("*", "actors")
+        all_actors_fetched = self.execute('''MATCH (a:ACTOR)''')
         all_actors = []
         for actor in all_actors_fetched:
             all_actors.append(Actor(*actor, self))
         return all_actors
 
     def get_mr(self, mr_id):
-        fetched_mr = self.select_where("*","meta_roles", "id",mr_id)[0]
+        fetched_mr = self.execute('''MATCH (mr:META_ROLE) WHERE mr.id = $mr_id''', {'mr_id':mr_id})
         return MetaRole(*fetched_mr, self)
 
     def get_mrs_search(self,query):
         mrs = []
-        fetched_mrs = self.select_like("*","meta_roles","name",query)
+        fetched_mrs = self.self.execute('''MATCH (mr:META_ROLE)''')
         for mr in fetched_mrs:
             new_mr = MetaRole(*mr, self)
             new_mr.get_roles()
@@ -255,7 +258,7 @@ class DatabaseControllerNeo():
         return mrs
 
     def get_role(self, role_id):
-        fetched_role = self.select_where("*","roles","id",role_id)
+        fetched_role = self.execute('''MATCH (r:ROLE) WHERE r.id = $role_id''', {'role_id':role_id})
         if len(fetched_role) != 0:
             return Role(*fetched_role[0], self)
         else:
@@ -264,15 +267,15 @@ class DatabaseControllerNeo():
     def get_roles(self, parent_id, is_actor):
         roles = []
         if is_actor:
-            fetched_roles = self.select_where("*", "roles", "parent_actor", parent_id)
+            fetched_roles = self.execute('''MATCH (r:ROLE)<-[PLAYS]-(a:ACTOR {id:$parent_id})''', {'parent_id':parent_id})
         else:
-            fetched_roles = self.select_where("*","roles","parent_meta",parent_id)
+            fetched_roles = self.execute('''MATCH (r:ROLE)<-[VERSION]-(a:META_ROLE {id:$parent_id})''', {'parent_id':parent_id})
         for role in fetched_roles:
             roles.append(Role(*role, self))
         return roles
 
     def get_all_roles(self):
-        all_roles_fetched = self.select("*", "roles")
+        all_roles_fetched = self.execute('''MATCH (r:ROLE)''')
         all_roles = []
         for role in all_roles_fetched:
             all_roles.append(Role(*role, self))
@@ -280,20 +283,20 @@ class DatabaseControllerNeo():
 
     def get_roles_search(self, query):
         roles = []
-        fetched_roles = self.select_like("*","roles","name",query)
+        fetched_roles = self.execute('''MATCH (r:ROLE) WHERE r.name CONTAINS $query''', {'query':query})
         for role in fetched_roles:
             roles.append(Role(*role, self))
         return roles
         
     def get_roles_swap(self, mr_id, actor_swap_id):
         roles = []
-        fetched_roles = self.select_and("*","roles","parent_meta",mr_id, "actor_swap_id", actor_swap_id)
+        fetched_roles = self.execute('''MATCH (mr:META_ROLE {id:$mr_id})<-[VERSION]-()-[ACTOR_SWAP]-()''',{'mr_id':mr_id})
         for role in fetched_roles:
             roles.append(Role(*role,self))
         return roles
 
     def get_parent_meta(self, role_id):
-        parent_meta = self.select_where("parent_meta", "roles", "id", role_id)[0][0]
+        parent_meta = self.execute('''MATCH (r:ROLE)<-[VERSION]-(mr:META_ROLE) WHERE r.id = $role_id RETURN mr.id''',{'role_id':role_id})
         return parent_meta
 
     def search_char_connector(self, query1, query2):
@@ -350,6 +353,7 @@ class DatabaseControllerNeo():
 
         return search_bar_actors, search_bar_mrs
 
+    #TODO
     #HISTORY#
     def get_actor_history(self,id):
         revision_list = []
@@ -403,15 +407,15 @@ class DatabaseControllerNeo():
             role_id_2, mr_id_2 = id2.split('|')
 
             if mode == "changeMR":
-                self.changeMR(role_id_1, mr_id_2)
+                self._changeMR(role_id_1, mr_id_2)
             elif mode == "resetMR":
-                self.resetMR(role_id_1)
+                self._resetMR(role_id_1)
             elif mode == "mergeMR":
-                self.mergeMR(mr_id_1,mr_id_2)
+                self._mergeMR(mr_id_1,mr_id_2)
             elif mode == "actorSwap":
-                self.actorSwap(role_id_1,role_id_2, mr_id_1, mr_id_2)
+                self._connect_actor_swap(role_id_1,role_id_2, mr_id_1, mr_id_2)
             elif mode == "removeActorSwap":
-                self.removeActorSwap(role_id_1)
+                self._remove_actor_swap(role_id_1)
             else:
                 print(f'Opperation \'{mode}\' does not exist.')
 
@@ -421,6 +425,7 @@ class DatabaseControllerNeo():
     #TODO a hsitory in each role of it's prior Mr's name, including an option to revert the whole change. Changes have change Id's. 
     # You can revert an mr change by ID without changing the ID's 
 
+    #TODO
     #ABILITIES#
     def create_ability(self, name, description):
         create_sql = '''INSERT INTO abilities (name, description) VALUES (?,?)'''
@@ -610,14 +615,16 @@ class DatabaseControllerNeo():
             revision_list.append(AbilityHistory(*revision))
         return revision_list
 
+    #TODO
     #RELEATIONSHIPS#
     def add_relationship_actor(self, actor1_id, actor1_name, actor2_id, actor2_name, relationship_type):
-        sql = '''INSERT INTO actor_relationships(actor1_id, actor1_name, actor2_id, actor2_name, relationship_type) VALUES (?,?,?,?,?)'''
-        self.cursor.execute(sql, (actor1_id, actor1_name, actor2_id, actor2_name, relationship_type))
+        add_relationship_neo = '''MATCH (a1:ACTOR {id:$actor1_id}), (a2:ACTOR {id:$actor2_id}}) CREATE (a1) - [$relationship_type] - (a2)'''
+        add_relationship_parameters = {'actor1_id':actor1_id, 'actor2_id':actor2_id, 'relationship_type':relationship_type.upper()}
+        self.execute(add_relationship_neo,add_relationship_parameters)
 
     def get_relationships_actor_by_actor_id(self, actor_id):
         relationships = []
-        fetched_relationships = self.select_or("*", "actor_relationships", "actor1_id", actor_id, "actor2_id", actor_id)
+        fetched_relationships = self.execute('''MATCH (a:ACTOR {id:$actor_id})-[]-(a2:ACTOR) RETURN a.id, a.name, a2,id, a2.name''', {'actor_id':actor_id})
         if len(fetched_relationships) != 0:
             for relationship in fetched_relationships:
                 new_relationship = ActorRelationship(*relationship)
@@ -627,23 +634,27 @@ class DatabaseControllerNeo():
             print(f'No relationships for actor {actor_id}')
         return relationships
 
-    def remove_relationships_actor(self, relationship_id_list):
+    def remove_relationships_actor(self, actor_id, relationship_id_list):
         for relationship_id in relationship_id_list:
-            delete_sql ='''DELETE FROM actor_relationships WHERE relationship_id={}'''.format(relationship_id)
-            self.cursor.execute(delete_sql)
+            remove_relationship_neo = '''MATCH (a:ACTOR {id:$actor_id})-[rel:]-(ACTOR) WHERE rel.id IN $relationship_id_list DELETE rel'''
+            remove_relationship_parameters = {'actor_id':actor_id, 'relationship_id_list':relationship_id_list}
+            self.execute(remove_relationship_neo, remove_relationship_parameters)
 
     def add_relationship_role(self, role1_id, role1_name, role2_id, role2_name, relationship_type):
-        sql = '''INSERT INTO role_relationships(role1_id, role1_name, role2_id, role2_name, relationship_type) VALUES (?,?,?,?,?)'''
-        self.cursor.execute(sql, (role1_id, role1_name, role2_id, role2_name, relationship_type))
+        add_relationship_neo = '''MATCH (r1:ROLE {id:$role1_id}), (a2:ROLE {id:$role2_id}}) CREATE (r1) - [:$relationship_type] - (r2)'''
+        add_relationship_parameters = {'role1_id':role1_id, 'role1_id':role2_id, 'relationship_type':relationship_type.upper()}
+        self.execute(add_relationship_neo,add_relationship_parameters)
 
     def get_relationships_role_by_role_id(self, role_id):
         relationships = []
-        fetched_relationships = self.select_or("*", "role_relationships", "role1_id", role_id, "role2_id", role_id)
+        get_relationships_neo = '''MATCH (r:ROLE {id:$role_id}) - [r] - (r2:ROLE) WHERE r <> 'ACTOR_SWAP' RETURN r.id, r.name, r2.id, r2.name '''
+        get_relationships_parameters = {'role_id':role_id}
+        fetched_relationships = self.execute(get_relationships_neo,get_relationships_parameters)
         for relationship in fetched_relationships:
             relationships.append(RoleRelationship(*relationship, self))
         return relationships
 
-    def remove_relationships_role(self, relationship_id_list):
-        for relationship_id in relationship_id_list:
-            delete_sql ='''DELETE FROM role_relationships WHERE relationship_id={}'''.format(relationship_id)
-            self.cursor.execute(delete_sql)
+    def remove_relationships_role(self, role_id, relationship_id_list):
+        remove_relationship_neo = '''MATCH (r:ROLE {id:$role_id})-[rel:]-(ROLE) WHERE rel.id IN $relationship_id_list DELETE rel'''
+        remove_relationship_parameters = {'role_id':role_id, 'relationship_id_list':relationship_id_list}
+        self.execute(remove_relationship_neo, remove_relationship_parameters)

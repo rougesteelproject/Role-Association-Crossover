@@ -169,7 +169,7 @@ class Director:
 
             if "relationship_remover" in request.form:
                 relationship_ids = request.form.getlist('remove_relationship')
-                self._db_control.remove_relationships_actor(relationship_ids)
+                self._db_control.remove_relationships_actor(editorID, relationship_ids)
                 self._db_control.commit()
                 
         else:
@@ -263,7 +263,7 @@ class Director:
 
             if "relationship_remover" in request.form:
                 relationship_ids = request.form.getlist('remove_relationship')
-                self._db_control.remove_relationships_role(relationship_ids)
+                self._db_control.remove_relationships_role(editorID, relationship_ids)
                 self._db_control.commit()
 
         else:

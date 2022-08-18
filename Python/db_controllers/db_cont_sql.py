@@ -636,7 +636,7 @@ class DatabaseControllerSQL():
             print(f'No relationships for actor {actor_id}')
         return relationships
 
-    def remove_relationships_actor(self, relationship_id_list):
+    def remove_relationships_actor(self,actor_id, relationship_id_list):
         for relationship_id in relationship_id_list:
             delete_sql ='''DELETE FROM actor_relationships WHERE relationship_id={}'''.format(relationship_id)
             self.execute(delete_sql)
@@ -652,7 +652,7 @@ class DatabaseControllerSQL():
             relationships.append(RoleRelationship(*relationship, self))
         return relationships
 
-    def remove_relationships_role(self, relationship_id_list):
+    def remove_relationships_role(self, role_id,  relationship_id_list):
         for relationship_id in relationship_id_list:
             delete_sql ='''DELETE FROM role_relationships WHERE relationship_id={}'''.format(relationship_id)
             self.execute(delete_sql)
