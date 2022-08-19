@@ -1,0 +1,23 @@
+08/18/2022 09:54:23 PM ClientError while trying to execute neo command
+Traceback (most recent call last):
+  File "e:\Projects\RAC\Role-Association-Crossover\Python\db_controllers\db_cont_neo4j.py", line 57, in _execute
+    response = list(session.run(command,parameters))
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\neo4j\work\simple.py", line 215, in run
+    self._autoResult._run(
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\neo4j\work\result.py", line 117, in _run
+    self._attach()
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\neo4j\work\result.py", line 206, in _attach
+    self._connection.fetch_message()
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\neo4j\io\_common.py", line 188, in inner
+    func(*args, **kwargs)
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\neo4j\io\_bolt4.py", line 306, in fetch_message
+    response.on_failure(summary_metadata or {})
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\neo4j\io\_common.py", line 246, in on_failure
+    raise Neo4jError.hydrate(**metadata)
+neo4j.exceptions.ClientError: Unsupported administration command: CREATE DATABASE rac IF NOT EXISTS
+08/18/2022 09:54:23 PM Query failed: query 'CREATE DATABASE rac IF NOT EXISTS', parameters:
+08/18/2022 09:54:23 PM None
+08/18/2022 09:54:51 PM [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+08/18/2022 09:54:51 PM [33mPress CTRL+C to quit[0m
+08/18/2022 09:55:11 PM 127.0.0.1 - - [18/Aug/2022 21:55:11] "[33mGET /roles/?base_id=89710&level=1&base_is_actor=true HTTP/1.1[0m" 404 -
