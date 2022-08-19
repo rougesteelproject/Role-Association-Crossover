@@ -73,7 +73,7 @@ class Director:
         self._flask_wrapper.add_endpoint(endpoint= '/editor/actor', endpoint_name= 'actor_editor', handler=self._route_actor_editor, methods=['GET','POST'])
 
         #mr editor
-        self._flask_wrapper.add_endpoint(endpoint='/editor/meta/', endpoint_name='mr_editor', handler=self._route_mr_editor, methods=['GET','POST'])
+        self._flask_wrapper.add_endpoint(endpoint='/editor/meta', endpoint_name='mr_editor', handler=self._route_mr_editor, methods=['GET','POST'])
 
         #role editor
         self._flask_wrapper.add_endpoint(endpoint= '/editor/role', endpoint_name= 'role_editor', handler = self._route_role_editor, methods=['GET','POST'])
@@ -130,7 +130,7 @@ class Director:
         #TODO there's probably a way to send a dictionary or something instead of the generator itself.
         
         generator = self._generate_page(base_id, level, self._db_control, enable_actor_swap, base_actor, base_mr)
-        return self._flask_wrapper.render('wiki_template.html', generator=generator, blurb_editor_link="", hub_sigils="" )
+        return self._flask_wrapper.render(template = 'wiki_template.html', generator=generator, blurb_editor_link="", hub_sigils="" )
        
     def _route_actor_editor(self):
 
@@ -455,7 +455,7 @@ class Director:
 def main():
     db_type = 'neo4j'
     director = Director(db_type=db_type)
-    director.import_imdb(testing=True)
+    #director.import_imdb(testing=True)
     director.run_flask(port=5000)
 
 if __name__ == '__main__':

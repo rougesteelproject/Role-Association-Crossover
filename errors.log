@@ -1,4 +1,4 @@
-08/18/2022 09:54:23 PM ClientError while trying to execute neo command
+08/18/2022 10:47:55 PM ClientError while trying to execute neo command
 Traceback (most recent call last):
   File "e:\Projects\RAC\Role-Association-Crossover\Python\db_controllers\db_cont_neo4j.py", line 57, in _execute
     response = list(session.run(command,parameters))
@@ -15,9 +15,24 @@ Traceback (most recent call last):
   File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\neo4j\io\_common.py", line 246, in on_failure
     raise Neo4jError.hydrate(**metadata)
 neo4j.exceptions.ClientError: Unsupported administration command: CREATE DATABASE rac IF NOT EXISTS
-08/18/2022 09:54:23 PM Query failed: query 'CREATE DATABASE rac IF NOT EXISTS', parameters:
-08/18/2022 09:54:23 PM None
-08/18/2022 09:54:51 PM [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+08/18/2022 10:47:55 PM Query failed: query 'CREATE DATABASE rac IF NOT EXISTS', parameters:
+08/18/2022 10:47:55 PM None
+08/18/2022 10:47:55 PM [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
-08/18/2022 09:54:51 PM [33mPress CTRL+C to quit[0m
-08/18/2022 09:55:11 PM 127.0.0.1 - - [18/Aug/2022 21:55:11] "[33mGET /roles/?base_id=89710&level=1&base_is_actor=true HTTP/1.1[0m" 404 -
+08/18/2022 10:47:55 PM [33mPress CTRL+C to quit[0m
+08/18/2022 10:48:02 PM Exception on /wiki [GET]
+Traceback (most recent call last):
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\flask\app.py", line 2525, in wsgi_app
+    response = self.full_dispatch_request()
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\flask\app.py", line 1822, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\flask\app.py", line 1820, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\flask\app.py", line 1796, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "e:\Projects\RAC\Role-Association-Crossover\Python\director.py", line 126, in _route_wiki
+    base_actor = self._db_control.get_actor(base_id)
+  File "e:\Projects\RAC\Role-Association-Crossover\Python\db_controllers\db_cont_neo4j.py", line 203, in get_actor
+    actor = Actor(*fetched_actor, self)
+TypeError: Actor.__init__() missing 6 required positional arguments: 'name', 'bio', 'birth_date', 'death_date', 'is_biggest', and 'db_control'
+08/18/2022 10:48:02 PM 127.0.0.1 - - [18/Aug/2022 22:48:02] "[35m[1mGET /wiki?base_id=89710&level=1&base_is_actor=true HTTP/1.1[0m" 500 -

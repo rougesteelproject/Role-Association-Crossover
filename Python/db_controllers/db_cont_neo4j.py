@@ -199,7 +199,7 @@ class DatabaseControllerNeo():
     def get_actor(self, actor_id):
         #TODO callback to get an actor that's not already in the db (send an error: no such actor in db, then try imdbImp, then imdbImp will give an error if no such person)
         if actor_id != '':
-            fetched_actor = self._execute('''MATCH (a:Actor {imdb_id:$actor_id})''', {'actor_id':actor_id})
+            fetched_actor = self._execute('''MATCH (a:Actor {imdb_id:$actor_id}) RETURN (a)''', {'actor_id':actor_id})
             actor = Actor(*fetched_actor, self)
             return actor
         else:
