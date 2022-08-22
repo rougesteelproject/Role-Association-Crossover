@@ -17,6 +17,7 @@ from classes.histories.role_history import RoleHistory
 from classes.histories.template_history import TemplateHistory
 from classes.histories.ability_history import AbilityHistory
 
+#TODO fictional_in_universe needs to get moved to roles, to resolve eg: Buzz Lightyear the toy having same MR as fictional Buzz the movie character
 
 class DatabaseControllerSQL():
     def __init__(self, database_uri = constants.SQL_URI):
@@ -51,7 +52,7 @@ class DatabaseControllerSQL():
         #INTERGER PRIMARY KEY does auto-increment for you
         self._execute('''CREATE TABLE IF NOT EXISTS gallery(file NOT NULL, role TEXT, actor INT, caption TEXT DEFAULT \'Auto-Generated\')''')
         self._execute('''CREATE TABLE IF NOT EXISTS actors(id INT PRIMARY KEY, name TEXT NOT NULL, bio TEXT, birth_date TEXT, death_date TEXT,is_biggest TEXT DEFAULT \'False\')''')
-        self._execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0, first_parent_meta INT )''')
+        self._execute('''CREATE TABLE IF NOT EXISTS roles(id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT DEFAULT \'-\', alive_or_dead TEXT DEFAULT \'-\', alignment TEXT DEFAULT \'-\',parent_actor INT, parent_meta INT, actor_swap_id INT DEFAULT 0)''')
         #relationships
         self._execute('''CREATE TABLE IF NOT EXISTS actor_relationships(relationship_id INTEGER PRIMARY KEY, actor1_id INT, actor1_name TEXT, actor2_id INT, actor2_name TEXT,relationship_type TEXT) ''')
         self._execute('''CREATE TABLE IF NOT EXISTS role_relationships(relationship_id INTEGER PRIMARY KEY, role1_id TEXT, role1_name TEXT ,role2_id TEXT, role2_name TEXT,relationship_type TEXT)''')
@@ -80,7 +81,7 @@ class DatabaseControllerSQL():
 
     def create_role(self, role_id, role_name, actor_id, mr_id):
         #INSERT OR IGNORE ignores the INSERT if it already exists (if the value we select for has to be unique, like a PRIMARY KEY)
-        create_role_sql = '''INSERT OR IGNORE INTO roles(id, name,parent_actor, parent_meta, first_parent_meta) VALUES (?,?,?,?,?) '''
+        create_role_sql = '''INSERT OR IGNORE INTO roles(id, name,parent_actor, parent_meta) VALUES (?,?,?,?) '''
         # Create table if it doesn't exist
         self._execute(create_role_sql, (role_id, role_name,actor_id, mr_id, role_id,))
 
@@ -115,7 +116,7 @@ class DatabaseControllerSQL():
         self.update("roles", "parent_meta", mr_id, "id", role_id)
 
     def _resetMR(self, role_id_1):
-        update_reset_mr_sql = "UPDATE roles SET parent_meta=first_parent_meta WHERE id=?"
+        update_reset_mr_sql = "UPDATE roles SET parent_meta=id WHERE id=?"
         self._execute(update_reset_mr_sql, (role_id_1,))
 
     def _mergeMR(self, metaID1, metaID2):
@@ -156,7 +157,7 @@ class DatabaseControllerSQL():
                     self.update_and("roles", "actor_swap_id", swap_id, "actor_swap_id", min_swap_id, "parent_meta", parent_meta)
             
         else:
-            print("Actor Swap Error: IDs are the same.")
+            logging.debug("Actor Swap Error: IDs are the same.")
         
     def _remove_actor_swap(self, roleID1, parent_id_1):
         actor_swap_data = self.select_where("actor_swap_id, parent_meta", "roles", "id", roleID1)
@@ -246,7 +247,7 @@ class DatabaseControllerSQL():
             actor = Actor(*fetched_actor, self)
             return actor
         else:
-            print('get_actor error: there was no base_id')
+            logging.debug('get_actor error: there was no base_id')
 
     def get_actors_search(self, query):
         actors = []
@@ -282,7 +283,7 @@ class DatabaseControllerSQL():
         if len(fetched_role) != 0:
             return Role(*fetched_role[0], self)
         else:
-            print(f'No such role: {role_id}')
+            logging.debug(f'No such role: {role_id}')
 
     def get_roles(self, parent_id, is_actor):
         roles = []
@@ -329,7 +330,7 @@ class DatabaseControllerSQL():
         for role in roles_1:
             mr_in_list = False
             for mr in connector_mrs_1:
-                if mr.id == role.parent_meta:
+                if mr.id == self._db_control.get_parent_meta(role.id):
                     mr_in_list= True
 
             if not mr_in_list:
@@ -436,7 +437,7 @@ class DatabaseControllerSQL():
             elif mode == "removeActorSwap":
                 self._remove_actor_swap(role_id_1)
             else:
-                print(f'Opperation \'{mode}\' does not exist.')
+                logging.debug(f'Opperation \'{mode}\' does not exist.')
 
             self.commit()
     
@@ -644,7 +645,7 @@ class DatabaseControllerSQL():
                 new_relationship.set_link_actor(actor_id)
                 relationships.append(new_relationship)
         else:
-            print(f'No relationships for actor {actor_id}')
+            logging.debug(f'No relationships for actor {actor_id}')
         return relationships
 
     def remove_relationships_actor(self,actor_id, relationship_id_list):

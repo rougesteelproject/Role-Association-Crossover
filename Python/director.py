@@ -1,5 +1,3 @@
-#TODO replace exceptions with logging
-
 #   functions modify lists, so we don't neet to return them. 
 
 #TODO a page with everybody, alphabetically
@@ -8,16 +6,13 @@
 
 #TODO commit should be up to db_cont
 
-import distutils
-import distutils.util
-
 import logging
 import constants as constants
 
 class Director:
     def __init__(self, db_type : str = 'sql'):
         self._db_type = db_type
-        logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', filename= constants.ERROR_LOG_URI, encoding='utf-8', level=logging.WARNING, filemode='w')
+        logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', filename= constants.ERROR_LOG_URI, encoding='utf-8', level=logging.ERROR, filemode='w')
         
         self._create_db_controller()
 
@@ -32,10 +27,10 @@ class Director:
     def _generate_page(self, layers_to_generate, enable_actor_swap = False, base_actor = None, base_mr = None):
         if self._db_type == 'sql':
             from page_generators.page_generator_sql import PageGeneratorSQL
-            _page_generator = PageGeneratorSQL(layers_to_generate=layers_to_generate, callback_get_actor=self._db_control.get_actor, callback_get_mr=self._db_control.get_mr, enable_actor_swap=enable_actor_swap, base_actor=base_actor, base_mr=base_mr)
+            _page_generator = PageGeneratorSQL(layers_to_generate=layers_to_generate, callback_db_control=self._db_control, enable_actor_swap=enable_actor_swap, base_actor=base_actor, base_mr=base_mr)
         elif self._db_type == 'neo4j':
             from page_generators.page_generator_neo import PageGeneratorNeo
-            _page_generator = PageGeneratorNeo(layers_to_generate=layers_to_generate, callback_get_actor=self._db_control.get_actor, callback_get_mr=self._db_control.get_mr, enable_actor_swap=enable_actor_swap, base_actor=base_actor, base_mr=base_mr)
+            _page_generator = PageGeneratorNeo(layers_to_generate=layers_to_generate, callback_db_control=self._db_control, enable_actor_swap=enable_actor_swap, base_actor=base_actor, base_mr=base_mr)
 
         _page_generator.generate_content()
 
@@ -115,21 +110,21 @@ class Director:
 
         level = int(request['level'])
         base_id = request['base_id']
-        base_is_actor = bool(distutils.util.strtobool(request['base_is_actor']))
+        if request['base_is_actor'] == 'true':
+            base_actor = self._db_control.get_actor(base_id)
+        else:
+            base_mr = self._db_control.get_mr(base_id)
+
         if "enable_actor_swap" in request:
             enable_actor_swap = True
         else:
             enable_actor_swap = False
-        print(f'director: id to fetch: {base_id}')
 
-        if base_is_actor:
-            base_actor = self._db_control.get_actor(base_id)
-        else:
-            base_mr = self._db_control.get_mr(base_id)
-        
+        logging.debug(f'director: id to fetch: {base_id}')
+            
         #TODO there's probably a way to send a dictionary or something instead of the generator itself.
         
-        generator = self._generate_page(base_id, level, self._db_control, enable_actor_swap, base_actor, base_mr)
+        generator = self._generate_page(level, enable_actor_swap, base_actor, base_mr)
         return self._flask_wrapper.render(template = 'wiki_template.html', generator=generator, blurb_editor_link="", hub_sigils="" )
        
     def _route_actor_editor(self):

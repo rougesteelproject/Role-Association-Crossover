@@ -23,7 +23,7 @@ class IMDBImporter():
             #TODO actor = self.ia.get_person(str(actor_ID).zfill(8), info = ['biography','filmography'])
             #This will be a test of a change to get only what we need
             actor_name = actor['name']
-            actor_id = actor.personID
+            actor_id = str(actor_ID)
             actor_bio = actor['biography'][0]
             birth_date = actor['birth date']
             try:
@@ -31,7 +31,7 @@ class IMDBImporter():
             except:
                 death_date = "n/a"
 
-            print(actor_id + " " + actor_name)
+            logging.debug(actor_id + " " + actor_name)
 
             for job in actor['filmography'].keys():
                 if job == 'actress' or job == 'actor':
@@ -50,13 +50,13 @@ class IMDBImporter():
                             
                             role_id = self._create_role_id(actor_id, movie,role_index+1)
                             role_name = self._create_role_name(character_name,movie_title,actor_name)
-                            print(role_name)
+                            logging.debug(role_name)
                         
                             self._create_role_and_first_mr(character_name, role_id, role_name, actor_id)
 
         except:
             logging.exception(f'An exception ocured while getting actor with id: {actor_ID}')
-        print('* * *')
+        logging.debug('* * *')
 
     def get_all_IMDB(self):
         #Have it go from 0 to eight nines, since they have 50mil, tops
@@ -64,7 +64,7 @@ class IMDBImporter():
         while actor_id < self.number_of_actors_to_loop:
             self.get_actor_IMDB(actor_id)
             actor_id += 1
-        print('Done')
+        logging.debug('Done')
 
     def get_testing_IMDB(self):
         self.get_actor_IMDB(89707)

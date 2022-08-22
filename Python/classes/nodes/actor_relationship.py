@@ -1,3 +1,5 @@
+import logging
+
 class ActorRelationship():
     def __init__(self, id, actor1_id, actor1_name, actor2_id, actor2_name, type):
         self.id = id
@@ -24,7 +26,7 @@ class ActorRelationship():
             self.plaintext_actor_id = self.actor1_id
             self.plaintext_actor_name = self.actor1_name
         else:
-            print(f'Error: {actor_id} is not either of the actors in relationship {self.id}')
+            logging.error(f'Error: {actor_id} is not either of the actors in relationship {self.id}')
 
 
     def __lt__(self, other):

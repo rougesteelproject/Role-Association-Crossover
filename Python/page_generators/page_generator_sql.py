@@ -1,12 +1,11 @@
-from email.mime import base
+import logging
 from wiki_page_generator import WikiPageGenerator
 
 class PageGeneratorSQL(WikiPageGenerator):
-    def __init__(self, layers_to_generate, callback_get_actor, callback_get_mr, enable_actor_swap = False, base_actor = None, base_mr = None):
+    def __init__(self, layers_to_generate, callback_db_control, enable_actor_swap = False, base_actor = None, base_mr = None):
         super().__init__(layers_to_generate, enable_actor_swap)
 
-        self._callback_get_actor = callback_get_actor
-        self._callback_get_mr = callback_get_mr
+        self._cdb_controller = callback_db_control
         
         self._base_name = None
 
@@ -32,7 +31,7 @@ class PageGeneratorSQL(WikiPageGenerator):
 
 
     #SQL Version:
-    def _generate_content(self):
+    def generate_content(self):
         if self._base_name is not None:
             processing_layer = 0
             while processing_layer < self._layers_to_generate:
@@ -45,10 +44,10 @@ class PageGeneratorSQL(WikiPageGenerator):
                 self._get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles()
                 self._get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors()
                 processing_layer += 1
-                print(f'Processed Layer: {processing_layer}')
+                logging.debug(f'Processed Layer: {processing_layer}')
 
-            if self.enable_actor_swap:
-                print('Getting Actor Swaps')
+            if self._enable_actor_swap:
+                logging.debug('Getting Actor Swaps')
                 self._get_actor_swap_roles()
 
             self._generate_actor_relationships()
@@ -61,15 +60,15 @@ class PageGeneratorSQL(WikiPageGenerator):
 
             self._alphabetize()
 
-            print('generation complete')
+            logging.debug('generation complete')
         else:
-            print('Error: attempt to generate page with no base mr or actor')
+            logging.debug('Error: attempt to generate page with no base mr or actor')
 
     def _process_actors_that_dont_show_all_roles(self):
-        print('Process Actors')
+        logging.debug('Process Actors')
         self._top_layer_actors = []
         for actor in self._actors_that_dont_show_all_roles:
-            print(f'{actor.id}: {actor.name}')
+            logging.debug(f'{actor.id}: {actor.name}')
         #for each inactive parent:
             #Get it's roles
             actor.get_roles()
@@ -78,10 +77,10 @@ class PageGeneratorSQL(WikiPageGenerator):
             self._actors_that_dont_show_all_roles = []
 
     def _process_meta_roles_that_dont_show_all_roles(self):
-        print('process mr')
+        logging.debug('process mr')
         self._top_layer_meta_roles = []
         for meta_role in self._meta_roles_that_dont_show_all_roles:
-            print(f'{meta_role.id}: {meta_role.name}')
+            logging.debug(f'{meta_role.id}: {meta_role.name}')
         #for each inactive parent:
             #Get it's roles
             meta_role.get_roles()
@@ -91,7 +90,7 @@ class PageGeneratorSQL(WikiPageGenerator):
 
 
     def _get_new_meta_roles_that_dont_show_all_roles_from_top_layer_actors(self):
-        print('get meta that dont show')
+        logging.debug('get meta that dont show')
         #for each active parent:
         for actor in self._top_layer_actors:
             for role in actor.roles:
@@ -119,7 +118,7 @@ class PageGeneratorSQL(WikiPageGenerator):
 
     #for each inactive parent:
     def _get_new_actors_that_dont_show_all_roles_from_top_layer_meta_roles(self):
-        print('get actors that dont show')
+        logging.debug('get actors that dont show')
         for mr in self._top_layer_meta_roles:
             for role in mr.roles:
                 

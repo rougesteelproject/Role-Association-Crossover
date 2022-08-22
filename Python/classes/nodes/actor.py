@@ -1,6 +1,3 @@
-from classes.nodes.image import Image
-from distutils.util import strtobool
-
 class Actor:
     def __init__(self, id, name, bio, birth_date, death_date, is_biggest, db_control):
         self.bio = bio
@@ -10,7 +7,10 @@ class Actor:
         self.roles = []
         self.birth_date = birth_date
         self.death_date = death_date
-        self.is_biggest  = strtobool(is_biggest)
+        if is_biggest == 1:
+            self.is_biggest = True
+        else:
+            self.is_biggest = False
         
         self._db_control = db_control
 

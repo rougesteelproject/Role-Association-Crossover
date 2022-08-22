@@ -2,7 +2,7 @@ from classes.nodes.image import Image
 
 class Role:
 
-    def __init__(self, role_id, role_name, role_description, alive_or_dead, alignment, parent_actor_id, parent_meta_id, actor_swap_id, first_parent_meta,db_control):
+    def __init__(self, role_id, role_name, db_control, role_description= "auto-generated", alive_or_dead="alive", alignment="", parent_actor_id= None, parent_meta_id= None, actor_swap_id= None):
         self.id = role_id
         self.name = role_name
         self.description = role_description
@@ -13,7 +13,7 @@ class Role:
         self._db_control = db_control
         self.alive_or_dead = alive_or_dead
         self.alignment = alignment
-        self.first_parent_meta = first_parent_meta
+
         self.gallery = self._db_control.get_images_role(self.id)
 
         self.relationships = self._db_control.get_relationships_role_by_role_id(self.id)

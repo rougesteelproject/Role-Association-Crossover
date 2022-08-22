@@ -1,3 +1,5 @@
+import logging
+
 class RoleRelationship():
     def __init__(self, id, role1_id, role1_name, role2_id, role2_name, type, db_control):
         self.id = id
@@ -23,4 +25,4 @@ class RoleRelationship():
             self.other_role_mr = self.db_control.get_parent_meta(self.role1_id)
             self.other_role_name = self.role1_name
         else:
-            print(f'Error: role {role_id} not a member of relationship {self.id}')
+            logging.error(f'Error: role {role_id} not a member of relationship {self.id}')

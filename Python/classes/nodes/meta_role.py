@@ -1,18 +1,18 @@
-from distutils.util import strtobool
-
-
 class MetaRole():
     #class > tuple because it isn't fixed
-    def __init__(self, MR_class_id, name, description, historical, religious, fictional_in_universe,is_biggest,db_control):
+    def __init__(self, mr_id, name, description, historical, religious, fictional_in_universe,is_biggest,db_control):
         self.roles = []
-        self.id = MR_class_id
+        self.id = mr_id
         self.name = name
         self.description = description
         self._db_control = db_control
         self.historical = historical
         self.religious = religious
         self.fictional_in_universe = fictional_in_universe
-        self.is_biggest = strtobool(is_biggest)
+        if is_biggest == 0:
+            self.is_biggest = False
+        else:
+            self.is_biggest = True
 
     def __lt__(self, other):
         return self.name.lower() < other.name.lower()
