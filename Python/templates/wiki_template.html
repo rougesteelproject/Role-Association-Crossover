@@ -1,19 +1,14 @@
 {% extends "HeadFoot.html" %}
 
 {% block title %}
-  {{generator.base_name}}({{generator.layers_to_generate}})
+  {{generator._base_name}}({{generator._layers_to_generate}})
 {% endblock %}
 
 {% block content %}
     
       <div class="character-nav">
         <ul>
-          <li><a>Web View ({{generator.base_name}})</a></li>
-          {%if generator.base_is_actor%}
-          <li><a href="{{url_for('actor_editor')}}?editorID={{generator.base_id}}">{{generator.base_name}}</a></li>
-          {%else%}
-          <li><a href="{{url_for('mr_editor')}}?editorID={{generator.base_id}}">{{generator.base_name}}</a></li>
-          {%endif%}
+          <li><a>Web View ({{generator._base_name}})</a></li>
         </ul>
         
         <div class="hub-sigils">
@@ -23,7 +18,7 @@
         <div class="number-of-links">
           <form action="{{url_for('wiki')}}" method="GET">
           <input style="display: none;" type="text" name="base_id" value="{{generator.base_id}}">
-          <input style="display: none;" type="text" name="base_is_actor" value="{{generator.base_is_actor}}">
+          <input style="display: none;" type="text" name="base_is_actor" value="True">
           <label for="level">How many layers deep?</label>
           <input type="number" id="level" name="level" min="1" step="1" value="1">
           <label for="enable_actor_swap">Enable Swaped Actors? (The other Darin)</label>
@@ -34,7 +29,7 @@
         </div>
       </div>
       <div class="actor-content">
-        {%for actor in generator.actors_that_show_all_roles%}
+        {%for actor in generator._actors_that_show_all_roles%}
         <div class="bio">
           #TODO make a little box for the gallery and captions
           <h2>{{actor.name}}</h2>
@@ -52,35 +47,35 @@
 
         <div class="actor_relationships">
         <h3>Relationships:</h3>
-        {%for relationship in generator.link_actor_relationships%}
+        {%for relationship in generator._link_actor_relationships%}
         <p><a href="{{url_for('wiki')}}?base_id={{relationship.link_actor}}&base_is_actor=True&level=1">{{relationship.link_actor_name}} </a>- {{relationship.type}}</p>
         {%endfor%}
-        {%for relationship in generator.plaintext_actor_relationships%}
+        {%for relationship in generator._plaintext_actor_relationships%}
         <p>{{relationship.link_actor_name}} - {{relationship.type}}</p>
         {%endfor%}
         </div>
         
         <div class="actor_abilities">
         <h3>Abilities</h3>
-        {%for ability in generator.actor_abilities%}
+        {%for ability in generator._actor_abilities%}
         <p>{{ability.name}} - {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a></p> 
         {%endfor%}
         </div>
 
         <div class="role_relationships">
           <h3>Role Relationships:</h3>
-          {%for relationship in generator.link_role_relationships %}
+          {%for relationship in generator._link_role_relationships %}
           <p><a href="{{url_for('wiki')}}?base_id={{relationship.other_role_mr}}&base_is_actor=False&level=1">{{relationship.other_role_name}}</a> - {{relationship.type}}</p>
           {%endfor%}
   
-          {%for relationship in generator.plaintext_role_relationships %}
+          {%for relationship in generator._plaintext_role_relationships %}
           <p>{{relationship.other_role_name}} - {{relationship.type}}</p>
           {%endfor%}
         </div>
 
         <div class="role_abilities">
           <h3>Role Abilities:</h3>
-          {%for template in generator.templates %}
+          {%for template in generator._templates %}
           <p>{{template.name}}:</p> <a href="{{url_for('template_editor')}}?id={{template.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a>
           <p>{{template.description}}</p>
           <ul>
@@ -91,7 +86,7 @@
           
           {%endfor%}
   
-          {%for ability in generator.role_abilities %}
+          {%for ability in generator._role_abilities %}
           <p>{{ability.name}} - {{ability.description}} <a href="{{url_for('ability_editor')}}?id={{ability.id}}"><img  alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/></a></p>
           {%endfor%}
         </div>
@@ -103,10 +98,10 @@
       <div class="roles-section">
         
         <h1>
-          {{generator.base_name}}
+          {{generator._base_name}}
         </h1>
         
-        {%for mr in generator.meta_roles_that_show_all_roles%}
+        {%for mr in generator._meta_roles_that_show_all_roles%}
         <div class="meta-role-div">
           <h2>
           {{mr.name}} <a href="{{url_for('mr_editor')}}?editorID={{mr.id}}" title="edit this character"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
@@ -139,7 +134,7 @@
         </div>
         {%endfor%}
           
-        {%for mr in generator.meta_roles_that_dont_show_all_roles%}
+        {%for mr in generator._meta_roles_that_dont_show_all_roles%}
         <div class="meta-role-div">
           <h2>
           {{mr.name}} <a href="{{url_for('mr_editor')}}?editorID={{mr.id}}" title="edit this character"> <img alt="editor button" src="{{url_for('static', filename='writing.png')}}" width="25" height="25"/> </a>
