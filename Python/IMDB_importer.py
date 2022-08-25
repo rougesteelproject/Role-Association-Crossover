@@ -2,9 +2,6 @@ from imdb import Cinemagoer
 import constants
 import logging
 
-#TODO switch to the s3dataset method so you can just download once, re-download every so often
-#https://imdbpy.readthedocs.io/en/latest/usage/s3.html
-
 #TODO The get_movie, get_person and get_company methods take an optional info parameter,
 # which can be used to specify the kinds of data to fetch.
 

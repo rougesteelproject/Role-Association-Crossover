@@ -34,7 +34,6 @@ class DatabaseControllerNeo():
 
         self._connection = self._create_connection()
         self._create_db_if_not_exists()
-        #TODO use 'with' more often
 
 #Roles have to be nodes, too, because they have realtionships between them
 

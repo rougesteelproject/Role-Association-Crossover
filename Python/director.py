@@ -4,8 +4,6 @@
 
 #TODO a way to add user-made roles to replace the ... or 'additional voices' for actorw w/ multiple roles, like in skyrim
 
-#TODO commit should be up to db_cont
-
 import logging
 import constants as constants
 

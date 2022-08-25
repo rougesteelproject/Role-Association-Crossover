@@ -1,4 +1,4 @@
-08/25/2022 10:06:18 AM ClientError while trying to execute neo command
+08/25/2022 03:23:14 PM ClientError while trying to execute neo command
 Traceback (most recent call last):
   File "e:\Projects\RAC\Role-Association-Crossover\Python\db_controllers\db_cont_neo4j.py", line 58, in _execute
     response = session.run(command,parameters)
@@ -15,20 +15,18 @@ Traceback (most recent call last):
   File "e:\Projects\RAC\Role-Association-Crossover\RAC_env\lib\site-packages\neo4j\io\_common.py", line 246, in on_failure
     raise Neo4jError.hydrate(**metadata)
 neo4j.exceptions.ClientError: Unsupported administration command: CREATE DATABASE rac IF NOT EXISTS
-08/25/2022 10:06:18 AM Query failed: query 'CREATE DATABASE rac IF NOT EXISTS', parameters:
-08/25/2022 10:06:18 AM None
-08/25/2022 10:06:18 AM [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+08/25/2022 03:23:14 PM Query failed: query 'CREATE DATABASE rac IF NOT EXISTS', parameters:
+08/25/2022 03:23:14 PM None
+08/25/2022 03:23:15 PM [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
-08/25/2022 10:06:18 AM [33mPress CTRL+C to quit[0m
-08/25/2022 10:37:25 AM 127.0.0.1 - - [25/Aug/2022 10:37:25] "GET / HTTP/1.1" 200 -
-08/25/2022 10:37:25 AM 127.0.0.1 - - [25/Aug/2022 10:37:25] "[36mGET /static/styles/styles.css HTTP/1.1[0m" 304 -
-08/25/2022 10:37:25 AM 127.0.0.1 - - [25/Aug/2022 10:37:25] "[36mGET /static/Logo.png HTTP/1.1[0m" 304 -
-08/25/2022 10:37:25 AM 127.0.0.1 - - [25/Aug/2022 10:37:25] "[36mGET /static/magnifying-glass.png HTTP/1.1[0m" 304 -
-08/25/2022 10:37:25 AM 127.0.0.1 - - [25/Aug/2022 10:37:25] "[36mGET /static/magnifying-glass.png HTTP/1.1[0m" 304 -
-08/25/2022 10:37:39 AM 127.0.0.1 - - [25/Aug/2022 10:37:39] "GET / HTTP/1.1" 200 -
-08/25/2022 10:37:39 AM 127.0.0.1 - - [25/Aug/2022 10:37:39] "GET /static/styles/styles.css HTTP/1.1" 200 -
-08/25/2022 10:37:39 AM 127.0.0.1 - - [25/Aug/2022 10:37:39] "GET /static/Logo.png HTTP/1.1" 200 -
-08/25/2022 10:37:39 AM 127.0.0.1 - - [25/Aug/2022 10:37:39] "GET /static/magnifying-glass.png HTTP/1.1" 200 -
-08/25/2022 10:37:40 AM 127.0.0.1 - - [25/Aug/2022 10:37:40] "GET /static/magnifying-glass.png HTTP/1.1" 200 -
-08/25/2022 10:37:40 AM 127.0.0.1 - - [25/Aug/2022 10:37:40] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-08/25/2022 12:04:02 PM 127.0.0.1 - - [25/Aug/2022 12:04:02] "GET /wiki?base_id=89707&level=1&base_is_actor=true HTTP/1.1" 200 -
+08/25/2022 03:23:15 PM [33mPress CTRL+C to quit[0m
+08/25/2022 03:28:40 PM 127.0.0.1 - - [25/Aug/2022 15:28:40] "[36mGET /static/styles/styles.css HTTP/1.1[0m" 304 -
+08/25/2022 03:28:40 PM 127.0.0.1 - - [25/Aug/2022 15:28:40] "[36mGET /static/Logo.png HTTP/1.1[0m" 304 -
+08/25/2022 03:28:40 PM 127.0.0.1 - - [25/Aug/2022 15:28:40] "[36mGET /static/magnifying-glass.png HTTP/1.1[0m" 304 -
+08/25/2022 03:28:40 PM 127.0.0.1 - - [25/Aug/2022 15:28:40] "[36mGET /static/magnifying-glass.png HTTP/1.1[0m" 304 -
+08/25/2022 03:28:40 PM 127.0.0.1 - - [25/Aug/2022 15:28:40] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+08/25/2022 04:10:49 PM 127.0.0.1 - - [25/Aug/2022 16:10:49] "GET /wiki?base_id=89707&level=1&base_is_actor=true HTTP/1.1" 200 -
+08/25/2022 04:10:49 PM 127.0.0.1 - - [25/Aug/2022 16:10:49] "[36mGET /static/styles/styles.css HTTP/1.1[0m" 304 -
+08/25/2022 04:10:49 PM 127.0.0.1 - - [25/Aug/2022 16:10:49] "[36mGET /static/Logo.png HTTP/1.1[0m" 304 -
+08/25/2022 04:10:49 PM 127.0.0.1 - - [25/Aug/2022 16:10:49] "[36mGET /static/magnifying-glass.png HTTP/1.1[0m" 304 -
+08/25/2022 04:10:49 PM 127.0.0.1 - - [25/Aug/2022 16:10:49] "GET /static/writing.png HTTP/1.1" 200 -
