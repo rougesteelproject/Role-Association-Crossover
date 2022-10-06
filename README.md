@@ -17,6 +17,8 @@ of any other classes it has been given
 - TODO variable types with (name: type)
 - TODO more intuitive variable names, a sweep to make it pythonic
 - TODO I shouldn't need "go_back_url"
+-- some need to stay put
+-- Links/buttons can go onclick="history.back()"
 - TODO: update per: https://cinemagoer.readthedocs.io/en/latest/ 
 - TODO: does adultSearch=0 still work?
 - TODO we need a better way to store the changelog for actors/mrs/abilities
