@@ -58,6 +58,7 @@ RAC was developed in Visual Studo Code, and was written in python using the 'fla
 -- Error handling when attempting to get an actor who is not already in the database
 -- A way to revert a merged mr, rather than resetting the mr of each role
 -- A way to add user-made roles to replace the ... or 'additional voices' for actors w/ multiple roles, such as in 'Skyrim'
+-- A strategy for merging duplicate actors/actresses who have changed their name [such as "Comona Lewin"]
 -- The property 'fictional_in_universe' needs to get moved from mr's to roles, to resolve eg: Buzz Lightyear the toy having same MR as fictional Buzz the movie character
 -- Allow the search function to look in descriptions or bios?
 
