@@ -15,17 +15,17 @@ RAC was developed in Visual Studo Code, and was written in python using the 'fla
 ## Future Work
 
 - Cleaner code
--- TODO: the base needs to be more modular. public methods should be calling db-specific private methods
+-- #TODO: the base needs to be more modular. public methods should be calling db-specific private methods
 -- (a note) Law of Demeter: each class should only 'know' it's own methods or variables, and the top-level methods of any other classes it has been given
 -- Have "getters" vs public variables
--- TODO variable types with (name: type)
--- TODO more intuitive variable names, a sweep to make it pythonic
--- TODO: update per: [cinemagoer's docs](https://cinemagoer.readthedocs.io/en/latest/)
--- TODO: does adultSearch=0 still work?
+-- #TODO variable types with (name: type)
+-- #TODO more intuitive variable names, a sweep to make it pythonic
+-- #TODO: update per: [cinemagoer's docs](https://cinemagoer.readthedocs.io/en/latest/)
+-- #TODO: does adultSearch=0 still work?
 
 - Website and forms
 -- Merging and separating roles would be easier with a drag-and-drop interface
--- TODO: navigation back to the previous page should be easier after using a form
+-- #TODO: navigation back to the previous page should be easier after using a form
 --- I shouldn't need "go_back_url"
 --- some pages need to stay put when something is submitted
 --- Links/buttons can go onclick="history.back()"
@@ -44,7 +44,8 @@ RAC was developed in Visual Studo Code, and was written in python using the 'fla
 -- If we can get 'all nodes of distance "n" from a given node', the page generator can be directly integrated into the Flask template.
 
 - Web View
--- TODO (may be working now) neomodel needs Shapely, which doesn't work for python 3.10
+-- #TODO (may be working now) neomodel needs Shapely, which doesn't work for python 3.10
+-- #TODO can I use GraphViz here and have it be clickable?
 
 - "Hub Sigils"
 -- Representations of the largest nodes that a node is connected to, with their distance.
